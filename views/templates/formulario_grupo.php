@@ -61,20 +61,6 @@ try {
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
-  <!-- Incluye jQuery primero -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Luego incluye SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Finalmente tu script personalizado -->
-<script>
-    // Tu código JavaScript aquí
-</script>
-
-<!-- Bootstrap JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
 
 
 
@@ -82,13 +68,12 @@ try {
 
 <body class="vertical  light  ">
   <div class="wrapper">
-  <nav class="topnav navbar navbar-light">
+    <nav class="topnav navbar navbar-light">
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
       <form class="form-inline mr-auto searchform text-muted">
-        <input class="form-control mr-sm-2 bg-transparent border-0 pl-4 text-muted" type="search"
-          placeholder="Type something..." aria-label="Search">
+        <input class="form-control mr-sm-2 bg-transparent border-0 pl-4 text-muted" type="search" placeholder="Type something..." aria-label="Search">
       </form>
       <ul class="nav">
         <li class="nav-item">
@@ -108,8 +93,7 @@ try {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="avatar avatar-sm mt-2">
               <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
             </span>
@@ -118,12 +102,7 @@ try {
             <a class="dropdown-item" href="#">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
-            <!-- Formulario oculto para cerrar sesión -->
-            <form method="POST" action="" id="logoutForm">
-              <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
-            </form>
           </div>
-
         </li>
       </ul>
     </nav>
@@ -463,117 +442,6 @@ try {
     </main> <!-- main -->
   </div> <!-- .wrapper -->
 <!-- jQuery (necesario para DataTables) -->
-<script>
-    // Función para previsualizar la imagen seleccionada
-    function previewImage() {
-        const file = document.getElementById('fileInput').files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.getElementById('imagePreview');
-            img.src = e.target.result;
-            img.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-    }
-
-    // Limpiar campos al cargar la página
-    window.onload = function() {
-        document.getElementById('formRegistroGrupo').reset();
-    };
-
-    $(document).ready(function() {
-
-        // Función para validar y manejar el formulario
-        $('#formRegistroGrupo').on('submit', function(event) {
-            event.preventDefault(); // Prevenir el envío del formulario
-
-            // Validaciones
-            const nombreGrupo = $('#grupo').val().trim();
-            const semestre = $('#semestre').val();
-            const turno = $('#turno').val();
-            const periodo = $('#periodo').val();
-
-            // Validación de campos vacíos
-            if (!nombreGrupo || !semestre || !turno || !periodo ) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Todos los campos son obligatorios.',
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-                return;
-            }
-
-            // Opcional: Validaciones adicionales según tus requisitos
-            // Por ejemplo, verificar la longitud del nombre del grupo
-            if (nombreGrupo.length < 3) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'El nombre del grupo debe tener al menos 3 caracteres.',
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-                return;
-            }
-
-            // Mostrar una confirmación antes de enviar el formulario
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¿Deseas enviar el formulario?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, enviar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Envía el formulario
-                    $('#formRegistroGrupo')[0].submit();
-                }
-            });
-        });
-
-        // Función para comprobar mensajes de la URL
-        function checkForMessages() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const success = urlParams.get('success');
-            const error = urlParams.get('error');
-
-            if (success === 'true') {
-                Swal.fire({
-                    title: 'Éxito!',
-                    text: 'Formulario enviado con éxito!',
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar'
-                });
-            } else if (error) {
-                let errorMessage = '';
-
-                switch (error) {
-                    case 'duplicate':
-                        errorMessage = 'Este registro ya existe.';
-                        break;
-                    case 'invalid':
-                        errorMessage = 'Datos inválidos proporcionados.';
-                        break;
-                    // Puedes agregar más casos según tus necesidades
-                    default:
-                        errorMessage = 'Error desconocido.';
-                }
-
-                Swal.fire({
-                    title: 'Error!',
-                    text: errorMessage,
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-            }
-        }
-
-        // Llamamos a la función al cargar la página para verificar si hay mensajes en la URL
-        checkForMessages();
-    });
-</script>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- DataTables JS -->
@@ -595,11 +463,10 @@ try {
 <script src='js/select2.min.js'></script>
 <script src='js/jquery.steps.min.js'></script>
 <script src='js/jquery.validate.min.js'></script>
-<script src='js/jquery.timepicker.js'></script>|
+<script src='js/jquery.timepicker.js'></script>
 <script src='js/dropzone.min.js'></script>
 <script src='js/uppy.min.js'></script>
 <script src='js/quill.min.js'></script>
-<script src='js/apps.js'></script>
 
 <!-- Código de inicialización de DataTable -->
 <script>
