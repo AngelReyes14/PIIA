@@ -11,28 +11,27 @@ function previewImage() {
 
 // Limpiar campos al cargar la página
 window.onload = function() {
-    document.getElementById('formRegistroMateria').reset();
+    document.getElementById('formRegistroGrupo').reset();
 };
 
 $(document).ready(function() {
     // Reemplaza caracteres no permitidos en el campo de texto
-    $('#nombre_materia').on('input', function() {
+    $('#nombre_semestre').on('input', function() {
         this.value = this.value.replace(/[^A-Za-z\s]/g, '');
     });
 
     // Función para validar y manejar el formulario
-    $('#formRegistroMateria').on('submit', function(event) {
+    $('#formRegistroGrupo').on('submit', function(event) {
         event.preventDefault(); // Prevenir el envío del formulario
 
         // Validaciones
-        const nombreMateria = $('#nombre_materia').val();
-        const creditoMateria = parseInt($('#credito_materia').val(), 10);
-        const horaTeorica = parseInt($('#hora_teorica').val(), 10);
-        const horaPractica = parseInt($('#hora_practica').val(), 10);
-        const grupo = $('#grupo').val();
+        const nombreGrupo = $('#grupo').val();
+        const semestre = $('#semestre').val();
+        const turno = $('#turno').val();
+        const periodo = $('#periodo').val();
 
         // Validación de campos vacíos
-        if (!nombreMateria || !creditoMateria || !horaTeorica || !horaPractica || !grupo) {
+    if (!nombreGrupo || !semestre || !turno || !periodo ) {
             Swal.fire({
                 title: 'Error!',
                 text: 'Todos los campos son obligatorios.',
@@ -42,30 +41,8 @@ $(document).ready(function() {
             return;
         }
 
-        // Validar que los créditos, horas teóricas y horas prácticas sean enteros mayores que 0
-        if (creditoMateria <= 0 || horaTeorica <= 0 || horaPractica <= 0) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Los créditos y horas deben ser números mayores a 0.',
-                icon: 'error',
-                confirmButtonText: 'Aceptar'
-            });
-            return;
-        }
-
-        // Validar que la suma de horas teóricas y prácticas sea igual a los créditos
-        if (horaTeorica + horaPractica !== creditoMateria) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'La suma de horas teóricas y prácticas debe ser igual a los créditos.',
-                icon: 'error',
-                confirmButtonText: 'Aceptar'
-            });
-            return;
-        }
-
         // Si todas las validaciones son correctas, envía el formulario
-        $('#formRegistroMateria')[0].submit(); // Envía el formulario
+        $('#formRegistroGrupo')[0].submit(); // Envía el formulario
 
         // Después de enviar el formulario, esperamos a que se recargue la página y mostramos las alertas
         checkForMessages();

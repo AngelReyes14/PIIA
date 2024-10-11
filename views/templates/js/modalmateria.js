@@ -107,3 +107,25 @@ $(document).ready(function() {
     // Llamamos a la función al cargar la página para verificar si hay mensajes en la URL
     checkForMessages();
 });
+
+$('#formAsignarMateria').on('submit', function(event) {
+    event.preventDefault(); // Prevenir el envío del formulario
+
+    // Validaciones y lógica específica para este formulario
+    const materia = $('#materia').val();
+    const grupo = $('#grupo').val();
+    const periodo = $('#periodo').val();
+
+    if (!materia || !grupo || !periodo) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Todos los campos son obligatorios.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+        return;
+    }
+
+    // Si todo es correcto, enviar el formulario
+    $('#formAsignarMateria')[0].submit(); 
+});

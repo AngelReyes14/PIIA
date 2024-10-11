@@ -13,12 +13,25 @@ try {
 
   // Obtén las carreras y semestres
   $semestres = $consultas->obtenerSemestres();
+
+  $materias = $consultas->obtenerMaterias();
+  
+  $grupos = $consultas->obtenerGrupos();
+
+  $periodos = $consultas ->obtenerPeriodo();
+
+  $materias = $consultas->verMaterias();
+
+  $materiagrupo = $consultas->verMateriasGrupo();
+
 } catch (Exception $e) {
   // Si falla la conexión, retorna un error
   $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
   echo json_encode($response);
   exit();  // Finaliza la ejecución si no hay conexión
 }
+
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -168,76 +181,120 @@ try {
       </nav>
     </aside>
     <main role="main" class="main-content">
-      <div class="col-md-12">
-        <div class="card shadow mb-4">
-          <div class="card-body">
-            <h2 class="">ALTA DE MATERIAS</h2>
-            <div class="conteiner p-4 mb-4 box-shadow-div">
+
+    <div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <h2 class="page-title">Alta de materias</h2>
+      <div class="card my-4">
+        <div class="card-header">
+        </div>
+        <div class="card-body">
+          <div id="example-basic">
+            <h3>Registro de materias</h3>
+            <section>
               <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroMateria">
-                <input type="hidden" name="form_type" value="materia"> <!-- Campo oculto para el tipo de formulario -->
+                <input type="hidden" name="form_type" value="materia">
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <div class="form-group">
                       <label for="nombre_materia" class="form-label-custom">Nombre de la materia:</label>
                       <input class="form-control" id="nombre_materia" name="nombre_materia" type="text" required>
-                      <div class="invalid-feedback">Este campo no puede estar vacío.</div>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="form-group">
                       <label for="credito_materia" class="form-label-custom">Créditos de la materia:</label>
                       <input type="number" class="form-control" id="credito_materia" name="credito_materia" required>
-                      <div class="invalid-feedback">Este campo es obligatorio.</div>
                     </div>
                   </div>
+                </div>
+
+                <div class="row mb-3">
                   <div class="col-md-6">
                     <div class="form-group">
                       <label for="hora_teorica" class="form-label-custom">Horas teóricas:</label>
                       <input type="number" class="form-control" id="hora_teorica" name="hora_teorica" required>
-                      <div class="invalid-feedback">Este campo es obligatorio.</div>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="form-group">
                       <label for="hora_practica" class="form-label-custom">Horas prácticas:</label>
                       <input type="number" class="form-control" id="hora_practica" name="hora_practica" required>
-                      <div class="invalid-feedback">Este campo es obligatorio.</div>
                     </div>
                   </div>
-                  <div class="col-md-12">
-                    <div class="form-group">
-                      <label for="grupo" class="form-label-custom">Semestre:</label>
-                      <select class="form-control" id="semestre" name="semestre" required>
-                        <option value="">Selecciona un semestre</option> <!-- Opción por defecto -->
-                        <?php foreach ($semestres as $semestre): ?>
-                          <option value="<?php echo $semestre['semestre_id']; ?>"><?php echo htmlspecialchars($semestre['nombre_semestre']); ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                      <div class="invalid-feedback">Este campo es obligatorio.</div>
-                    </div>
-                    <div class="form-group">
-                      <label for="grupo" class="form-label-custom">Grupo:</label>
-                      <select class="form-control" id="grupo" name="grupo" required>
-                        <option value="" disabled selected>Seleccione el grupo al que pertenece la materia</option>
-                        <option value="1">1ISC11</option>
-                        <option value="2">1ISC21</option>
-                        <option value="3">1ISC22</option>
-                        <option value="4">2ISC11</option>
-                        <option value="5">2ISC21</option>
-                      </select>
-                      <div class="invalid-feedback">Este campo es obligatorio.</div>
-                    </div>
-                  </div>
-                  <!-- Botón para enviar el formulario -->
-                  <div class="text-center mt-4">
-                    <input type="submit" id="submit-materia" class="btn btn-primary"></input>
-                  </div>
-                </div> <!-- /.row -->
+                </div>
+                
+                <div class="text-center mt-4">
+                  <input type="submit" id="submit-materia" class="btn btn-primary" value="Registrar Materia">
+                </div>
               </form>
-            </div> <!-- /.conteiner -->
-          </div> <!-- /.card-body -->
-        </div> <!-- /.card -->
-      </div> <!-- /.col -->
+            </section>
+
+            <h3>Asignar materias a grupos</h3>
+            <section>
+            <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formAsignarMateria">
+            <input type="hidden" name="form_type" value="materia-grupo">
+              <div class="form-group">
+                <label for="semestre" class="form-label-custom">Materia:</label>
+                <select class="form-control" id="materia" name="materia" required>
+                  <option value="">Selecciona una materia</option>
+                  <?php foreach ($materias as $materia): ?>
+                    <option value="<?php echo $materia['materia_id']; ?>"><?php echo htmlspecialchars($materia['descripcion']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="grupo" class="form-label-custom">Grupo:</label>
+                <select class="form-control" id="grupo" name="grupo" required>
+                  <option value="">Selecciona un Grupo</option>
+                  <?php foreach ($grupos as $grupo): ?>
+                    <option value="<?php echo $grupo['grupo_id']; ?>"><?php echo htmlspecialchars($grupo['descripcion']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="periodo" class="form-label-custom">Periodo:</label>
+                <select class="form-control" id="periodo" name="periodo" required>
+                  <option value="">Selecciona un periodo</option>
+                  <?php foreach ($periodos as $periodo): ?>
+                    <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="text-center mt-4">
+                  <input type="submit" id="submit-materia-grupo" class="btn btn-primary" value="Asignar materia">
+                </div>
+              </form>
+
+            </section>
+
+          </div>
+        </div> <!-- .card-body -->
+      </div> <!-- .card -->
+    </div> <!-- .col-12 -->
+  </div> <!-- .row -->
+</div> <!-- .container-fluid -->
+
+<script>
+ $(document).ready(function() {
+  $("#formAsignarMateria").steps({
+    headerTag: "h3",
+    bodyTag: "section",
+    transitionEffect: "fade", // Cambiar el efecto de transición a "fade"
+    transitionEffectSpeed: 1000, // Aumentar la duración de la transición (en milisegundos)
+    autoFocus: true,
+    enablePagination: false, // Desactivar los botones Next y Previous
+    enableAllSteps: true, // Hacer clickeables los encabezados
+    saveState: false, // No guardar el estado, permitir el cambio de pestañas sin validación
+    onStepChanged: function(event, currentIndex) {
+      // Acciones a realizar cuando cambie la pestaña, si es necesario
+    }
+  });
+});
+
+</script>
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
         aria-hidden="true">
@@ -365,8 +422,94 @@ try {
           </div>
         </div>
       </div>
-    </main> <!-- main -->
-  </div> <!-- .wrapper -->
+
+      <div class="container-fluid">
+  <div class="row">
+    <!-- Primera tabla -->
+    <div class="col-6">
+      <h2 class="mb-2 page-title">Materias registradas</h2>
+      <div class="row my-4">
+        <!-- Table -->
+        <div class="col-md-12">
+          <div class="card shadow">
+            <div class="card-body">
+              <!-- Table -->
+              <table class="table datatables" id="tabla-materias-1">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Créditos</th>
+                    <th>Horas Teóricas</th>
+                    <th>Horas Prácticas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php if ($materias): ?>
+                    <?php foreach ($materias as $materia): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($materia['materia_id']); ?></td>
+                        <td><?php echo htmlspecialchars($materia['descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($materia['credito']); ?></td>
+                        <td><?php echo htmlspecialchars($materia['hora_teorica']); ?></td>
+                        <td><?php echo htmlspecialchars($materia['hora_practica']); ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="5" class="text-center">No hay materias registradas.</td>
+                    </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- End table -->
+      </div> <!-- End section -->
+    </div> <!-- End .col-6 -->
+
+    <!-- Segunda tabla -->
+    <div class="col-6">
+      <h2 class="mb-2 page-title">Materias asignadas a grupos</h2>
+      <div class="row my-4">
+        <!-- Table -->
+        <div class="col-md-12">
+          <div class="card shadow">
+            <div class="card-body">
+              <!-- Table -->
+              <table class="table datatables" id="tabla-materias-2">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>Nombre de la materia</th>
+                    <th>Nombre del grupo</th>
+                    <th>Período</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php if ($materiagrupo): ?>
+                    <?php foreach ($materiagrupo as $materiasgrupos): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($materiasgrupos['materia_nombre']); ?></td>
+                        <td><?php echo htmlspecialchars($materiasgrupos['grupo_nombre']); ?></td>
+                        <td><?php echo htmlspecialchars($materiasgrupos['periodo_nombre']); ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="5" class="text-center">No hay materias registradas.</td>
+                    </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div> <!-- End table -->
+      </div> <!-- End section -->
+    </div> <!-- End .col-6 -->
+  </div> <!-- .row -->
+</div> <!-- .container-fluid -->
+
+
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -391,18 +534,20 @@ try {
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
     Chart.defaults.global.defaultFontColor = colors.mutedColor;
   </script>
-  <script src="js/gauge.min.js"></script>
-  <script src="js/jquery.sparkline.min.js"></script>
-  <script src="js/apexcharts.min.js"></script>
-  <script src="js/apexcharts.custom.js"></script>
-  <script src='js/jquery.mask.min.js'></script>
-  <script src='js/select2.min.js'></script>
-  <script src='js/jquery.steps.min.js'></script>
-  <script src='js/jquery.validate.min.js'></script>
-  <script src='js/jquery.timepicker.js'></script>
-  <script src='js/dropzone.min.js'></script>
-  <script src='js/uppy.min.js'></script>
-  <script src='js/quill.min.js'></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src='js/jquery.steps.min.js'></script>
+<script src="js/jquery.validate.min.js"></script>
+<script src="js/gauge.min.js"></script>
+<script src="js/jquery.sparkline.min.js"></script>
+<script src="js/apexcharts.min.js"></script>
+<script src="js/apexcharts.custom.js"></script>
+<script src='js/jquery.mask.min.js'></script>
+<script src='js/select2.min.js'></script>
+<script src='js/jquery.timepicker.js'></script>
+<script src='js/dropzone.min.js'></script>
+<script src='js/uppy.min.js'></script>
+<script src='js/quill.min.js'></script>
+
   <script>
     $('.select2').select2({
       theme: 'bootstrap4',
@@ -585,6 +730,8 @@ try {
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
   </script>
+
+
 </body>
 
 </html>
