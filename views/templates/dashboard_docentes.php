@@ -76,6 +76,10 @@ $usuario['antiguedad'] = $antiguedad;
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
   </link>
 
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
 </head>
 
 <body class="vertical  light  ">
@@ -1452,7 +1456,6 @@ $usuario['antiguedad'] = $antiguedad;
       });
     }
   </script>
-  <script src="js/apps.js"></script>
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script>
   <script>
