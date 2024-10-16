@@ -12574,6 +12574,14 @@ a.uppy-Dashboard-poweredBy {
   background-color: transparent; /* Fondo oscuro */
   text-align: left;
 }
+<<<<<<< HEAD
+.mt-200 {
+  margin-top: 200px;
+}
+.tamanoImg{
+  width: 200px; 
+  height: 300px;
+=======
 .sw-theme-arrows .sw-toolbar {
   padding: 10px;
   margin-bottom: 0 !important;
