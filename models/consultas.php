@@ -136,26 +136,34 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     }
     
 // Método para obtener todos los sexos disponibles
-public function obtenerSexos() {
-    $query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas según tu base de datos
+public function obtenerDatosUsuario(){
+    $query = "SELECT * FROM datos_usuarios";        
     $stmt = $this->conn->prepare($query);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+// Método para obtener todos los sexos disponibles
+public function obtenerSexos() {
+$query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas según tu base de datos
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener todos los tipos de usuario
 public function obtenerTiposDeUsuario() {
-    $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 // Método para obtener los cuerpos colegiados
 public function obtenerCuerposColegiados() {
-    $query = "SELECT cuerpo_colegiado_id, descripcion FROM cuerpo_colegiado"; // Asegúrate de que esta es la tabla correcta
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT cuerpo_colegiado_id, descripcion FROM cuerpo_colegiado"; // Asegúrate de que esta es la tabla correcta
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
     public function verificarGruposPorCarrera($carreraId) {
         $sql = "SELECT COUNT(*) AS total FROM grupo WHERE carrera_id = :carrera_id";
@@ -505,6 +513,18 @@ class Usuario {
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
     $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
 
+            // Verificar si el correo ya existe
+    if ($this->isEmailDuplicate($correo)) {
+        header("Location: ../views/templates/formulario_usuario.php?error=duplicate_email");
+        exit();
+    }
+
+    // Verificar si el número de empleado ya existe
+    if ($this->isEmployeeNumberDuplicate($numero_empleado)) {
+        header("Location: ../views/templates/formulario_usuario.php?error=duplicate_employee");
+        exit();
+    }
+
         $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
             :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
             :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
@@ -535,4 +555,20 @@ class Usuario {
             exit();
         }
     }
+    private function isEmailDuplicate($correo) {
+        $query = "SELECT COUNT(*) FROM piia.usuario WHERE correo = :correo";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':correo', $correo);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+    
+    private function isEmployeeNumberDuplicate($numero_empleado) {
+        $query = "SELECT COUNT(*) FROM piia.usuario WHERE numero_empleado = :numero_empleado";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':numero_empleado', $numero_empleado);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
 }
+
