@@ -12560,23 +12560,160 @@ a.uppy-Dashboard-poweredBy {
   background-color: #777; /* Color del botón al pasar el mouse */
 }
 
-.form-control:focus {
-  color: #495057;
-  background-color: #fff;
-  border-color: #80bdff;
-  outline: 0;
-  box-shadow: 0 0 0 0rem rgba(0, 123, 255, 0.25);
+.sw-theme-arrows {
+  border-radius: 5px;
+  border: 1px solid transparent; /* Color oscuro */
+  background-color: transparent; /* Fondo oscuro */
 }
-.btn-secondary:focus {
-  box-shadow: 0 0 0 0rem rgba(108, 117, 125, 0.5);
+.sw-theme-arrows > .sw-container {
+  min-height: 200px;
 }
-.close:focus {
-  box-shadow: 0 0 0 0rem rgba(108, 117, 125, 0.5);
+.sw-theme-arrows .step-content {
+  padding: 0 10px;
+  border: 0 solid transparent; /* Color oscuro para los bordes */
+  background-color: transparent; /* Fondo oscuro */
+  text-align: left;
 }
+<<<<<<< HEAD
 .mt-200 {
   margin-top: 200px;
 }
 .tamanoImg{
   width: 200px; 
   height: 300px;
+=======
+.sw-theme-arrows .sw-toolbar {
+  padding: 10px;
+  margin-bottom: 0 !important;
+}
+.sw-theme-arrows > ul.step-anchor {
+  border: 0;
+  border-bottom: 2px solid transparent; /* Borde inferior oscuro */
+  padding: 0;
+  background: transparent; /* Fondo oscuro para el área de pasos */
+  border-radius: 0;
+  border-top-right-radius: 5px;
+  list-style: none;
+  overflow: hidden;
+}
+.sw-theme-arrows > ul.step-anchor > li > a,
+.sw-theme-arrows > ul.step-anchor > li > a:hover {
+  color: #ccc; /* Texto claro */
+  text-decoration: none;
+  padding: 10px 0 10px 45px;
+  position: relative;
+  display: block;
+  border: 0 !important;
+  border-radius: 0;
+  outline-style: none;
+  background: #212529; /* Fondo oscuro para los enlaces */
+}
+.sw-theme-arrows > ul.step-anchor > li > a:after {
+  content: " ";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 50px solid transparent;
+  border-bottom: 50px solid transparent;
+  border-left: 30px solid #212529; /* Fondo oscuro */
+  position: absolute;
+  top: 50%;
+  margin-top: -50px;
+  left: 100%;
+  z-index: 2;
+}
+.sw-theme-arrows > ul.step-anchor > li > a:before {
+  content: " ";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 50px solid transparent;
+  border-bottom: 50px solid transparent;
+  border-left: 30px solid #212529; /* Color oscuro para el borde */
+  position: absolute;
+  top: 50%;
+  margin-top: -50px;
+  margin-left: 1px;
+  left: 100%;
+  z-index: 1;
+}
+.sw-theme-arrows > ul.step-anchor > li:first-child > a {
+  padding-left: 15px;
+}
+.sw-theme-arrows > ul.step-anchor > li > a:hover {
+  color: #bbb; /* Color de texto al pasar el cursor */
+  text-decoration: none;
+  outline-style: none;
+  background: #2a2a2a; /* Fondo oscuro */
+  border-color: #2a2a2a;
+}
+.sw-theme-arrows > ul.step-anchor > li > a:hover:after {
+  border-left-color: #2a2a2a;
+}
+.sw-theme-arrows > ul.step-anchor > li.clickable > a:hover {
+  color: #5bc0de !important; /* Color azul para enlaces interactivos */
+  background: #1a7aa6 !important; /* Color oscuro para hover */
+}
+.sw-theme-arrows > ul.step-anchor > li.active > a {
+  border-color: #2a9609ba !important; /* Verde activo */
+  color: #fff !important;
+  background: #2a9609ba !important;
+}
+.sw-theme-arrows > ul.step-anchor > li.active > a:after {
+  border-left: 30px solid #2a9609ba !important;
+}
+.sw-theme-arrows > ul.step-anchor > li.done > a {
+  border-color: #2a9609ba !important; /* Verde completado */
+  color: #fff !important;
+  background: #2a9609ba !important;
+}
+.sw-theme-arrows > ul.step-anchor > li.done > a:after {
+  border-left: 30px solid #2a9609ba;
+}
+.sw-theme-arrows > ul.step-anchor > li.danger > a {
+  border-color: #d9534f !important; /* Rojo peligro */
+  color: #fff !important;
+  background: #d9534f !important;
+}
+.sw-theme-arrows > ul.step-anchor > li.danger > a:after {
+  border-left: 30px solid #d9534f !important;
+}
+.sw-theme-arrows > ul.step-anchor > li.disabled > a,
+.sw-theme-arrows > ul.step-anchor > li.disabled > a:hover {
+  color: #555 !important; /* Texto deshabilitado */
+}
+@media screen and (max-width: 768px) {
+  .sw-theme-arrows > ul.step-anchor {
+    border: 0;
+    background: transparent !important; /* Fondo oscuro en pantallas pequeñas */
+  }
+  .nav-pills .nav-item {
+    flex: 1 0 100%; /* Hacer que cada elemento ocupe el 100% en pantallas pequeñas */
+    margin-bottom: 10px; /* Espaciado entre elementos */
+  }
+  .nav-pills .nav-link {
+    display: flex; /* Usar flexbox para centrar el contenido */
+    flex-direction: column; /* Alinear el texto en columna (Paso y texto pequeño) */
+    justify-content: left; /* Centrar verticalmente */
+    align-items: left; /* Centrar horizontalmente */
+    text-align: left;
+  }
+}
+@media screen and (max-width: 576px) {
+  .nav-pills .nav-item {
+    flex: 1 0 100%; /* Asegurar que cada elemento ocupe el 100% del ancho en pantallas pequeñas */
+    margin-bottom: 10px; /* Espaciado uniforme entre los elementos */
+  }
+  .nav-pills .nav-link {
+    display: flex; /* Usar flexbox para centrar el contenido */
+    flex-direction: column; /* Colocar los textos uno debajo del otro */
+    justify-content: left; /* Centrar verticalmente */
+    align-items: left; /* Centrar horizontalmente */
+    text-align: left; /* Centrar el texto */
+    padding: 10px; /* Asegurar espacio adecuado alrededor del texto */
+    font-size: 14px; /* Ajustar tamaño de la fuente */
+    min-height: 70px; /* Asegurar una altura mínima uniforme */
+    line-height: 1.5; /* Asegurar que el espacio entre líneas sea constante */
+  }
+>>>>>>> a3b80eaaaf22659a1537ab871ff248c7c87f187e
 }
