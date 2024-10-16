@@ -6,6 +6,43 @@ class Consultas {
         $this->conn = $dbConnection;
     }
 
+    public function verCarreras() {
+        $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
+        $stmt = $this->conn->prepare($query);
+    
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+
+    public function verMaterias(){
+        $query = "SELECT * FROM vista_materias";
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+
+    public function verMateriasGrupo(){
+        $query = "SELECT * FROM vista_materias_grupo_periodo";
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+
     public function obtenerUsuarioPorId($usuario_id) {
         $sql = "select * from vista_usuarios where usuario_id = :usuario_id";
         $stmt = $this->conn->prepare($sql);
@@ -37,6 +74,20 @@ class Consultas {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerGrupos(){
+        $query = "SELECT grupo_id, descripcion FROM grupo";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerMaterias(){
+        $query = "SELECT materia_id, descripcion FROM materia";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function obtenerPeriodo(){
         $query = "SELECT periodo_id, descripcion FROM periodo";
         $stmt = $this->conn->prepare($query);
@@ -50,8 +101,7 @@ class Consultas {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-
+   
     // Agregar un método en Consultas para obtener la carrera de un usuario
 public function obtenerCarreraPorUsuarioId($usuario_id) {
     $sql = "SELECT c.carrera_id, c.nombre_carrera 
@@ -84,7 +134,29 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
             return $result; // Devuelve los semestres obtenidos
         }
     }
+    
+// Método para obtener todos los sexos disponibles
+public function obtenerSexos() {
+    $query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas según tu base de datos
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
+// Método para obtener todos los tipos de usuario
+public function obtenerTiposDeUsuario() {
+    $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+// Método para obtener los cuerpos colegiados
+public function obtenerCuerposColegiados() {
+    $query = "SELECT cuerpo_colegiado_id, descripcion FROM cuerpo_colegiado"; // Asegúrate de que esta es la tabla correcta
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
     public function verificarGruposPorCarrera($carreraId) {
         $sql = "SELECT COUNT(*) AS total FROM grupo WHERE carrera_id = :carrera_id";
         $stmt = $this->conn->prepare($sql);
@@ -99,9 +171,8 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
         
         return $row['total'];
     }
-    
-
 }
+
 
 class Grupo {
     private $conn;
@@ -128,14 +199,8 @@ class Grupo {
                 exit();
             }
 
-            // Verificar si el grupo ya existe en la base de datos
-            if ($this->isDuplicateGrupo($descripcion)) {
-                header("Location: ../views/templates/formulario_grupo.php?error=duplicate");
-                exit();
-            }
-
             // Insertar el grupo en la base de datos
-            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id)) {
+            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id )) {
                 header("Location: ../views/templates/formulario_grupo.php?success=true");
                 exit();
             } else {
@@ -148,7 +213,6 @@ class Grupo {
             exit();
         }
     }
-
     private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id) {
         $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id) 
                 VALUES (:descripcion, :semestre_id, :idturno, :periodo_id)";
@@ -169,14 +233,6 @@ class Grupo {
             $_SESSION['error_message'] = "Error al insertar el grupo: " . $e->getMessage();
             return false;
         }
-    }
-
-    private function isDuplicateGrupo($descripcion) {
-        $queryCheck = "SELECT COUNT(*) FROM grupo WHERE descripcion = :descripcion";
-        $stmtCheck = $this->conn->prepare($queryCheck);
-        $stmtCheck->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
-        $stmtCheck->execute();
-        return $stmtCheck->fetchColumn() > 0;
     }
 }
 
@@ -230,6 +286,43 @@ class Materia {
         }
     }
 }
+
+class MateriaGrupo {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function GrupoMateria() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_materia = $_POST['materia'];
+            $id_grupo = $_POST['grupo'];
+            $id_periodo = $_POST['periodo'];
+
+            $this->insertarMateriaGrupo($id_materia, $id_grupo, $id_periodo);
+        }
+    }
+    
+    private function insertarMateriaGrupo($id_materia, $id_grupo, $id_periodo) {
+        $sql = "INSERT INTO materia_has_grupo (materia_materia_id, grupo_grupo_id, periodo_periodo_id) 
+                VALUES (:materia, :grupo, :periodo)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':materia', $id_materia);
+        $stmt->bindParam(':grupo', $id_grupo);
+        $stmt->bindParam(':periodo', $id_periodo);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_materia.php?success=true");
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/form_materia.php");
+        }
+    }
+}
+
 
 
 class Carrera {
@@ -298,6 +391,9 @@ class Carrera {
             exit();
         }
     }
+    
+    
+    
 }
 
 class Usuario {
@@ -339,6 +435,24 @@ class Usuario {
                 exit();
             }
 
+            // Validar campos relacionados
+            if (!$this->isValidSexo($sexo_sexo_id)) {
+                header("Location: ../views/templates/form_usuario.php?error=sexo_invalid");
+                exit();
+            }
+            if (!$this->isValidCarrera($carrera_carrera_id)) {
+                header("Location: ../views/templates/form_usuario.php?error=carrera_invalid");
+                exit();
+            }
+            if (!$this->isValidCuerpoColegiado($cuerpo_colegiado_cuerpo_colegiado_id)) {
+                header("Location: ../views/templates/form_usuario.php?error=cuerpo_colegiado_invalid");
+                exit();
+            }
+            if (!$this->isValidTipoUsuario($tipo_usuario_tipo_usuario_id)) {
+                header("Location: ../views/templates/form_usuario.php?error=tipo_usuario_invalid");
+                exit();
+            }
+
             // Insertar en la base de datos
             $this->insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
                 $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
@@ -354,39 +468,71 @@ class Usuario {
         }
         return false; // Retorna false si la carga falló
     }
-    
+
+    private function isValidSexo($sexo_sexo_id) {
+        $queryCheck = "SELECT COUNT(*) FROM piia.sexo WHERE sexo_id = :sexo_sexo_id";
+        $stmtCheck = $this->conn->prepare($queryCheck);
+        $stmtCheck->bindParam(':sexo_sexo_id', $sexo_sexo_id);
+        $stmtCheck->execute();
+        return $stmtCheck->fetchColumn() > 0;
+    }
+
+    private function isValidCarrera($carrera_carrera_id) {
+        $queryCheck = "SELECT COUNT(*) FROM piia.carrera WHERE carrera_id = :carrera_carrera_id";
+        $stmtCheck = $this->conn->prepare($queryCheck);
+        $stmtCheck->bindParam(':carrera_carrera_id', $carrera_carrera_id);
+        $stmtCheck->execute();
+        return $stmtCheck->fetchColumn() > 0;
+    }
+
+    private function isValidCuerpoColegiado($cuerpo_colegiado_cuerpo_colegiado_id) {
+        $queryCheck = "SELECT COUNT(*) FROM piia.cuerpo_colegiado WHERE cuerpo_colegiado_id = :cuerpo_colegiado_cuerpo_colegiado_id";
+        $stmtCheck = $this->conn->prepare($queryCheck);
+        $stmtCheck->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
+        $stmtCheck->execute();
+        return $stmtCheck->fetchColumn() > 0;
+    }
+
+    private function isValidTipoUsuario($tipo_usuario_tipo_usuario_id) {
+        $queryCheck = "SELECT COUNT(*) FROM piia.tipo_usuario WHERE tipo_usuario_id = :tipo_usuario_tipo_usuario_id";
+        $stmtCheck = $this->conn->prepare($queryCheck);
+        $stmtCheck->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
+        $stmtCheck->execute();
+        return $stmtCheck->fetchColumn() > 0;
+    }
+
     private function insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
     $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
 
-    $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
-        :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
-        :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
+        $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
+            :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
+            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
 
-    $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':nombre_usuario', $nombre_usuario);
-    $stmt->bindParam(':apellido_p', $apellido_p);
-    $stmt->bindParam(':apellido_m', $apellido_m);
-    $stmt->bindParam(':edad', $edad);
-    $stmt->bindParam(':correo', $correo);
-    $stmt->bindParam(':password', $password);
-    $stmt->bindParam(':fecha_contratacion', $fecha_contratacion);
-    $stmt->bindParam(':numero_empleado', $numero_empleado);
-    $stmt->bindParam(':grado_academico', $grado_academico);
-    $stmt->bindParam(':cedula', $cedula);
-    $stmt->bindParam(':imagen_url', $imagen_url);
-    $stmt->bindParam(':sexo_sexo_id', $sexo_sexo_id);
-    $stmt->bindParam(':status_status_id', $status_status_id);
-    $stmt->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
-    $stmt->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
-    $stmt->bindParam(':carrera_carrera_id', $carrera_carrera_id);
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':nombre_usuario', $nombre_usuario);
+        $stmt->bindParam(':apellido_p', $apellido_p);
+        $stmt->bindParam(':apellido_m', $apellido_m);
+        $stmt->bindParam(':edad', $edad);
+        $stmt->bindParam(':correo', $correo);
+        $stmt->bindParam(':password', $password);
+        $stmt->bindParam(':fecha_contratacion', $fecha_contratacion);
+        $stmt->bindParam(':numero_empleado', $numero_empleado);
+        $stmt->bindParam(':grado_academico', $grado_academico);
+        $stmt->bindParam(':cedula', $cedula);
+        $stmt->bindParam(':imagen_url', $imagen_url);
+        $stmt->bindParam(':sexo_sexo_id', $sexo_sexo_id);
+        $stmt->bindParam(':status_status_id', $status_status_id);
+        $stmt->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
+        $stmt->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
+        $stmt->bindParam(':carrera_carrera_id', $carrera_carrera_id);
 
-    try {
-        $stmt->execute();
-        header("Location: ../views/templates/formulario_usuario.php?success=true");
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-        exit();
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/formulario_usuario.php?success=true");
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            exit();
+        }
     }
-}
 }

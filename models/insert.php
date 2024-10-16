@@ -25,10 +25,14 @@ if (isset($_POST['form_type'])) {
         $usuario = new Usuario($conn);
         $usuario->usuarios();  // Método para procesar el formulario de usuario
         
-    }elseif ($form_type === 'grupo') {
+    } elseif ($form_type === 'grupo') {
         // Crear una instancia de la clase Grupo
         $grupo = new Grupo($conn);
         $grupo->handleFormSubmission();  // Método para procesar el formulario de grupo
+    } elseif ($form_type === 'materia-grupo') {
+        // Crear una instancia de la clase Usuario
+        $materiagrupo = new MateriaGrupo($conn);
+        $materiagrupo->GrupoMateria();  // Método para procesar el formulario de usuario
     } else {
 
         // Manejar otros formularios o enviar un mensaje de error

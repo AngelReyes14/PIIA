@@ -161,6 +161,19 @@ include('../../models/session.php');
           </nav>
         </aside>
 
+        <div class="card text-center">
+  <div class="card-body">
+    <h5 class="card-title">Filtrado por División</h5>
+    <div class="filter-container" style="position: relative; display: inline-block;">
+      <button id="filterBtn" class="btn btn-primary">Seleccionar División</button>
+      <div id="filterOptions" class="filter-options d-none">
+        <div class="dropdown-item" data-value="Ingeniería en Sistemas Computacionales"> Sistemas Computacionales</div>
+        <div class="dropdown-item" data-value="Administración">Administración</div>
+        <div class="dropdown-item" data-value="Química">Química</div>
+      </div>
+    </div>
+  </div>
+</div>
 
     <main role="main" class="main-content">
       <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
@@ -693,6 +706,42 @@ include('../../models/session.php');
         </div>
       </div>
   <!------>
+  <script>
+  // Referencias a los elementos
+  // Referencias a los elementos
+const filterBtn = document.getElementById('filterBtn');
+const filterOptions = document.getElementById('filterOptions');
+
+// Mostrar/Ocultar la lista al hacer clic en el botón
+filterBtn.addEventListener('click', function() {
+  // Alternar la clase d-none (mostrar/ocultar)
+  filterOptions.classList.toggle('d-none');
+});
+
+// Manejar clics en las opciones de filtrado
+filterOptions.addEventListener('click', function(event) {
+  const selectedOption = event.target;
+  const division = selectedOption.getAttribute('data-value');
+
+  if (division) {
+    // Cambia el texto del botón al nombre de la opción seleccionada
+    filterBtn.textContent = selectedOption.textContent;
+
+    // Ocultar el menú de opciones después de la selección
+    filterOptions.classList.add('d-none');
+  }
+});
+
+// Cerrar el menú si se hace clic fuera de él
+document.addEventListener('click', function(e) {
+  if (!filterBtn.contains(e.target) && !filterOptions.contains(e.target)) {
+    filterOptions.classList.add('d-none'); // Oculta las opciones si se hace clic fuera del área
+  }
+});
+
+</script>
+
+
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>

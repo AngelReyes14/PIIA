@@ -162,9 +162,7 @@ include('../../models/session.php');
           <div class="col-12">
             <div class="row">
               <div class="col">
-                <div class="p-3 font-weight-bold bg-success text-white rounded col-md-1 box-shadow-div-profile">
-                  Bienvenid@!             
-              </div>
+
             </div>
               <div class="col-auto">
                 <form class="form-inline">

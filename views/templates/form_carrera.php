@@ -1,5 +1,10 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php');
+include('../../models/consultas.php');
+
+$consultas = new Consultas($conn);
+$carreras = $consultas->verCarreras();
 ?>
 <!doctype html>
 <html lang="en">
@@ -31,6 +36,11 @@ include('../../models/session.php');
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Include DataTables CSS and JS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+
   <script src="js/form_carrera.js"></script>
 </head>
 
@@ -79,82 +89,82 @@ include('../../models/session.php');
         </li>
       </ul>
     </nav>
-    
+
     <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-          <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-            <i class="fe fe-x"><span class="sr-only"></span></i>
+      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
+        <i class="fe fe-x"><span class="sr-only"></span></i>
+      </a>
+      <nav class="vertnav navbar navbar-light">
+        <!-- nav bar -->
+        <div class="w-100 mb-4 d-flex">
+          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
+            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
           </a>
-          <nav class="vertnav navbar navbar-light">
-            <!-- nav bar -->
-            <div class="w-100 mb-4 d-flex">
-              <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-                <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-              </a>
-            </div>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="index.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Inicio</span>
-                </a>
+        </div>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+          <li class="nav-item w-100">
+            <a class="nav-link" href="index.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Inicio</span>
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+              <i class="fe fe-home fe-16"></i>
+              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
+            </a>
+            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
+              <li class="nav-item">
+                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
+                    class="ml-1 item-text">Docentes</span></a>
               </li>
-              <li class="nav-item dropdown">
-                <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-                  <i class="fe fe-home fe-16"></i>
-                  <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-                </a>
-                <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-                  <li class="nav-item">
-                    <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                        class="ml-1 item-text">Docentes</span></a>
-                  </li>
-                  <li class="nav-item active">
-                    <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-                  </li>
-                  
-                </ul>
+              <li class="nav-item active">
+                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
               </li>
+
             </ul>
-            <p class="text-muted nav-heading mt-4 mb-1">
-              <span>Recursos humanos</span>
-            </p>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="recursos_humanos_empleados.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Empleados</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Desarrollo Académico</span>
-              </p>
-              <li class="nav-item w-100">
-                <a class="nav-link" href="desarrollo_academico_docentes.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Docentes</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Registros</span>
-              </p>
-              <ul class="navbar-nav flex-fill w-100 mb-2">
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_materia.php"><span
-                        class="ml-1 item-text">Materias</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class ="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-                  </li>
-                </ul>
-              </ul>
-          </nav>
-        </aside>
+          </li>
+        </ul>
+        <p class="text-muted nav-heading mt-4 mb-1">
+          <span>Recursos humanos</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+          <li class="nav-item w-100">
+            <a class="nav-link" href="recursos_humanos_empleados.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Empleados</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Desarrollo Académico</span>
+          </p>
+          <li class="nav-item w-100">
+            <a class="nav-link" href="desarrollo_academico_docentes.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Docentes</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Registros</span>
+          </p>
+          <ul class="navbar-nav flex-fill w-100 mb-2">
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_materia.php"><span
+                  class="ml-1 item-text">Materias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
+            </li>
+          </ul>
+        </ul>
+      </nav>
+    </aside>
     <main role="main" class="main-content mt-5">
       <!-- Mensajes de estado -->
       <?php if (isset($_GET['status'])): ?>
@@ -197,7 +207,7 @@ include('../../models/session.php');
               <!-- Subir Imagen -->
               <div class="form-group">
                 <label for="fileInput" class="form-label-custom">Subir Imagen</label>
-                <input type="file" id="fileInput" class="form-control" name="imagen_url" accept="image/*"  required onchange="previewImage()">
+                <input type="file" id="fileInput" class="form-control" name="imagen_url" accept="image/*" required onchange="previewImage()">
               </div>
 
               <!-- Vista Previa de la Imagen -->
@@ -228,7 +238,101 @@ include('../../models/session.php');
         </form>
       </div>
 
-      <!-- Incluir jQuery y Bootstrap JavaScript -->
+      <div class="container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-12">
+            <h2 class="mb-2 page-title">Carreras Acreditadas</h2>
+            <p class="card-text">Esta tabla muestra la información sobre las carreras acreditadas, incluyendo el organismo acreditador y las fechas de acreditación.</p>
+            <div class="row my-4">
+              <!-- Table -->
+              <div class="col-md-12">
+                <div class="card shadow">
+                  <div class="card-body">
+                    <!-- Table -->
+                    <table class="table datatables" id="tabla-carreras">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th>ID</th>
+                          <th>Nombre</th>
+                          <th>Organismo Acreditador</th>
+                          <th>Fecha de Acreditación</th>
+                          <th>Fecha de Fin de Validación</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if ($carreras): ?>
+                          <?php foreach ($carreras as $carrera): ?>
+                            <tr>
+                              <td><?php echo htmlspecialchars($carrera['carrera_id']); ?></td>
+                              <td><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></td>
+                              <td><?php echo htmlspecialchars($carrera['organismo_auxiliar']); ?></td>
+                              <td><?php echo htmlspecialchars($carrera['fecha_validacion']); ?></td>
+                              <td><?php echo htmlspecialchars($carrera['fecha_fin_validacion']); ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="5" class="text-center">No hay carreras acreditadas.</td>
+                          </tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div> <!-- End table -->
+            </div> <!-- End section -->
+          </div> <!-- .col-12 -->
+        </div> <!-- .row -->
+      </div> <!-- .container-fluid -->
+
+      <!-- Include jQuery and DataTables JS and CSS -->
+      <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+      <!-- Initialize DataTable -->
+      <script>
+        $(document).ready(function() {
+          // Initialize DataTable with a specific ID
+          $('#tabla-carreras').DataTable({
+            "language": {
+              "lengthMenu": "Mostrar _MENU_ registros por página",
+              "zeroRecords": "No se encontraron resultados",
+              "info": "Mostrando página _PAGE_ de _PAGES_",
+              "infoEmpty": "No hay registros disponibles",
+              "infoFiltered": "(filtrado de _MAX_ registros totales)",
+              "search": "Buscar:",
+              "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+              }
+            }
+          });
+        });
+      </script>
+
+
+      <!-- Include jQuery and DataTables JS and CSS -->
+      <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+      <!-- Initialize DataTable -->
+      <script>
+        let table = new DataTable('#myTable');
+      </script>
+
+
+      <!-- jQuery (necesario para DataTables) -->
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+      <!-- DataTables JS -->
+      <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+      <!-- DataTables Bootstrap4 JS -->
+      <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
       <!-- Incluir el archivo de JavaScript para el formulario -->
