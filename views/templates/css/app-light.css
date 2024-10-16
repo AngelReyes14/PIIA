@@ -19457,5 +19457,11 @@ a.uppy-Dashboard-poweredBy {
     min-height: 70px; /* Asegurarse de que todos los enlaces tengan la misma altura */
   }
 }
-
+.mt-200 {
+  margin-top: 200px;
+}
+.tamanoImg{
+  width: 200px; 
+  height: 300px;
+}
 
