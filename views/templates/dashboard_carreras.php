@@ -1,5 +1,9 @@
 <?php
 include('../../models/session.php');
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
 <!doctype html>

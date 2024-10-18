@@ -19465,3 +19465,8 @@ a.uppy-Dashboard-poweredBy {
   height: 300px;
 }
 
+input.form-control {
+  border: 2px solid green; /* Aplica el borde verde siempre */
+  box-shadow: 0 0 5px green; /* Añade un efecto de sombra verde suave */
+}
+
