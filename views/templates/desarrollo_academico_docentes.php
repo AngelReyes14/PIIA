@@ -1,6 +1,91 @@
 <?php
+// Incluye las dependencias necesarias
 include('../../models/session.php');
+include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../models/consultas.php'); // Incluir la clase de consultas que ya existe
+
+// Inicializa la respuesta por defecto para posibles errores
+$response = ['status' => 'error', 'message' => ''];
+
+try {
+    // Crear una instancia de la clase Consultas
+    $consultas = new Consultas($conn);
+
+    // Obtén las carreras
+    $carreras = $consultas->obtenerCarreras();
+
+    // Obtén la carrera seleccionada desde los parámetros GET
+    $carreraSeleccionada = isset($_GET['carrera_id']) ? intval($_GET['carrera_id']) : null;
+
+    // Si se selecciona una carrera, modificar la consulta para filtrar por carrera
+    if ($carreraSeleccionada) {
+        $usuarios = $consultas->obtenerUsuariosPorCarrera($carreraSeleccionada);
+    } else {
+        $usuarios = $consultas->obtenerTodosLosUsuarios();
+    }
+
+    // Obtenemos el idusuario actual (si no está definido, usamos el primero de la lista de usuarios)
+    $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : $usuarios[0]['usuario_id'];
+
+    // Verificamos si el idusuario actual pertenece a la lista filtrada
+    $usuarioActual = array_filter($usuarios, function($usuario) use ($idusuario) {
+        return $usuario['usuario_id'] == $idusuario;
+    });
+
+    // Si el usuario actual no está en la lista, usa el primer usuario del filtro
+    if (!$usuarioActual) {
+        $idusuario = $usuarios[0]['usuario_id'];
+        $usuarioActual = $usuarios[0];
+    } else {
+        $usuarioActual = array_values($usuarioActual)[0]; // Reindexar array
+    }
+
+    // Procesamos cada usuario para añadirle antigüedad y carrera
+    foreach ($usuarios as &$usuario) {
+        // Llamamos al método para obtener la carrera del usuario
+        $carrera = $consultas->obtenerCarreraPorUsuarioId($usuario['usuario_id']);
+        if ($carrera) {
+            $usuario = array_merge($usuario, $carrera); // Agregamos la carrera al array del usuario
+        } else {
+            $usuario['nombre_carrera'] = 'N/A'; // Si no tiene carrera asignada, ponemos 'N/A'
+        }
+
+        // Calculamos la antigüedad solo si tiene fecha de contratación
+        if (isset($usuario["fecha_contratacion"])) {
+            $fechaContratacionDate = new DateTime($usuario["fecha_contratacion"]);
+            $fechaActual = new DateTime();
+            $antiguedad = $fechaContratacionDate->diff($fechaActual)->y;
+            $usuario['antiguedad'] = $antiguedad;
+        } else {
+            $usuario['antiguedad'] = 'N/A'; // Si no hay fecha de contratación, se asigna 'N/A'
+        }
+    }
+
+    // Actualiza el estado de respuesta a éxito
+    $response['status'] = 'success';
+    $response['usuarios'] = $usuarios; // Almacena la información de los usuarios filtrados
+    $response['carreras'] = $carreras; // Almacena la lista de carreras en la respuesta
+    $response['usuario'] = $usuarioActual; // El usuario actual en la respuesta
+
+    // Si la solicitud es AJAX, devuelve la respuesta en formato JSON
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
+} catch (Exception $e) {
+    // Si falla la conexión, retorna un error
+    $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
 ?>
+
+
+
+
 <!doctype html>
 <html lang="en">
 
@@ -161,54 +246,110 @@ include('../../models/session.php');
           </nav>
         </aside>
 
+
+
         <div class="card text-center">
   <div class="card-body">
     <h5 class="card-title">Filtrado por División</h5>
     <div class="filter-container" style="position: relative; display: inline-block;">
       <button id="filterBtn" class="btn btn-primary">Seleccionar División</button>
-      <div id="filterOptions" class="filter-options d-none">
-        <div class="dropdown-item" data-value="Ingeniería en Sistemas Computacionales"> Sistemas Computacionales</div>
-        <div class="dropdown-item" data-value="Administración">Administración</div>
-        <div class="dropdown-item" data-value="Química">Química</div>
+      <div id="filterOptions" class="filter-options d-none" style="position: absolute; z-index: 100; background-color: white; border: 1px solid #ccc;">
+        <?php foreach ($carreras as $carrera): ?>
+          <div class="dropdown-item" data-value="<?php echo $carrera['carrera_id']; ?>">
+            <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
+          </div>
+        <?php endforeach; ?>
       </div>
     </div>
   </div>
 </div>
 
-    <main role="main" class="main-content">
-      <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
-      <div class="container-fluid mb-3">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-          PERFIL DOCENTE
+<script>
+  // Obtener el botón y las opciones
+  const filterBtn = document.getElementById('filterBtn');
+  const filterOptions = document.getElementById('filterOptions');
+  const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+  // Alternar la visibilidad de las opciones
+  filterBtn.addEventListener('click', () => {
+    filterOptions.classList.toggle('d-none');
+  });
+
+ // Cambiar el texto del botón cuando se selecciona una opción y actualizar la URL con la carrera seleccionada
+dropdownItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const selectedCarreraId = item.getAttribute('data-value');
+    const selectedText = item.textContent;
+    
+    filterBtn.textContent = selectedText; // Cambiar el texto del botón
+    filterOptions.classList.add('d-none'); // Ocultar las opciones después de seleccionar
+
+    // Actualizar la URL para incluir el filtro por carrera
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('carrera_id', selectedCarreraId);
+    window.location.href = newUrl.toString(); // Recargar la página con el filtro de carrera
+  });
+});
+
+
+  // Ocultar el menú si se hace clic fuera del contenedor
+  document.addEventListener('click', (event) => {
+    if (!filterBtn.contains(event.target) && !filterOptions.contains(event.target)) {
+      filterOptions.classList.add('d-none');
+    }
+  });
+</script>
+
+
+  <!-- Código HTML del carrusel -->
+<main role="main" class="main-content">
+<div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="container-fluid mb-3">
+          <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+            PERFIL DOCENTE
+          </div>
+          <div class="row justify-content-center mb-0">
+            <div class="col-12">
+              <div class="row">
+                <div class="col-md-12 col-xl-12 mb-0">
+                  <div class="card box-shadow-div text-red rounded-lg">
+                    <div class="row align-items-center">
+                      <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
+
+                      <div class="col-10">
+                      <div class="carousel-inner" id="carouselContent">
+  <?php foreach ($usuarios as $index => $usuario): ?>
+    <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>" data-id="<?= htmlspecialchars($usuario['usuario_id']) ?>">
+      <div class="row">
+        <div class="col-12 col-md-5 col-xl-3 text-center">
+          <strong class="name-line">Foto del Docente:</strong> <br>
+          <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
         </div>
-        <div class="row justify-content-center mb-0">
-          <div class="col-12">
-            <div class="row">
-              <div class="col-md-12 col-xl-12 mb-0">
-                <div class="card box-shadow-div text-red rounded-lg">
-                  <div class="row align-items-center">
-                    <button class="carousel-control-next col-1" type="button" data-bs-target="#teacherCarousel" data-bs-slide="next">
-                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                      <span class="visually-hidden">></span>
-                    </button>
-                    <div class="col-12 col-md-5 col-xl-3 text-center">
-                      <img src="../templates/assets/images/Perfil_ejemplo.png" alt="img-perfil" class="img-perfil">
-                    </div>
-                    <button class="carousel-control-prev col-1" type="button" data-bs-target="#teacherCarousel" data-bs-slide="prev">
-                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                      <span class="visually-hidden"><</span>
-                    </button>
-                    <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                      <p class="teacher-info h4">
-                        <strong class="name-line">Docente:</strong> Ignacio Gómez Gómez <br>
-                        <strong class="name-line">Edad:</strong> 35 años <br>
-                        <strong class="name-line">Fecha de contratación:</strong> 02/04/2020 <br>
-                        <strong class="name-line">Antigüedad:</strong> 4 años <br>
-                        <strong class="name-line">División Adscrita:</strong> Ingeniería en Sistemas Computacionales <br>
-                        <strong class="name-line">Número de Empleado:</strong> 202045200981A <br>
-                        <strong class="name-line">Grado académico:</strong> Ing. en Sistemas Computacionales <br>
-                        <strong class="name-line">Cédula:</strong> 16416AECQ411
-                      </p>
+        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+          <p class="teacher-info h4" id="teacherInfo">
+              <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+              <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+              <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+              <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+              <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+              <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+              <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+              <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+              <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+          </p>
+        </div>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
+                      <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -217,6 +358,82 @@ include('../../models/session.php');
           </div>
         </div>
       </div>
+
+      <script>
+  // Obtener el idusuario y carrera_id actuales desde la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1; // Si no hay idusuario en la URL, empezamos en 1
+  let carreraId = urlParams.get("carrera_id"); // Obtiene la carrera seleccionada, si la hay
+
+  // Seleccionar los botones de navegación
+  const anterior = document.getElementById("anterior");
+  const siguiente = document.getElementById("siguiente");
+
+  // Función para actualizar el contenido del carrusel sin recargar la página
+  async function loadUserData(newIdusuario) {
+    try {
+      // Realizar una petición AJAX al servidor para obtener los datos del nuevo usuario
+      const response = await fetch(`desarrollo_academico_docentes.php?idusuario=${newIdusuario}&carrera_id=${carreraId}`);
+      const data = await response.json();
+
+      // Verificar si los datos fueron correctamente obtenidos
+      if (data.status === 'success') {
+        console.log('Datos recibidos:', data); // Añadir esto para verificar si los datos están llegando correctamente
+        const usuario = data.usuario;
+
+        // Actualizar los elementos dentro del carrusel con los nuevos datos
+        document.querySelector(".tamanoImg").src = '../' + usuario.imagen_url;
+        document.getElementById("teacherInfo").innerHTML = `
+          <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+          <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+          <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+          <strong class="name-line">Antigüedad:</strong> ${usuario.antiguedad} años <br>
+          <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera} <br>
+          <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+          <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+          <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+          <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+        `;
+      } else {
+        console.error('Error al cargar los datos del usuario:', data.message);
+      }
+    } catch (error) {
+      console.error('Error al cargar los datos del usuario:', error);
+    }
+  }
+
+  // Función para actualizar la URL sin recargar la página
+  function updateUrl(newIdusuario) {
+    let url = `?idusuario=${newIdusuario}`;
+    if (carreraId) {
+      url += `&carrera_id=${carreraId}`; // Mantener la carrera seleccionada en la URL
+    }
+    // Actualizar el parámetro idusuario en la URL sin recargar la página
+    window.history.pushState(null, '', url);
+
+    // Cargar los nuevos datos del usuario
+    loadUserData(newIdusuario);
+  }
+
+  // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+  siguiente.addEventListener("click", () => {
+    idusuario++; // Incrementa el ID del usuario
+    updateUrl(idusuario); // Actualiza la URL y carga los nuevos datos
+  });
+
+  // Lógica para ir al usuario anterior (si es necesario)
+  anterior.addEventListener("click", () => {
+    if (idusuario > 1) { // Asegúrate de que no baje de 1
+      idusuario--; // Decrementa el ID del usuario
+      updateUrl(idusuario); // Actualiza la URL y carga los nuevos datos
+    }
+  });
+
+  // Cargar los datos iniciales del usuario cuando la página se carga
+  loadUserData(idusuario);
+</script>
+
+
 
   <div class="container-fluid">
     <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
@@ -709,7 +926,7 @@ include('../../models/session.php');
   <script>
   // Referencias a los elementos
   // Referencias a los elementos
-const filterBtn = document.getElementById('filterBtn');
+let filterBtn = document.getElementById('filterBtn');
 const filterOptions = document.getElementById('filterOptions');
 
 // Mostrar/Ocultar la lista al hacer clic en el botón

@@ -58,6 +58,30 @@ class Consultas {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    //*********************** PRUEBA ************************************************************* */    
+ 
+    
+    public function obtenerUsuariosPorCarrera($carrera_id) {
+        $sql = "SELECT * FROM vista_usuarios WHERE carrera_carrera_id = :carrera_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerTodosLosUsuarios() {
+        $sql = "SELECT * FROM vista_usuarios";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    
+    
+     //************************************************************************************* */    
+
     
     // Método para obtener los semestres
     public function obtenerSemestres() {

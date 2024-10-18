@@ -1,5 +1,45 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../models/consultas.php'); // Incluir la clase de consultas
+
+// Crear una instancia de la clase Consultas
+$consultas = new Consultas($conn);
+
+// Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
+$idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
+
+// Llamamos al método para obtener el usuario actual
+$usuario = $consultas->obtenerUsuarioPorId($idusuario);
+
+// Llamamos al método para obtener la carrera del usuario
+$carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
+
+// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
+if (!$usuario) {
+    header("Location: ?idusuario=1");
+    exit;
+}
+
+// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
+if ($carrera) {
+    $usuario = array_merge($usuario, $carrera);
+}
+
+// Supongamos que la fecha de contratación viene del array $usuario
+$fechaContratacion = $usuario["fecha_contratacion"];
+
+// Convertimos la fecha de contratación en un objeto DateTime
+$fechaContratacionDate = new DateTime($fechaContratacion);
+
+// Obtenemos la fecha actual
+$fechaActual = new DateTime();
+
+// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
+$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
+
+// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
+$usuario['antiguedad'] = $antiguedad;
 ?>
 
 <!doctype html>
@@ -179,33 +219,54 @@ include('../../models/session.php');
         
     <main role="main" class="main-content">
       <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
-      <div class="container-fluid mb-3">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-          PERFIL DOCENTE
-        </div>
-        <div class="row justify-content-center">
-          <div class="col-12">
-            <div class="row">
-              <div class="col-md-12 col-xl-12 mb-0">
-                <div class="card box-shadow-div text-red rounded-lg">
-                  <div class="">
+      <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="container-fluid mb-3">
+          <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+            PERFIL DOCENTE
+          </div>
+          <div class="row justify-content-center mb-0">
+            <div class="col-12">
+              <div class="row">
+                <div class="col-md-12 col-xl-12 mb-0">
+                  <div class="card box-shadow-div text-red rounded-lg">
                     <div class="row align-items-center">
-                      <div class="col-12 col-md-5 col-xl-3 text-center ">
-                        <img src="../templates/assets/images/Perfil_ejemplo.png" alt="img-perfil" class="img-perfil">
-                      </div>
-                      <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                        <p class="teacher-info h4">
-                          <strong class="name-line">Docente:</strong> Ignacio Gómez Gómez <br>
-                          <strong class="name-line">Edad:</strong> 35 años <br>
-                          <strong class="name-line">Fecha de contratación:</strong> 02/04/2020 <br>
-                          <strong class="name-line">Antigüedad:</strong> 4 años <br>
-                          <strong class="name-line">División Adscrita:</strong> Ingeniería en Sistemas Computacionales
-                          <br>
-                          <strong class="name-line">Número de Empleado:</strong> 202045200981A <br>
-                          <strong class="name-line">Grado académico:</strong> Ing. en Sistemas Computacionales <br>
-                          <strong class="name-line">Cédula:</strong> 16416AECQ411
-                        </p>
-                      </div>
+                      <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
+
+                      <div class="col-10">
+  <div class="carousel-inner" id="carouselContent">
+    <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+      <div class="row">
+        <div class="col-12 col-md-5 col-xl-3 text-center">
+          <strong class="name-line">Foto del Docente:</strong> <br>
+          <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
+          </div>
+        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+          <p class="teacher-info h4" id="teacherInfo">
+            <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+            <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+            <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+            <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+            <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+            <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+            <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+            <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+            <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Más elementos del carrusel se generarán dinámicamente -->
+  </div>
+</div>
+
+
+                      <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -214,6 +275,36 @@ include('../../models/session.php');
           </div>
         </div>
       </div>
+
+      <script>
+  // Obtener el idusuario actual desde la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1; // Si no hay idusuario en la URL, empezamos en 1
+
+  // Seleccionar los botones de navegación
+  const anterior = document.getElementById("anterior");
+  const siguiente = document.getElementById("siguiente");
+  const carouselContent = document.getElementById("carouselContent");
+
+  // Función para actualizar la URL con el nuevo idusuario
+  function updateUrl(newIdusuario) {
+    window.location.href = `?idusuario=${newIdusuario}`;
+  }
+
+  // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+  siguiente.addEventListener("click", () => {
+    idusuario++; // Incrementa el ID del usuario
+    updateUrl(idusuario); // Actualiza la URL
+  });
+
+  // Lógica para ir al usuario anterior (si es necesario)
+  anterior.addEventListener("click", () => {
+    if (idusuario > 1) { // Asegúrate de que no baje de 1
+      idusuario--; // Decrementa el ID del usuario
+      updateUrl(idusuario); // Actualiza la URL
+    }
+  });
+</script>
 
       <!---Parte de recursos humanos --->
       <div class="container-fluid mt-2">
