@@ -40,6 +40,11 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
 
@@ -73,7 +78,7 @@ $usuario['antiguedad'] = $antiguedad;
   <link rel="stylesheet" href="css/daterangepicker.css" />
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
-  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme">
   </link>
 
 <!-- Bootstrap JS -->
@@ -117,7 +122,7 @@ $usuario['antiguedad'] = $antiguedad;
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
