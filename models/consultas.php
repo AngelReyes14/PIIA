@@ -19,6 +19,19 @@ class Consultas {
         }
     }
 
+    public function verUsuariosCarreras(){
+        $query = "SELECT * FROM vista_usuario_carrera";  // Cambia el nombre de la vista
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+    
+
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
         $stmt = $this->conn->prepare($query);
@@ -136,26 +149,34 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     }
     
 // Método para obtener todos los sexos disponibles
-public function obtenerSexos() {
-    $query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas según tu base de datos
+public function obtenerDatosUsuario(){
+    $query = "SELECT * FROM datos_usuarios";        
     $stmt = $this->conn->prepare($query);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+// Método para obtener todos los sexos disponibles
+public function obtenerSexos() {
+$query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas según tu base de datos
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener todos los tipos de usuario
 public function obtenerTiposDeUsuario() {
-    $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 // Método para obtener los cuerpos colegiados
 public function obtenerCuerposColegiados() {
-    $query = "SELECT cuerpo_colegiado_id, descripcion FROM cuerpo_colegiado"; // Asegúrate de que esta es la tabla correcta
-    $stmt = $this->conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT cuerpo_colegiado_id, descripcion FROM cuerpo_colegiado"; // Asegúrate de que esta es la tabla correcta
+$stmt = $this->conn->prepare($query);
+$stmt->execute();
+return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
     public function verificarGruposPorCarrera($carreraId) {
         $sql = "SELECT COUNT(*) AS total FROM grupo WHERE carrera_id = :carrera_id";
@@ -505,6 +526,18 @@ class Usuario {
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
     $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
 
+            // Verificar si el correo ya existe
+    if ($this->isEmailDuplicate($correo)) {
+        header("Location: ../views/templates/formulario_usuario.php?error=duplicate_email");
+        exit();
+    }
+
+    // Verificar si el número de empleado ya existe
+    if ($this->isEmployeeNumberDuplicate($numero_empleado)) {
+        header("Location: ../views/templates/formulario_usuario.php?error=duplicate_employee");
+        exit();
+    }
+
         $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
             :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
             :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
@@ -533,6 +566,81 @@ class Usuario {
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
             exit();
+        }
+    }
+    private function isEmailDuplicate($correo) {
+        $query = "SELECT COUNT(*) FROM piia.usuario WHERE correo = :correo";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':correo', $correo);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+    
+    private function isEmployeeNumberDuplicate($numero_empleado) {
+        $query = "SELECT COUNT(*) FROM piia.usuario WHERE numero_empleado = :numero_empleado";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':numero_empleado', $numero_empleado);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+}
+class UsuarioHasCarrera {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function UsuarioCarrera() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $usuario_id = $_POST['usuario'];
+            $carrera_id = $_POST['carrera'];
+            $periodo_id = $_POST['periodo'];
+
+            $this->insertarUsuarioCarrera($usuario_id, $carrera_id, $periodo_id);
+        }
+    }
+
+    private function insertarUsuarioCarrera($usuario_id, $carrera_id, $periodo_id) {
+        // Verificar si ya existe la relación
+        $sql_verificar = "SELECT COUNT(*) FROM usuario_has_carrera 
+                          WHERE usuario_usuario_id = :usuario_id 
+                          AND carrera_carrera_id = :carrera_id 
+                          AND periodo_periodo_id = :periodo_id";
+
+        $stmt_verificar = $this->conn->prepare($sql_verificar);
+        $stmt_verificar->bindParam(':usuario_id', $usuario_id);
+        $stmt_verificar->bindParam(':carrera_id', $carrera_id);
+        $stmt_verificar->bindParam(':periodo_id', $periodo_id);
+
+        try {
+            $stmt_verificar->execute();
+            $count = $stmt_verificar->fetchColumn();
+
+            if ($count > 0) {
+                // Usuario ya registrado, redirigir con error
+                header("Location: ../views/templates/form_usuarios-carreras.php?error=duplicate");
+                exit();
+            }
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_usuarios-carreras.php?error=database");
+            exit();
+        }
+
+        // Insertar si no está registrado
+        $sql_insertar = "INSERT INTO usuario_has_carrera (usuario_usuario_id, carrera_carrera_id, periodo_periodo_id) 
+                         VALUES (:usuario_id, :carrera_id, :periodo_id)";
+
+        $stmt_insertar = $this->conn->prepare($sql_insertar);
+        $stmt_insertar->bindParam(':usuario_id', $usuario_id);
+        $stmt_insertar->bindParam(':carrera_id', $carrera_id);
+        $stmt_insertar->bindParam(':periodo_id', $periodo_id);
+
+        try {
+            $stmt_insertar->execute();
+            header("Location: ../views/templates/form_usuarios-carreras.php?success=true");
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_usuarios-carreras.php?error=insert");
         }
     }
 }

@@ -33,8 +33,11 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase Usuario
         $materiagrupo = new MateriaGrupo($conn);
         $materiagrupo->GrupoMateria();  // Método para procesar el formulario de usuario
-    } else {
 
+    }elseif ($form_type ===  'usuario-carrera'){
+        $usuarioCarrera = new UsuarioHasCarrera($conn);
+        $usuarioCarrera-> UsuarioCarrera();  // Método para procesar el formulario de usuario-carrera
+    } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
     }
