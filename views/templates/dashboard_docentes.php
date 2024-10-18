@@ -224,31 +224,31 @@ $usuario['antiguedad'] = $antiguedad;
                       </button>
 
                       <div class="col-10">
-  <div class="carousel-inner" id="carouselContent">
-    <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
-      <div class="row">
-        <div class="col-12 col-md-5 col-xl-3 text-center">
-          <strong class="name-line">Foto del Docente:</strong> <br>
-          <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
-          </div>
-        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-          <p class="teacher-info h4" id="teacherInfo">
-            <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
-            <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
-            <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
-            <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
-            <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
-            <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
-            <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
-            <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
-            <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
-          </p>
-        </div>
-      </div>
-    </div>
-    <!-- Más elementos del carrusel se generarán dinámicamente -->
-  </div>
-</div>
+                          <div class="carousel-inner" id="carouselContent">
+                            <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+                              <div class="row">
+                                <div class="col-12 col-md-5 col-xl-3 text-center">
+                                  <strong class="name-line">Foto del Docente:</strong> <br>
+                                  <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
+                                  </div>
+                                <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                                  <p class="teacher-info h4" id="teacherInfo">
+                                    <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+                                    <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+                                    <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+                                    <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+                                    <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                                    <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+                                    <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+                                    <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <!-- Más elementos del carrusel se generarán dinámicamente -->
+                          </div>
+                        </div>
 
 
                       <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
