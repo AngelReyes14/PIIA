@@ -15,7 +15,7 @@ class User
         $hashedPassword = hash('sha256', $password);
         
         // Consulta SQL para verificar si el usuario existe
-        $query = "SELECT * FROM usuario WHERE correo = :email AND password = :password";
+        $query = "SELECT usuario_id, correo FROM usuario WHERE correo = :email AND password = :password";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':password', $hashedPassword);
@@ -23,9 +23,14 @@ class User
 
         // Verificar si las credenciales son correctas
         if ($stmt->rowCount() > 0) {
-            // Usuario encontrado, iniciar sesión
-            $_SESSION['email'] = $email;
+            // Usuario encontrado
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Guardar el ID y el correo del usuario en la sesión
+            $_SESSION['user_id'] = $user['usuario_id']; // Corregido
+            $_SESSION['email'] = $user['correo'];
             $_SESSION['last_activity'] = time(); // Guardar el tiempo actual
+            
             return true; // Inicio de sesión exitoso
         }
         return false; // Credenciales incorrectas

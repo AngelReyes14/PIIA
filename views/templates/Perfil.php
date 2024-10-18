@@ -3,28 +3,31 @@ include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 
+// El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
+
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
-// Obtenemos el idusuario actual de la sesión (si no está definido, usamos el id 2 como fallback)
-$idusuario = isset($_SESSION['idusuario']) ? $_SESSION['idusuario'] : 2;
-
 // Llamamos al método para obtener el usuario actual
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
+// Verificamos si el resultado de $usuario está bien
+echo "<script>console.log('Usuario:', " . json_encode($usuario) . ");</script>";
 
 // Llamamos al método para obtener la carrera del usuario
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
-// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
-if (!$usuario) {
-    header("Location: ?idusuario=1");
-    exit;
-}
+// Verificamos si el resultado de $carrera está bien
+echo "<script>console.log('Carrera:', " . json_encode($carrera) . ");</script>";
 
 // Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
 if ($carrera) {
     $usuario = array_merge($usuario, $carrera);
 }
+
+// Verificamos si la fusión de los arrays está bien
+echo "<script>console.log('Usuario con Carrera:', " . json_encode($usuario) . ");</script>";
 
 // Supongamos que la fecha de contratación viene del array $usuario
 $fechaContratacion = $usuario["fecha_contratacion"];
@@ -40,10 +43,16 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
+
+// Verificamos el resultado final de $usuario
+echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usuario) . ");</script>";
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
-
-?>
 <!doctype html>
 <html lang="en">
 
@@ -73,6 +82,14 @@ $usuario['antiguedad'] = $antiguedad;
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- CSS del Date Range Picker -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<!-- JS del Date Range Picker -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 </head>
 
@@ -202,61 +219,74 @@ $usuario['antiguedad'] = $antiguedad;
         <div class="card-header">
             <h2>Perfil del Usuario</h2>
         </div>
-
         <div class="card-body">
             <div class="row">
                 <!-- Columna para la imagen -->
-                <div class="col-md-3">
-                    <img src="assets/images/PIIA_oscuro 1.png" alt="Imagen de Perfil" class="img-fluid rounded">
+                <div class="col-12 col-md-5 col-xl-3 text-center">
+                    <strong class="name-line">Foto del Docente:</strong> <br>
+                    <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
+                    
+                    <!-- Botón debajo de la imagen -->
+                    <button class="btn btn-primary mt-3" id="changeProfilePictureBtn">Cambiar Imagen</button>
                 </div>
-                <!-- Columna para los datos del perfil -->
-                <div class="col-md-9">
+                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                      <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
+        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+</form>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Columna para los campos -->
+                <div class="col-md-7">
+                    <!-- Información del usuario como antes -->
                     <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Nombre:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?></p>
+                        <div class="col-sm-6">
+                            <label class="form-label">Nombre:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Correo Electrónico:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['correo']); ?>" readonly>
                         </div>
                     </div>
-
                     <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Correo Electrónico:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['correo']); ?></p>
+                        <div class="col-sm-6">
+                            <label class="form-label">Edad:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['edad']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Cédula:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
                         </div>
                     </div>
-
+                    <!-- Información adicional -->
                     <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Edad:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['edad']); ?></p>
+                        <div class="col-sm-6">
+                            <label class="form-label">Fecha de Contratación:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['fecha_contratacion']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Grado Académico:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['grado_academico']); ?>" readonly>
                         </div>
                     </div>
-
                     <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Cédula:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['cedula']); ?></p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Fecha de Contratación:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['fecha_contratacion']); ?></p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Grado Académico:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['grado_academico']); ?></p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Antigüedad:</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-plaintext"><?php echo htmlspecialchars($usuario['antiguedad']); ?> años</p>
+                        <div class="col-sm-6">
+                            <label class="form-label">Antigüedad:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años" readonly>
                         </div>
                     </div>
                 </div>
@@ -264,6 +294,17 @@ $usuario['antiguedad'] = $antiguedad;
         </div>
     </div>
 </div>
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_GET['success']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+
+
+
+
 
 
 
@@ -424,7 +465,6 @@ $usuario['antiguedad'] = $antiguedad;
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
     Chart.defaults.global.defaultFontColor = colors.mutedColor;
   </script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src='js/jquery.steps.min.js'></script>
 <script src="js/jquery.validate.min.js"></script>
 <script src="js/gauge.min.js"></script>
@@ -438,7 +478,14 @@ $usuario['antiguedad'] = $antiguedad;
 <script src='js/uppy.min.js'></script>
 <script src='js/quill.min.js'></script>
 
+
+
   <script>
+    document.getElementById('changeProfilePictureBtn').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('changeImageModal'));
+        myModal.show();
+    });
+
     $('.select2').select2({
       theme: 'bootstrap4',
     });

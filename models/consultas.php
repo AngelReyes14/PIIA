@@ -51,6 +51,44 @@ class Consultas {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+   public function actualizarImagenPerfil($imagenUrl, $idusuario) {
+    if (empty($imagenUrl)) {
+        echo "<script>console.log('La URL de la imagen está vacía.');</script>";
+        return false;
+    }
+
+    $sql = "UPDATE usuario SET imagen_url = :imagen_url WHERE usuario_id = :usuario_id";
+    $stmt = $this->conn->prepare($sql);
+    
+    if (!$stmt) {
+        echo "<script>console.log('Error en la preparación de la consulta: " . $this->conn->error . "');</script>";
+        return false;
+    }
+
+    // Enlazar los parámetros
+    $stmt->bindValue(':imagen_url', $imagenUrl, PDO::PARAM_STR);
+    $stmt->bindValue(':usuario_id', $idusuario, PDO::PARAM_INT);
+
+    if ($stmt->execute()) {
+        return true; // Devuelve verdadero si la consulta se ejecutó correctamente
+    } else {
+        echo "<script>console.log('Error al ejecutar la consulta: " . $stmt->errorInfo()[2] . "');</script>";
+        return false; // Devuelve falso si hay un error
+    }
+}
+
+    
+    
+
+    public function obtenerUsuarioPorCorreo($correo) {
+        $sql = "SELECT usuario_id FROM vista_usuarios WHERE correo = :correo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':correo', $correo, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+
     public function obtenerCarreras() {
         $query = "SELECT carrera_id, nombre_carrera FROM carrera"; // Asegúrate de que la tabla y las columnas sean correctas
         $stmt = $this->conn->prepare($query);
