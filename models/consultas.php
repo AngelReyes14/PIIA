@@ -19,6 +19,19 @@ class Consultas {
         }
     }
 
+    public function verUsuariosCarreras(){
+        $query = "SELECT * FROM vista_usuario_carrera";  // Cambia el nombre de la vista
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+    
+
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
         $stmt = $this->conn->prepare($query);
@@ -571,4 +584,63 @@ class Usuario {
         return $stmt->fetchColumn() > 0;
     }
 }
+class UsuarioHasCarrera {
+    private $conn;
 
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function UsuarioCarrera() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $usuario_id = $_POST['usuario'];
+            $carrera_id = $_POST['carrera'];
+            $periodo_id = $_POST['periodo'];
+
+            $this->insertarUsuarioCarrera($usuario_id, $carrera_id, $periodo_id);
+        }
+    }
+
+    private function insertarUsuarioCarrera($usuario_id, $carrera_id, $periodo_id) {
+        // Verificar si ya existe la relación
+        $sql_verificar = "SELECT COUNT(*) FROM usuario_has_carrera 
+                          WHERE usuario_usuario_id = :usuario_id 
+                          AND carrera_carrera_id = :carrera_id 
+                          AND periodo_periodo_id = :periodo_id";
+
+        $stmt_verificar = $this->conn->prepare($sql_verificar);
+        $stmt_verificar->bindParam(':usuario_id', $usuario_id);
+        $stmt_verificar->bindParam(':carrera_id', $carrera_id);
+        $stmt_verificar->bindParam(':periodo_id', $periodo_id);
+
+        try {
+            $stmt_verificar->execute();
+            $count = $stmt_verificar->fetchColumn();
+
+            if ($count > 0) {
+                // Usuario ya registrado, redirigir con error
+                header("Location: ../views/templates/form_usuarios-carreras.php?error=duplicate");
+                exit();
+            }
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_usuarios-carreras.php?error=database");
+            exit();
+        }
+
+        // Insertar si no está registrado
+        $sql_insertar = "INSERT INTO usuario_has_carrera (usuario_usuario_id, carrera_carrera_id, periodo_periodo_id) 
+                         VALUES (:usuario_id, :carrera_id, :periodo_id)";
+
+        $stmt_insertar = $this->conn->prepare($sql_insertar);
+        $stmt_insertar->bindParam(':usuario_id', $usuario_id);
+        $stmt_insertar->bindParam(':carrera_id', $carrera_id);
+        $stmt_insertar->bindParam(':periodo_id', $periodo_id);
+
+        try {
+            $stmt_insertar->execute();
+            header("Location: ../views/templates/form_usuarios-carreras.php?success=true");
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_usuarios-carreras.php?error=insert");
+        }
+    }
+}
