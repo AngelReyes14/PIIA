@@ -1,7 +1,9 @@
 <?php
 include('../../models/session.php');
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
-
 <!doctype html>
 <html lang="en">
 

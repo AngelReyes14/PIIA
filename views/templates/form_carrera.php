@@ -5,7 +5,11 @@ include('../../models/consultas.php');
 
 $consultas = new Consultas($conn);
 $carreras = $consultas->verCarreras();
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
+
 <!doctype html>
 <html lang="en">
 

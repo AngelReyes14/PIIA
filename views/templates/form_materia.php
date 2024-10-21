@@ -31,7 +31,9 @@ try {
   exit();  // Finaliza la ejecución si no hay conexión
 }
 
-
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 <!doctype html>
 <html lang="en">
