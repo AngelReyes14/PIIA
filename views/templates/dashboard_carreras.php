@@ -155,6 +155,13 @@ if (isset($_POST['logout'])) {
                   <li class="nav-item w-100">
                     <a class ="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
                   </li>
+                  <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
+            </li>
+          </ul>
                 </ul>
               </ul>
           </nav>
