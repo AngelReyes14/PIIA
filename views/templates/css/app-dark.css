@@ -12708,3 +12708,8 @@ a.uppy-Dashboard-poweredBy {
     line-height: 1.5; /* Asegurar que el espacio entre líneas sea constante */
   }
 }
+.tamanoImg{
+  width: 200px; 
+  height: 300px;
+}
+
