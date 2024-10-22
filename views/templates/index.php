@@ -1,7 +1,7 @@
 <?php
 include('../../controllers/db.php');
 include('../../models/session.php');
-include('../../models/consultas.php'); 
+include('../../models/consultas.php');
 
 // Crear una instancia del manejador de sesión
 $sessionManager = new SessionManager(7); // Ajusta el tiempo de vida de la sesión según sea necesario
@@ -12,8 +12,8 @@ unset($_SESSION['error']); // Eliminar el mensaje de error de la sesión
 
 // Verificar si el usuario está logueado
 if (!$sessionManager->isSessionActive()) {
-    header("Location: ../templates/auth-login.php"); // Redirigir a login si no está logueado
-    exit();
+  header("Location: ../templates/auth-login.php"); // Redirigir a login si no está logueado
+  exit();
 }
 
 // Obtener el ID del usuario de la sesión
@@ -31,7 +31,7 @@ var_dump($tipoUsuarioId); // Check user type ID
 
 // Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 // Comienza a capturar el contenido del aside
@@ -43,6 +43,28 @@ $asideContent = '
                 <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
             </a>
         </div>
+        <ul class="navbar-nav flex-fill w-100 mb-2">';
+
+switch ($tipoUsuarioId) {
+  case 1:
+    $asideContent .= '
+        
+            <li class="nav-item w-100">
+                <a class="nav-link" href="Perfil.php">
+                    <i class="fe fe-user fe-16"></i>
+                    <span class="ml-3 item-text">Perfil</span>
+                </a>
+            </li>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="form_incidencias.php">
+                    <i class="fe fe-file-text fe-16"></i>
+                    <span class="ml-3 item-text">Incidencias</span>
+                </a>
+            </li>';
+    break;
+  case 2:
+    $asideContent .= '
+
         <ul class="navbar-nav flex-fill w-100 mb-2>
             <li class="nav-item w-100">
                 <a class="nav-link" href="index.php">
@@ -50,6 +72,19 @@ $asideContent = '
                     <span class="ml-3 item-text">Inicio</span>
                 </a>
             </li>
+
+            <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Recursos humanos</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+            <li class="nav-item w-100">
+                <a class="nav-link" href="recursos_humanos_empleados.php">
+                    <i class="fe fe-calendar fe-16"></i>
+                    <span class="ml-3 item-text">Empleados</span>
+                </a>
+            </li>
+        </ul>
+
             <li class="nav-item dropdown">
                 <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
                     <i class="fe fe-home fe-16"></i>
@@ -70,41 +105,7 @@ $asideContent = '
             </li>
         </ul>
 
-        <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Recursos humanos</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item w-100">
-                <a class="nav-link" href="recursos_humanos_empleados.php">
-                    <i class="fe fe-calendar fe-16"></i>
-                    <span class="ml-3 item-text">Empleados</span>
-                </a>
-            </li>
-        </ul>
 
-        <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Contenido según tipo de usuario</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">';
-
-switch ($tipoUsuarioId) {
-    case 1: 
-        $asideContent .= '
-            <li class="nav-item w-100">
-                <a class="nav-link" href="Perfil.php">
-                    <i class="fe fe-user fe-16"></i>
-                    <span class="ml-3 item-text">Perfil</span>
-                </a>
-            </li>
-            <li class="nav-item w-100">
-                <a class="nav-link" href="form_incidencias.php">
-                    <i class="fe fe-file-text fe-16"></i>
-                    <span class="ml-3 item-text">Incidencias</span>
-                </a>
-            </li>';
-        break;
-    case 2:
-        $asideContent .= '
             <li class="nav-item w-100">
                 <a class="nav-link" href="Perfil.php">
                     <i class="fe fe-user fe-16"></i>
@@ -117,9 +118,9 @@ switch ($tipoUsuarioId) {
                     <span class="ml-3 item-text">Formulario Extra</span>
                 </a>
             </li>';
-        break;
-    case 3:
-        $asideContent .= '
+    break;
+  case 3:
+    $asideContent .= '
             <li class="nav-item w-100">
                 <a class="nav-link" href="Perfil.php">
                     <i class="fe fe-user fe-16"></i>
@@ -138,7 +139,7 @@ switch ($tipoUsuarioId) {
                     <span class="ml-3 item-text">Carreras</span>
                 </a>
             </li>';
-        break;
+    break;
 }
 
 $asideContent .= '</ul></nav></aside>'; // Cierra las etiquetas del aside y nav
