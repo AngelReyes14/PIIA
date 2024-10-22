@@ -69,6 +69,8 @@ $usuario['antiguedad'] = $antiguedad;
   <link rel="stylesheet" href="css/jquery.steps.css">
   <link rel="stylesheet" href="css/jquery.timepicker.css">
   <link rel="stylesheet" href="css/quill.snow.css">
+  <link rel="stylesheet" href="css/dataTables.bootstrap4.css">
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css" />
   <!-- App CSS -->
