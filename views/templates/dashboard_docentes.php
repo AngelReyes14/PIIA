@@ -40,6 +40,11 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
 
@@ -75,7 +80,7 @@ $usuario['antiguedad'] = $antiguedad;
   <link rel="stylesheet" href="css/daterangepicker.css" />
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
-  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme">
   </link>
 
 <!-- Bootstrap JS -->
@@ -119,7 +124,7 @@ $usuario['antiguedad'] = $antiguedad;
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -201,6 +206,13 @@ $usuario['antiguedad'] = $antiguedad;
                   <li class="nav-item w-100">
                     <a class ="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
                   </li>
+                  <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
+            </li>
+          </ul>
                 </ul>
               </ul>
           </nav>

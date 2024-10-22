@@ -12580,6 +12580,7 @@ a.uppy-Dashboard-poweredBy {
 .tamanoImg{
   width: 200px; 
   height: 300px;
+}
 .sw-theme-arrows .sw-toolbar {
   padding: 10px;
   margin-bottom: 0 !important;
@@ -12713,4 +12714,3 @@ a.uppy-Dashboard-poweredBy {
     min-height: 70px; /* Asegurar una altura mínima uniforme */
     line-height: 1.5; /* Asegurar que el espacio entre líneas sea constante */
   }
-}
