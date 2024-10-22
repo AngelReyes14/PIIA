@@ -48,7 +48,15 @@ $asideContent = '
 switch ($tipoUsuarioId) {
   case 1:
     $asideContent .= '
-        
+    <li class="nav-item w-100">
+                <a class="nav-link" href="index.php">
+                    <i class="fe fe-calendar fe-16"></i>
+                    <span class="ml-3 item-text">Inicio</span>
+                </a>
+            </li>
+        <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Docentes</span>
+          </p>
             <li class="nav-item w-100">
                 <a class="nav-link" href="Perfil.php">
                     <i class="fe fe-user fe-16"></i>
@@ -72,7 +80,6 @@ switch ($tipoUsuarioId) {
                     <span class="ml-3 item-text">Inicio</span>
                 </a>
             </li>
-
             <p class="text-muted nav-heading mt-4 mb-1">
             <span>Recursos humanos</span>
         </p>
@@ -103,21 +110,7 @@ switch ($tipoUsuarioId) {
                     </li>
                 </ul>
             </li>
-        </ul>
-
-
-            <li class="nav-item w-100">
-                <a class="nav-link" href="Perfil.php">
-                    <i class="fe fe-user fe-16"></i>
-                    <span class="ml-3 item-text">Perfil</span>
-                </a>
-            </li>
-            <li class="nav-item w-100">
-                <a class="nav-link" href="formulario_extra.php">
-                    <i class="fe fe-plus fe-16"></i>
-                    <span class="ml-3 item-text">Formulario Extra</span>
-                </a>
-            </li>';
+        </ul>';
     break;
   case 3:
     $asideContent .= '

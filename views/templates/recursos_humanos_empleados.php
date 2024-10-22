@@ -1,9 +1,138 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../models/consultas.php'); // Incluir la clase de consultas
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
+
+
+// Obtener el ID del usuario de la sesión
+$idusuario = (int)$sessionManager->getUserId();
+
+// Crear una instancia del modelo de usuario
+$usuarioModel = new Consultas($conn); // Asegúrate de que esta clase exista y esté correctamente definida
+
+// Obtener el tipo de usuario usando el ID del usuario
+$tipoUsuarioId = $usuarioModel->obtenerTipoUsuarioPorId($idusuario);
+
+// Debugging lines
+var_dump($idusuario); // Check user ID
+var_dump($tipoUsuarioId); // Check user type ID
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
+
+// Comienza a capturar el contenido del aside
+$asideContent = '
+<aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
+    <nav class="vertnav navbar navbar-light">
+        <div class="w-100 mb-4 d-flex">
+            <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
+                <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
+            </a>
+        </div>
+        <ul class="navbar-nav flex-fill w-100 mb-2">';
+
+switch ($tipoUsuarioId) {
+  case 1:
+    $asideContent .= '
+    <li class="nav-item w-100">
+                <a class="nav-link" href="index.php">
+                    <i class="fe fe-calendar fe-16"></i>
+                    <span class="ml-3 item-text">Inicio</span>
+                </a>
+            </li>
+        <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Docentes</span>
+          </p>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="Perfil.php">
+                    <i class="fe fe-user fe-16"></i>
+                    <span class="ml-3 item-text">Perfil</span>
+                </a>
+            </li>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="form_incidencias.php">
+                    <i class="fe fe-file-text fe-16"></i>
+                    <span class="ml-3 item-text">Incidencias</span>
+                </a>
+            </li>';
+    break;
+  case 2:
+    $asideContent .= '
+
+        <ul class="navbar-nav flex-fill w-100 mb-2>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="index.php">
+                    <i class="fe fe-calendar fe-16"></i>
+                    <span class="ml-3 item-text">Inicio</span>
+                </a>
+            </li>
+
+            <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Recursos humanos</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+            <li class="nav-item w-100">
+                <a class="nav-link" href="recursos_humanos_empleados.php">
+                    <i class="fe fe-calendar fe-16"></i>
+                    <span class="ml-3 item-text">Empleados</span>
+                </a>
+            </li>
+        </ul>
+
+            <li class="nav-item dropdown">
+                <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+                    <i class="fe fe-home fe-16"></i>
+                    <span class="ml-3 item-text">Dashboard</span>
+                </a>
+                <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="./dashboard_docentes.php">
+                            <span class="ml-1 item-text">Docentes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="./dashboard_carreras.php">
+                            <span class="ml-1 item-text">Carrera</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>';
+    break;
+  case 3:
+    $asideContent .= '
+            <li class="nav-item w-100">
+                <a class="nav-link" href="Perfil.php">
+                    <i class="fe fe-user fe-16"></i>
+                    <span class="ml-3 item-text">Perfil</span>
+                </a>
+            </li>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="formulario_extra.php">
+                    <i class="fe fe-plus fe-16"></i>
+                    <span class="ml-3 item-text">Formulario Extra</span>
+                </a>
+            </li>
+            <li class="nav-item w-100">
+                <a class="nav-link" href="dashboard_carreras.php">
+                    <i class="fe fe-book fe-16"></i>
+                    <span class="ml-3 item-text">Carreras</span>
+                </a>
+            </li>';
+    break;
+}
+
+$asideContent .= '</ul></nav></aside>'; // Cierra las etiquetas del aside y nav
+
+// Output the aside content
+echo $asideContent;
 ?>
+
 <!doctype html>
 <html lang="en">
 
@@ -86,90 +215,6 @@ if (isset($_POST['logout'])) {
         </li>
       </ul>
     </nav>
-
-    
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-          <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-            <i class="fe fe-x"><span class="sr-only"></span></i>
-          </a>
-          <nav class="vertnav navbar navbar-light">
-            <!-- nav bar -->
-            <div class="w-100 mb-4 d-flex">
-              <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-                <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-              </a>
-            </div>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="index.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Inicio</span>
-                </a>
-              </li>
-              <li class="nav-item dropdown">
-                <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-                  <i class="fe fe-home fe-16"></i>
-                  <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-                </a>
-                <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-                  <li class="nav-item">
-                    <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                        class="ml-1 item-text">Docentes</span></a>
-                  </li>
-                  <li class="nav-item active">
-                    <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-                  </li>
-                  
-                </ul>
-              </li>
-            </ul>
-            <p class="text-muted nav-heading mt-4 mb-1">
-              <span>Recursos humanos</span>
-            </p>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="recursos_humanos_empleados.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Empleados</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Desarrollo Académico</span>
-              </p>
-              <li class="nav-item w-100">
-                <a class="nav-link" href="desarrollo_academico_docentes.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Docentes</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Registros</span>
-              </p>
-              <ul class="navbar-nav flex-fill w-100 mb-2">
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_materia.php"><span
-                        class="ml-1 item-text">Materias</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class ="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
-            </li>
-          </ul>
-                </ul>
-              </ul>
-          </nav>
-        </aside>
 
      <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
      <div class="card text-center">
