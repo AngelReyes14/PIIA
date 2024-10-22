@@ -477,26 +477,6 @@ $usuario['antiguedad'] = $antiguedad;
                         // Actualiza el texto del botón con el nombre de la carrera seleccionada
                         $('#btn-filter-division .filter-label').text(carreraNombre);
 
-                        // Enviar el carrera_id seleccionado al servidor mediante AJAX
-                        $.ajax({
-                          url: '../templates/filtrarPorCarrera.php',
-                          type: 'POST',
-                          data: {
-                            carrera_id: carreraId
-                          },
-                          dataType: 'json',
-                          success: function(response) {
-                            if (response && response.length > 0) {
-                              actualizarCarrusel(response);
-                            } else {
-                              console.error("No se recibieron usuarios.");
-                            }
-                          },
-                          error: function() {
-                            console.error('Error al obtener los usuarios por carrera.');
-                          }
-                        });
-
                         // Ocultar las opciones de carrera después de la selección
                         $('#filter-options-division').addClass('d-none');
                       });
