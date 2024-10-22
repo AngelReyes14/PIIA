@@ -44,6 +44,15 @@ class Consultas {
         }
     }
 
+    public function obtenerTipoUsuarioPorId($usuario_id) {
+        $sql = "SELECT tipo_usuario_tipo_usuario_id FROM vista_usuarios WHERE usuario_id = :usuario_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchColumn(); // Esto devolverá solo el valor de la columna especificada
+    }
+    
+
     public function verMateriasGrupo(){
         $query = "SELECT * FROM vista_materias_grupo_periodo";
         $stmt = $this->conn->prepare($query);
