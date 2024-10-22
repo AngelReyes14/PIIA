@@ -1,4 +1,5 @@
-// Previsualiza la imagen seleccionada
+
+
 function previewImage() {
     const fileInput = document.getElementById('fileInput');
     const imagePreview = document.getElementById('imagePreview');
@@ -13,6 +14,7 @@ function previewImage() {
         reader.readAsDataURL(file);
     }
 }
+
 
 $(document).ready(function () {
     // Inicializa el wizard
@@ -44,7 +46,7 @@ $(document).ready(function () {
         $(step).find('input, select').each(function () {
             let value = $(this).val().trim();
             $(this).val(value); // Actualiza el valor sin espacios
-
+    
             // Verifica la validez del campo
             if (!this.checkValidity() || value === "") {
                 $(this).addClass('is-invalid');
@@ -52,34 +54,46 @@ $(document).ready(function () {
             } else {
                 $(this).removeClass('is-invalid');
             }
-
-// Validación específica para el campo de contraseña
-if ($(this).attr('type') === 'password') {
-    if (value.length < 8) {
-        $(this).addClass('is-invalid');
-        $(this).get(0).setCustomValidity('La contraseña debe tener al menos 8 caracteres.');
-        isValid = false;
-    } else {
-        $(this).removeClass('is-invalid');
-        $(this).get(0).setCustomValidity(''); // Resetea el mensaje de error
+    
+            // Validación específica para el campo de contraseña
+            if ($(this).attr('type') === 'password') {
+                if (value.length < 8) {
+                    $(this).addClass('is-invalid');
+                    $(this).get(0).setCustomValidity('La contraseña debe tener al menos 8 caracteres.');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).get(0).setCustomValidity(''); // Resetea el mensaje de error
+                }
+            }
+    
+            // Validación de la edad
+            if ($(this).attr('id') === 'edad') {
+                const ageNum = parseInt(value, 10);
+                if (isNaN(ageNum) || ageNum < 18 || ageNum > 90) {
+                    $(this).addClass('is-invalid');
+                    $(this).get(0).setCustomValidity('La edad debe estar entre 18 y 90 años.');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).get(0).setCustomValidity(''); // Resetea el mensaje de error
+                }
+            }
+    
+            // Validación del número de empleado
+            if ($(this).attr('id') === 'numero_empleado') {
+                if (value.length !== 4) {
+                    $(this).addClass('is-invalid');
+                    $(this).get(0).setCustomValidity('El número de empleado debe tener exactamente 4 caracteres.');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(this).get(0).setCustomValidity(''); // Resetea el mensaje de error
+                }
+            }
+        });
+        return isValid;
     }
-}
-
-// Validación de la edad
-if ($(this).attr('id') === 'edad') {
-    const ageNum = parseInt(value, 10);
-    if (isNaN(ageNum) || ageNum < 18 || ageNum > 90) {
-        $(this).addClass('is-invalid');
-        $(this).get(0).setCustomValidity('La edad debe estar entre 18 y 90 años.');
-        isValid = false;
-    } else {
-        $(this).removeClass('is-invalid');
-        $(this).get(0).setCustomValidity(''); // Resetea el mensaje de error
-    }
-}
-});
-return isValid;
-}
 
 
     // Validación de contraseñas
@@ -105,6 +119,7 @@ return isValid;
             $(this).removeClass('is-invalid');
         }
     });
+    
 
     // Filtra caracteres no permitidos
     $('#usuario_nombre, #usuario_apellido_p, #usuario_apellido_m, #grado_academico').on('input', function () {
@@ -129,6 +144,7 @@ return isValid;
         const cedula = $('#cedula').val();
         const password = $('#password').val();
 
+        
         // Validar campos vacíos o solo espacios
         if ([nombre, apellidoP, apellidoM, gradoAcademico, cedula].some(containsOnlySpaces)) {
             showAlert('Error', 'Los campos no pueden estar vacíos o contener solo espacios.', 'error');
@@ -152,35 +168,37 @@ return isValid;
     });
 
     // Verifica y muestra mensajes de éxito o error
-    function checkForMessages() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success');
-        const error = urlParams.get('error');
+function checkForMessages() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
 
-        if (success === 'true') {
-            showAlert('¡Éxito!', 'Usuario registrado con éxito.', 'success');
-        } else if (error) {
-            let errorMessage = {
-                'upload': 'Error al subir la imagen.',
-                'duplicate': 'Este usuario ya está registrado.'
-            }[error] || 'Ocurrió un error inesperado. Intenta nuevamente.';
+    if (success === 'true') {
+        showAlert('¡Éxito!', 'Usuario registrado con éxito.', 'success');
+    } else if (error) {
+        let errorMessage = {
+            'upload': 'Error al subir la imagen.',
+            'duplicate_email': 'El correo ya está registrado.',
+            'duplicate_employee': 'El número de empleado ya está registrado.',
+            'duplicate': 'Este usuario ya está registrado.'
+        }[error] || 'Ocurrió un error inesperado. Intenta nuevamente.';
 
-            showAlert('Error', errorMessage, 'error');
-        }
+        showAlert('Error', errorMessage, 'error');
     }
+}
 
-    // Muestra alertas usando SweetAlert
-    function showAlert(title, text, icon) {
-        Swal.fire({
-            title: title,
-            text: text,
-            icon: icon,
-            confirmButtonText: 'Aceptar'
-        });
-    }
+// Muestra alertas usando SweetAlert
+function showAlert(title, text, icon) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        confirmButtonText: 'Aceptar'
+    });
+}
 
-    // Verifica los mensajes al cargar la página
-    checkForMessages();
+// Verifica los mensajes al cargar la página
+checkForMessages();
 });
 
 // Función para verificar si el campo contiene solo espacios
