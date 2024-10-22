@@ -109,6 +109,63 @@ class Consultas {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    //*********************** PRUEBA ************************************************************* */    
+ 
+    
+    public function obtenerUsuariosPorCarrera($carrera_id) {
+        // Consulta para obtener usuarios asociados a una carrera específica
+        $query = "SELECT 
+                    u.usuario_id,
+                    u.nombre_usuario,
+                    u.apellido_p,
+                    u.apellido_m,
+                    u.edad,
+                    u.correo,
+                    u.fecha_contratacion,
+                    u.numero_empleado,
+                    u.grado_academico,
+                    u.cedula,
+                    u.imagen_url,
+                    u.sexo_sexo_id,
+                    u.status_status_id,
+                    u.tipo_usuario_tipo_usuario_id,
+                    u.cuerpo_colegiado_cuerpo_colegiado_id,
+                    u.carrera_carrera_id,
+                    c.carrera_id,
+                    c.nombre_carrera 
+                  FROM 
+                    vista_usuarios u
+                  JOIN 
+                    carrera c ON u.carrera_carrera_id = c.carrera_id
+                  WHERE 
+                    c.carrera_id = :carrera_id"; // Usando un parámetro para evitar inyecciones SQL
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
+        try {
+            $stmt->execute(); // Ejecutamos la consulta
+            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage(); // Manejo de errores
+            return false; // Devuelve false si ocurre algún error
+        }
+    }
+    
+    
+    
+    public function obtenerTodosLosUsuarios() {
+        $sql = "SELECT * FROM vista_usuarios";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    
+    
+     //************************************************************************************* */    
+
     
     // Método para obtener los semestres
     public function obtenerSemestres() {

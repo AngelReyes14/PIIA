@@ -12574,14 +12574,13 @@ a.uppy-Dashboard-poweredBy {
   background-color: transparent; /* Fondo oscuro */
   text-align: left;
 }
-<<<<<<< HEAD
 .mt-200 {
   margin-top: 200px;
 }
 .tamanoImg{
   width: 200px; 
   height: 300px;
-=======
+}
 .sw-theme-arrows .sw-toolbar {
   padding: 10px;
   margin-bottom: 0 !important;
@@ -12715,8 +12714,3 @@ a.uppy-Dashboard-poweredBy {
     min-height: 70px; /* Asegurar una altura mínima uniforme */
     line-height: 1.5; /* Asegurar que el espacio entre líneas sea constante */
   }
-}
-.tamanoImg{
-  width: 200px; 
-  height: 300px;
-}
