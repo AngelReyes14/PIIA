@@ -37,7 +37,6 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
 ?>
-
 <!doctype html>
 <html lang="en">
 

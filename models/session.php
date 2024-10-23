@@ -76,13 +76,6 @@ class SessionManager
     {
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
-
-    // Método para obtener el tipo de usuario
-public function getUserType()
-{
-    return isset($_SESSION['user_type']) ? $_SESSION['user_type'] : null;
-}
-
 }
 
 // Crear una instancia de la clase SessionManager
