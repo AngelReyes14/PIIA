@@ -442,7 +442,7 @@ class Usuario {
             $tipo_usuario_tipo_usuario_id = $_POST['tipo_usuario_tipo_usuario_id'];
             $carrera_carrera_id = $_POST['carrera_carrera_id'];
             $cuerpo_colegiado_cuerpo_colegiado_id = $_POST['cuerpo_colegiado_cuerpo_colegiado_id'];
-
+            $periodo_periodo_id = $_POST['periodo_periodo_id']; // Agregar periodo_id
             // Manejar la carga de imagen
             $imagen_url = $this->handleImageUpload($_FILES['imagen_url']);
             if ($imagen_url === false) {
@@ -477,7 +477,7 @@ class Usuario {
             // Insertar en la base de datos
             $this->insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
                 $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id);
+                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id);
         }
     }
     
@@ -524,7 +524,7 @@ class Usuario {
 
     private function insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
+    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id) {
 
             // Verificar si el correo ya existe
     if ($this->isEmailDuplicate($correo)) {
@@ -540,7 +540,7 @@ class Usuario {
 
         $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
             :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
-            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
+            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id, :periodo_periodo_id)";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':nombre_usuario', $nombre_usuario);
@@ -559,6 +559,7 @@ class Usuario {
         $stmt->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
         $stmt->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
         $stmt->bindParam(':carrera_carrera_id', $carrera_carrera_id);
+        $stmt->bindParam(':periodo_periodo_id', $periodo_periodo_id); // Añadir bind para periodo_id
 
         try {
             $stmt->execute();
@@ -584,6 +585,8 @@ class Usuario {
         return $stmt->fetchColumn() > 0;
     }
 }
+
+
 class UsuarioHasCarrera {
     private $conn;
 
