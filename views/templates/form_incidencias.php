@@ -1,16 +1,19 @@
 <?php
-// Asegúrate de que este archivo tenga la conexión a la base de datos
-include_once 'C:\xampp\htdocs\xampp\PIIA\controllers\db.php';
-include_once 'C:\xampp\htdocs\xampp\PIIA\models\consultas.php';
+include('../../controllers/db.php');
+include('../../models/consultas.php');
+include('../../models/session.php');
 
-// Crear una instancia de la base de datos y consultas
-$database = new Database('localhost', 'piia', 'root', '1234');
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
+$incidencias = $consultas->obtenerIncidencias();
+
 ?>
+
+<!-- Aquí sigue tu código HTML para el formulario -->
+
 <!doctype html>
 <html lang="en">
 
@@ -219,59 +222,19 @@ $carreras = $consultas->obtenerCarreras();
               </div>
             </div>
             <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
-              <div class="titulos">Por este conducto se notifica que el trabajador está autorizado a:</div>
-              <div id="justificacion-error" class="text-danger d-none">¡Por favor, seleccione al menos una opción.!</div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="consulta-medica" name="justificacion" value="consulta-medica">
-                    <label class="form-check-label" for="consulta-medica">
-                      Asistencia a Consulta Médica
-                      <span class="description">(Constancia de permanencia ISSEMYM)</span>
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="lactancia" name="justificacion" value="lactancia">
-                    <label class="form-check-label" for="lactancia">
-                      Lactancia
-                      <span class="description">(Por 6 meses después del parto)</span>
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="dia-economico" name="justificacion" value="dia-economico">
-                    <label class="form-check-label" for="dia-economico">
-                      Día Económico
-                      <span class="description">(Cuatro días por semestre)</span>
-                    </label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="llegar-tarde" name="justificacion" value="llegar-tarde">
-                    <label class="form-check-label" for="llegar-tarde">
-                      Llegar tarde
-                      <span class="description">(Hasta 60 min)</span>
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="retirarse-antes" name="justificacion" value="retirarse-antes">
-                    <label class="form-check-label" for="retirarse-antes">
-                      Retirarse Antes de la Hora
-                      <span class="description">(Hasta 60 min)</span>
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="permiso-sin-sueldo" name="justificacion" value="permiso-sin-sueldo">
-                    <label class="form-check-label" for="permiso-sin-sueldo">
-                      Permiso Sin Goce de Sueldo
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div id="justificacion-error" class="text-danger d-none">Por favor, seleccione al menos una opción.</div>
-              <div id="dias-restantes" class="mt-2 d-none">
-                <strong>Días restantes de Día Económico:</strong> <span id="count-down">4</span>
-              </div>
+            <div class="form-group mb-3">
+    <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
+    <select class="form-control" id="incidencias" name="incidencias" required>
+        <option value="" disabled selected>Selecciona una incidencia</option>
+        <?php foreach ($incidencias as $incidencia): ?>
+            <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
+                <?php echo htmlspecialchars($incidencia['descripcion']); // Solo la descripción ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <div class="invalid-feedback">Este campo es obligatorio.</div>
+</div>
+
             </div>
 
             <div class="conteiner p-3 box-shadow-div">
@@ -306,46 +269,66 @@ $carreras = $consultas->obtenerCarreras();
               </div>
 
               <div class="d-flex flex-column mb-3">
-                <div class="mb-2">
-                  <label for="nombre-servidor-publico" class="form-label">Nombre del Servidor Público:</label>
-                  <input type="text" class="form-control" id="nombre-servidor-publico" name="nombre-servidor-publico" required>
-                  <div class="invalid-feedback">Este campo no puede estar vacío ni contener solo espacios.</div>
-                </div>
+    <div class="mb-2">
+        <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
+        <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
+            <option value="">Seleccione un servidor público</option>
+            <?php
+            // Incluir archivo de conexión a la base de datos
+            include('../controllers/db.php');
+            include('../models/session.php'); // Incluir el archivo de sesión para acceder a las variables de sesión
 
-                <div>
-                  <label for="numero-empleado" class="form-label">Número del Empleado:</label>
-                  <input type="text" class="form-control" id="numero-empleado" name="numero-empleado" required>
-                  <div class="invalid-feedback">Este campo es obligatorio.</div>
-                </div>
+            // Obtener el ID del usuario a través del SessionManager
+            $idusuario = $sessionManager->getUserId();
+
+            // Consulta SQL para obtener el servidor público del usuario autenticado
+            $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                      FROM usuario 
+                      WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':user_id', $idusuario); // Vincular el ID del usuario a la consulta
+            $stmt->execute();
+
+            // Verificar si se obtuvieron resultados
+            if ($stmt->rowCount() > 0) {
+                // Recoger el resultado
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                echo '<option value="' . htmlspecialchars($row['usuario_id']) . '">' . htmlspecialchars($row['nombre_completo']) . '</option>';
+            } else {
+                echo '<option value="">No hay servidores públicos disponibles</option>';
+            }
+            ?>
+        </select>
+        <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
+    </div>
+</div>
+              <!-- Botón para enviar el formulario -->
+              <div class="text-center mt-4">
+                <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
               </div>
-            </div>
-            <!-- Botón para enviar el formulario -->
-            <div class="text-center mt-4">
-              <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
-            </div>
-            <!-- Modal -->
-            <!-- Modal -->
-            <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="customModalLabel">AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</h5>
-                  </div>
-                  <div class="modal-body">
-                    DATOS ENVIADOS.
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="closeModal">Cerrar</button>
+              <!-- Modal -->
+              <!-- Modal -->
+              <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="customModalLabel">AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</h5>
+                    </div>
+                    <div class="modal-body">
+                      DATOS ENVIADOS.
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" id="closeModal">Cerrar</button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
     </main>
 
-    
+
     <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
       aria-hidden="true">
       <div class="modal-dialog modal-sm" role="document">
