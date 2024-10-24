@@ -5,7 +5,11 @@ include('../../models/consultas.php');
 
 $consultas = new Consultas($conn);
 $carreras = $consultas->verCarreras();
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
+
 <!doctype html>
 <html lang="en">
 
@@ -79,7 +83,7 @@ $carreras = $consultas->verCarreras();
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -160,6 +164,13 @@ $carreras = $consultas->verCarreras();
             </li>
             <li class="nav-item w-100">
               <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
+            </li>
+          </ul>
+          <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
             </li>
           </ul>
         </ul>

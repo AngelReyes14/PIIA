@@ -37,7 +37,6 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
 ?>
-
 <!doctype html>
 <html lang="en">
 
@@ -113,7 +112,7 @@ $usuario['antiguedad'] = $antiguedad;
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
