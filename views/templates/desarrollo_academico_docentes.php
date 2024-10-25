@@ -3,7 +3,6 @@ include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
-
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
@@ -124,8 +123,6 @@ $usuario['antiguedad'] = $antiguedad;
       </ul>
     </nav>
   </div>
-
-
 
   <div class="card text-center">
     <div class="card-body">
