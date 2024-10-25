@@ -230,35 +230,39 @@ if (isset($_POST['logout'])) {
             <div class="row">
                 <!-- Columna para la imagen -->
                 <div class="col-12 col-md-5 col-xl-3 text-center">
-                    <strong class="name-line">Foto del Docente:</strong> <br>
+                    <strong class="name-line text-start">Foto del Docente:</strong> <!-- Alineado a la izquierda -->
+                    <br>
                     <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
                     
                     <!-- Botón debajo de la imagen -->
-                    <button class="btn btn-primary mt-3" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
-                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                      <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
-        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-</form>
-
-                      </div>
+                    <div class="mt-3"> <!-- Se añade un div para el margen -->
+                        <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
                     </div>
-                  </div>
                 </div>
+
+                <!-- Modal para cambiar imagen -->
+                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
+                                        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Columna para los campos -->
                 <div class="col-md-7">
-                    <!-- Información del usuario como antes -->
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label class="form-label">Nombre:</label>
@@ -279,7 +283,6 @@ if (isset($_POST['logout'])) {
                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
                         </div>
                     </div>
-                    <!-- Información adicional -->
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label class="form-label">Fecha de Contratación:</label>
@@ -301,26 +304,13 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 </div>
+
 <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= htmlspecialchars($_GET['success']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php endif; ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
         aria-hidden="true">

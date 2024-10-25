@@ -163,33 +163,3 @@ document.querySelectorAll('.filter-options a').forEach(link => {
     // If the filter is 'División', just update the button text
   });
 });
-
-document.addEventListener('DOMContentLoaded', function() {
-  const filterButtons = document.querySelectorAll('.btn-filter');
-  
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const filterOptions = this.nextElementSibling;
-      const isVisible = filterOptions.classList.contains('d-block');
-      
-      // Hide all filter options
-      document.querySelectorAll('.filter-options').forEach(option => {
-        option.classList.add('d-none');
-      });
-
-      // Show the current filter options if it was hidden
-      if (!isVisible) {
-        filterOptions.classList.remove('d-none');
-      }
-    });
-  });
-
-  // Hide filter options if clicked outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.container-filter')) {
-      document.querySelectorAll('.filter-options').forEach(option => {
-        option.classList.add('d-none');
-      });
-    }
-  });
-});
