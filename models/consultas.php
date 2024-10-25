@@ -64,6 +64,16 @@ class Consultas {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerTipoUsuarioPorId($usuario_id) {
+        $sql = "select tipo_usuario_tipo_usuario_id from vista_usuarios where usuario_id = :usuario_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['tipo_usuario_tipo_usuario_id'] : null; // Retorna solo el ID
+    }
+    
+
    public function actualizarImagenPerfil($imagenUrl, $idusuario) {
     if (empty($imagenUrl)) {
         echo "<script>console.log('La URL de la imagen está vacía.');</script>";
