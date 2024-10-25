@@ -124,25 +124,25 @@ $usuario['antiguedad'] = $antiguedad;
       </ul>
     </nav>
   </div>
-
-  <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
-
-  <div class="card text-center">
+<!---Div de imagen de perfil (con espacio debajo del botón para separarlo)----------------------->
+<div class="card text-center">
     <div class="card-body">
-      <h5 class="card-title">Filtrado por División</h5>
-      <div class="filter-container" style="position: relative; display: inline-block;">
-        <button id="filterBtn" class="btn btn-primary">Seleccionar División</button>
-        <div id="filterOptions" class="filter-options d-none">
-          <?php foreach ($carreras as $carrera): ?>
-            <div class="dropdown-item" data-value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
-              <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+        <h5 class="card-title">Filtrado por División</h5>
+        <div class="filter-container" style="position: relative; display: inline-block;">
+            <button id="filterBtn" class="btn btn-primary" style="margin-bottom: 10px;">Seleccionar División</button>
+            <div id="filterOptions" class="filter-options d-none">
+                <select class="form-control">
+                    <?php foreach ($carreras as $carrera): ?>
+                        <option class="dropdown-item" data-value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-          <?php endforeach; ?>
         </div>
-      </div>
     </div>
-  </div>
-
+</div>
+  
 
 
   <div role="main" class="main-content">

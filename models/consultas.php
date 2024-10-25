@@ -5,7 +5,13 @@ class Consultas {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    public function obtenerIncidencias() {
+        $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
