@@ -2,6 +2,7 @@
 include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
+include('aside.php');
 
 // El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
 
@@ -135,88 +136,7 @@ if (isset($_POST['logout'])) {
         </li>
       </ul>
     </nav>
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-        <i class="fe fe-x"><span class="sr-only"></span></i>
-      </a>
-      <nav class="vertnav navbar navbar-light">
-        <!-- nav bar -->
-        <div class="w-100 mb-4 d-flex">
-          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-          </a>
-        </div>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="index.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Inicio</span>
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-              <i class="fe fe-home fe-16"></i>
-              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-            </a>
-            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-              <li class="nav-item">
-                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                    class="ml-1 item-text">Docentes</span></a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-              </li>
-
-            </ul>
-          </li>
-        </ul>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Recursos humanos</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="recursos_humanos_empleados.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Empleados</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Desarrollo Académico</span>
-          </p>
-          <li class="nav-item w-100">
-            <a class="nav-link" href="desarrollo_academico_docentes.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Docentes</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Registros</span>
-          </p>
-          <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_materia.php"><span
-                  class="ml-1 item-text">Materias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
-            </li>
-          </ul>
-          </ul>
-        </ul>
-      </nav>
-    </aside>
+    
     <main role="main" class="main-content">
 
 
@@ -230,35 +150,39 @@ if (isset($_POST['logout'])) {
             <div class="row">
                 <!-- Columna para la imagen -->
                 <div class="col-12 col-md-5 col-xl-3 text-center">
-                    <strong class="name-line">Foto del Docente:</strong> <br>
+                    <strong class="name-line text-start">Foto del Docente:</strong> <!-- Alineado a la izquierda -->
+                    <br>
                     <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
                     
                     <!-- Botón debajo de la imagen -->
-                    <button class="btn btn-primary mt-3" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
-                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                      <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
-        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-</form>
-
-                      </div>
+                    <div class="mt-3"> <!-- Se añade un div para el margen -->
+                        <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
                     </div>
-                  </div>
                 </div>
+
+                <!-- Modal para cambiar imagen -->
+                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
+                                        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Columna para los campos -->
                 <div class="col-md-7">
-                    <!-- Información del usuario como antes -->
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label class="form-label">Nombre:</label>
@@ -279,7 +203,6 @@ if (isset($_POST['logout'])) {
                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
                         </div>
                     </div>
-                    <!-- Información adicional -->
                     <div class="row mb-3">
                         <div class="col-sm-6">
                             <label class="form-label">Fecha de Contratación:</label>
@@ -301,26 +224,13 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 </div>
+
 <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= htmlspecialchars($_GET['success']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php endif; ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
         aria-hidden="true">
