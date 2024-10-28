@@ -1,6 +1,8 @@
 <?php
+include('../../models/session.php');
 include('../../controllers/db.php');
 include('../../models/consultas.php');
+include('aside.php');
 
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
@@ -32,6 +34,9 @@ try {
   $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
   echo json_encode($response);
   exit();  // Finaliza la ejecución si no hay conexión
+}
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 ?>
 <!doctype html>
@@ -110,7 +115,7 @@ try {
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -120,6 +125,7 @@ try {
         </li>
       </ul>
     </nav>
+<<<<<<< HEAD
 
     <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
       <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
@@ -201,6 +207,8 @@ try {
         </ul>
       </nav>
     </aside>
+=======
+>>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
     <main role="main" class="main-content mt-5">
 
       <!-- Formulario para subir datos de usuario -->

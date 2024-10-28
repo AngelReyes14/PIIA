@@ -5,7 +5,13 @@ class Consultas {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    public function obtenerIncidencias() {
+        $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -64,12 +70,117 @@ class Consultas {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerTipoUsuarioPorId($usuario_id) {
+        $sql = "select tipo_usuario_tipo_usuario_id from vista_usuarios where usuario_id = :usuario_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['tipo_usuario_tipo_usuario_id'] : null; // Retorna solo el ID
+    }
+    
+
+   public function actualizarImagenPerfil($imagenUrl, $idusuario) {
+    if (empty($imagenUrl)) {
+        echo "<script>console.log('La URL de la imagen está vacía.');</script>";
+        return false;
+    }
+
+    $sql = "UPDATE usuario SET imagen_url = :imagen_url WHERE usuario_id = :usuario_id";
+    $stmt = $this->conn->prepare($sql);
+    
+    if (!$stmt) {
+        echo "<script>console.log('Error en la preparación de la consulta: " . $this->conn->error . "');</script>";
+        return false;
+    }
+
+    // Enlazar los parámetros
+    $stmt->bindValue(':imagen_url', $imagenUrl, PDO::PARAM_STR);
+    $stmt->bindValue(':usuario_id', $idusuario, PDO::PARAM_INT);
+
+    if ($stmt->execute()) {
+        return true; // Devuelve verdadero si la consulta se ejecutó correctamente
+    } else {
+        echo "<script>console.log('Error al ejecutar la consulta: " . $stmt->errorInfo()[2] . "');</script>";
+        return false; // Devuelve falso si hay un error
+    }
+}
+
+    
+    
+
+    public function obtenerUsuarioPorCorreo($correo) {
+        $sql = "SELECT usuario_id FROM vista_usuarios WHERE correo = :correo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':correo', $correo, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+
     public function obtenerCarreras() {
         $query = "SELECT carrera_id, nombre_carrera FROM carrera"; // Asegúrate de que la tabla y las columnas sean correctas
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    //*********************** PRUEBA ************************************************************* */    
+ 
+    
+    public function obtenerUsuariosPorCarrera($carrera_id) {
+        // Consulta para obtener usuarios asociados a una carrera específica
+        $query = "SELECT 
+                    u.usuario_id,
+                    u.nombre_usuario,
+                    u.apellido_p,
+                    u.apellido_m,
+                    u.edad,
+                    u.correo,
+                    u.fecha_contratacion,
+                    u.numero_empleado,
+                    u.grado_academico,
+                    u.cedula,
+                    u.imagen_url,
+                    u.sexo_sexo_id,
+                    u.status_status_id,
+                    u.tipo_usuario_tipo_usuario_id,
+                    u.cuerpo_colegiado_cuerpo_colegiado_id,
+                    u.carrera_carrera_id,
+                    c.carrera_id,
+                    c.nombre_carrera 
+                  FROM 
+                    vista_usuarios u
+                  JOIN 
+                    carrera c ON u.carrera_carrera_id = c.carrera_id
+                  WHERE 
+                    c.carrera_id = :carrera_id"; // Usando un parámetro para evitar inyecciones SQL
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
+        try {
+            $stmt->execute(); // Ejecutamos la consulta
+            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage(); // Manejo de errores
+            return false; // Devuelve false si ocurre algún error
+        }
+    }
+    
+    
+    
+    public function obtenerTodosLosUsuarios() {
+        $sql = "SELECT * FROM vista_usuarios";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    
+    
+     //************************************************************************************* */    
 
     
     // Método para obtener los semestres

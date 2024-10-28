@@ -1,5 +1,10 @@
 <?php
 include('../../models/session.php');
+include('aside.php');
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
 <!doctype html>
@@ -68,7 +73,7 @@ include('../../models/session.php');
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <!-- Formulario oculto para cerrar sesión -->
@@ -79,6 +84,7 @@ include('../../models/session.php');
         </li>
       </ul>
     </nav>
+<<<<<<< HEAD
 
     <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
       <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
@@ -160,6 +166,8 @@ include('../../models/session.php');
       </nav>
     </aside>
 
+=======
+>>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
     <main role="main" class="main-content mt-5">
       <div class="container-fluid">
         <div class="row justify-content-center">

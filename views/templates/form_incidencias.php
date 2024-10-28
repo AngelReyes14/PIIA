@@ -1,24 +1,21 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php');
+include('../../models/consultas.php');
 include('aside.php');
-
-// Verificar si hay un mensaje de error en la sesión
-if (isset($_SESSION['error'])) {
-  $errorMessage = $_SESSION['error']; // Obtener el mensaje de error
-  unset($_SESSION['error']); // Eliminar el mensaje de error de la sesión
-} else {
-  $errorMessage = null; // No hay error
-}
-
-// Crear una instancia del manejador de sesión
-$sessionManager = new SessionManager(7); // Ajusta el tiempo de vida de la sesión según sea necesario
-
-// Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
+
+$conn = $database->getConnection();
+$consultas = new Consultas($conn);
+
+// Obtener las carreras
+$carreras = $consultas->obtenerCarreras();
+$incidencias = $consultas->obtenerIncidencias();
 ?>
 
+<!-- Aquí sigue tu código HTML para el formulario -->
 
 <!doctype html>
 <html lang="en">
@@ -29,7 +26,7 @@ if (isset($_POST['logout'])) {
   <meta name="description" content="">
   <meta name="author" content="">
   <link rel="icon" href="assets/images/PIIA_oscuro 1.png">
-  <title>PIIA</title>
+  <title>Reporte de Incidencias</title>
   <!-- Simple bar CSS -->
   <link rel="stylesheet" href="css/simplebar.css">
   <!-- Fonts CSS -->
@@ -38,8 +35,6 @@ if (isset($_POST['logout'])) {
     rel="stylesheet">
   <!-- Icons CSS -->
   <link rel="stylesheet" href="css/feather.css">
-  <!-- FullCalendar CSS -->
-  <link rel="stylesheet" href="css/fullcalendar.css">
   <link rel="stylesheet" href="css/select2.css">
   <link rel="stylesheet" href="css/dropzone.css">
   <link rel="stylesheet" href="css/uppy.min.css">
@@ -51,11 +46,16 @@ if (isset($_POST['logout'])) {
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
-  <link rel="stylesheet" href="css/landingPage.css">
-  <!-- CSS adicional para ajustar el tamaño del texto en pantallas pequeñas -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Include DataTables CSS and JS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+
+  <script src="js/form_carrera.js"></script>
 </head>
 
-<body class="vertical  light " data-error2="<?php echo htmlspecialchars($errorMessage); ?>">
+<body class="vertical  light  ">
   <div class="wrapper">
     <nav class="topnav navbar navbar-light">
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
@@ -93,142 +93,188 @@ if (isset($_POST['logout'])) {
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
-            <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
-
         </li>
       </ul>
     </nav>
-
-
-<<<<<<< HEAD
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-        <i class="fe fe-x"><span class="sr-only"></span></i>
-      </a>
-      <nav class="vertnav navbar navbar-light">
-        <!-- nav bar -->
-        <div class="w-100 mb-4 d-flex">
-          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-          </a>
-        </div>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="index.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Inicio</span>
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-              <i class="fe fe-home fe-16"></i>
-              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-            </a>
-            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-              <li class="nav-item">
-                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                    class="ml-1 item-text">Docentes</span></a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-              </li>
-
-            </ul>
-          </li>
-        </ul>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Recursos humanos</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="recursos_humanos_empleados.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Empleados</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Desarrollo Académico</span>
-          </p>
-          <li class="nav-item w-100">
-            <a class="nav-link" href="desarrollo_academico_docentes.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Docentes</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Registros</span>
-          </p>
-          <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_materia.php"><span
-                  class="ml-1 item-text">Materias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-            </li>
-
-            
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
-            </li>
-            
-          </ul>
-        </ul>
-      </nav>
-    </aside>
-
-=======
->>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <main role="main" class="main-content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <div class="card my-1 cardPrincipal">
-              <div class="card-body carta p-2">
-                <div class="row no-gutters contenido">
+      <div class="col-md-12">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="logo-container mb-3">
+              <img class="form-logo-left" src="assets/images/logo-teschi.png" alt="Logo Izquierda">
+              <img class="form-logo-right" src="assets/icon/icon_piia.png" alt="Logo Derecha">
+            </div>
+            <div class="d-flex justify-content-center align-items-center mb-3 col">
+              <p class="titulo-grande"><strong>AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</strong></p>
+            </div>
+            <div class="container p-4 mb-4 box-shadow-div">
+              <div class="row mb-3">
+                <!-- Caja contenedora para los campos de "Área" y "Fecha" en la misma fila -->
+                <div class="col-md-12">
+                  <div class="form-group p-3 border rounded" style="background-color: #f8f9fa;">
+                    <div class="row">
+                      <!-- Campo de Área alineado a la izquierda -->
+                      <div class="col-md-6">
+                        <label for="area" class="form-label">Área:</label>
+                        <select class="form-control" id="area" name="area" required>
+                          <option value="" disabled>Selecciona una carrera</option>
+                          <?php
+                          // Incluir archivo de conexión a la base de datos y sesión
+                          include('../controllers/db.php');
+                          include('../models/session.php');
 
-                  <!-- Columna del texto -->
-                  <div class="col-md-6 text-left d-flex flex-column justify-content-center">
-                    <h1 class="titulo">
-                      Bienvenido
-                    </h1>
-                    <h2 class="subtitulo">
-                      Plataforma Integradora de Información Académica
-                    </h2>
-                    <hr class="separador">
-                    <p class="texto text-justify">
-                      PIIA es una herramienta esencial para maestros, administradores y directivos, que centraliza y
-                      optimiza la gestión de datos académicos. Facilita el seguimiento del progreso académico, la
-                      coordinación de procesos y la toma de decisiones estratégicas, mejorando la calidad educativa y
-                      optimizando los recursos institucionales.
-                    </p>
+                          // Obtener el ID del usuario a través del SessionManager
+                          $idusuario = $sessionManager->getUserId();
+
+                          // Consulta para obtener la carrera asociada al usuario autenticado
+                          $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
+                                      FROM carrera
+                                      JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
+                                      WHERE usuario.usuario_id = :user_id";
+
+                          $stmt = $conn->prepare($query);
+                          $stmt->bindParam(':user_id', $idusuario);
+                          $stmt->execute();
+
+                          // Verificar si se obtuvo un resultado
+                          if ($stmt->rowCount() > 0) {
+                            // Recoger el resultado
+                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                            echo '<option value="' . htmlspecialchars($row['carrera_id']) . '" selected>' . htmlspecialchars($row['nombre_carrera']) . '</option>';
+                          } else {
+                            echo '<option value="">No hay carreras disponibles para este usuario</option>';
+                          }
+                          ?>
+                        </select>
+                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+                      </div>
+
+                      <!-- Campo de Fecha alineado a la derecha -->
+                      <div class="col-md-6">
+                        <label for="fecha" class="form-label">Fecha:</label>
+                        <input class="form-control" id="fecha" type="date" name="fecha" required>
+                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
+          <div class="form-group mb-3">
+            <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
+            <select class="form-control" id="incidencias" name="incidencias" required>
+              <option value="" disabled selected>Selecciona una incidencia</option>
+              <?php foreach ($incidencias as $incidencia): ?>
+                <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
+                  <?php echo htmlspecialchars($incidencia['descripcion']); // Solo la descripción 
+                  ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <div class="invalid-feedback">Este campo es obligatorio.</div>
+          </div>
 
-                  <!-- Columna de la imagen -->
-                  <div class="col-md-6 p-0 position-relative"> <!-- Imagen alineada a la izquierda -->
-                    <img src="assets/images/WhatsApp_Image_2024-09-10_at_1.46.17_PM-removebg.png" class="img-fluid logo"
-                      alt="Imagen">
-                  </div>
+        </div>
 
+        <div class="conteiner p-3 box-shadow-div">
+          <div class="form-group mb-3">
+            <label for="motivo">Motivo</label>
+            <input class="form-control" id="motivo" name="motivo" type="text" required>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+          </div>
 
+          <div class="d-flex flex-wrap mb-3">
+            <div class="form-group mr-3 flex-fill mb-3">
+              <label class="horario-label me-2">Horario:</label>
+              <div class="d-flex">
+                <input type="time" id="start-time" name="start-time" required class="me-1 form-control">
+                <span class="me-1">a</span>
+                <input type="time" id="end-time" name="end-time" required class="form-control">
+              </div>
+              <div class="invalid-feedback">Este campo es obligatorio.</div>
+            </div>
+
+            <div class="form-group mr-3 flex-fill mb-3">
+              <label for="hora-incidencia" class="me-2">Hora de Incidencia:</label>
+              <input class="form-control" id="example-time" type="time" name="time" required>
+              <div class="invalid-feedback">Este campo es obligatorio.</div>
+            </div>
+
+            <div class="form-group mr-3 flex-fill mb-3">
+              <label for="dia-incidencia" class="me-2">Día de la incidencia:</label>
+              <input class="form-control" id="dia-incidencia" type="date" name="dia-incidencia" required>
+              <div class="invalid-feedback">Este campo es obligatorio.</div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column mb-3">
+            <div class="mb-2">
+              <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
+              <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
+                <option value="">Seleccione un servidor público</option>
+                <?php
+                // Incluir archivo de conexión a la base de datos
+                include('../controllers/db.php');
+                include('../models/session.php'); // Incluir el archivo de sesión para acceder a las variables de sesión
+
+                // Obtener el ID del usuario a través del SessionManager
+                $idusuario = $sessionManager->getUserId();
+
+                // Consulta SQL para obtener el servidor público del usuario autenticado
+                $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                      FROM usuario 
+                      WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+                $stmt = $conn->prepare($query);
+                $stmt->bindParam(':user_id', $idusuario); // Vincular el ID del usuario a la consulta
+                $stmt->execute();
+
+                // Verificar si se obtuvieron resultados
+                if ($stmt->rowCount() > 0) {
+                  // Recoger el resultado
+                  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                  echo '<option value="' . htmlspecialchars($row['usuario_id']) . '">' . htmlspecialchars($row['nombre_completo']) . '</option>';
+                } else {
+                  echo '<option value="">No hay servidores públicos disponibles</option>';
+                }
+                ?>
+              </select>
+              <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
+            </div>
+          </div>
+          <!-- Botón para enviar el formulario -->
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
+          </div>
+          <!-- Modal -->
+          <!-- Modal -->
+          <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customModalLabel">AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</h5>
+                </div>
+                <div class="modal-body">
+                  DATOS ENVIADOS.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="closeModal">Cerrar</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
   </div>
+  </main>
+
 
   <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
     aria-hidden="true">
@@ -298,6 +344,7 @@ if (isset($_POST['logout'])) {
       </div>
     </div>
   </div>
+
   <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -357,6 +404,7 @@ if (isset($_POST['logout'])) {
   </div>
   </main> <!-- main -->
   </div> <!-- .wrapper -->
+
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -366,36 +414,69 @@ if (isset($_POST['logout'])) {
   <script src='js/jquery.stickOnScroll.js'></script>
   <script src="js/tinycolor-min.js"></script>
   <script src="js/config.js"></script>
-  <script src='js/fullcalendar.js'></script>
-  <script src='js/fullcalendar.custom.js'></script>
+  <script src="js/d3.min.js"></script>
+  <script src="js/topojson.min.js"></script>
+  <script src="js/datamaps.all.min.js"></script>
+  <script src="js/datamaps-zoomto.js"></script>
+  <script src="js/datamaps.custom.js"></script>
+  <script src="js/Chart.min.js"></script>
+  <!-- Incluir SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/form_carrera.js"></script>
   <script>
-    /** full calendar */
-    var calendarEl = document.getElementById('calendar');
-    if (calendarEl) {
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          plugins: ['dayGrid', 'timeGrid', 'list', 'bootstrap'],
-          timeZone: 'UTC',
-          themeSystem: 'bootstrap',
-          header: {
-            left: 'today, prev, next',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-          },
-          buttonIcons: {
-            prev: 'fe-arrow-left',
-            next: 'fe-arrow-right',
-            prevYear: 'left-double-arrow',
-            nextYear: 'right-double-arrow'
-          },
-          weekNumbers: true,
-          eventLimit: true, // allow "more" link when too many events
-          events: 'https://fullcalendar.io/demo-events.json'
-        });
-        calendar.render();
-      });
+    function getNextBusinessDays(date, days) {
+      let result = new Date(date);
+      let addedDays = 0;
+
+      while (addedDays < days) {
+        result.setDate(result.getDate() + 1);
+        // Skip Saturdays (6) and Sundays (0)
+        if (result.getDay() !== 6 && result.getDay() !== 0) {
+          addedDays++;
+        }
+      }
+      return result;
     }
+
+    function getPreviousBusinessDays(date, days) {
+      let result = new Date(date);
+      let subtractedDays = 0;
+
+      while (subtractedDays < days) {
+        result.setDate(result.getDate() - 1);
+        // Skip Saturdays (6) and Sundays (0)
+        if (result.getDay() !== 6 && result.getDay() !== 0) {
+          subtractedDays++;
+        }
+      }
+      return result;
+    }
+
+    // Obtenemos la fecha actual
+    const today = new Date();
+
+    // Calculamos las fechas mínima y máxima excluyendo fines de semana
+    const minDate = getPreviousBusinessDays(today, 3); // 3 días hábiles antes
+    const maxDate = getNextBusinessDays(today, 3); // 3 días hábiles después
+
+    // Convertimos las fechas al formato YYYY-MM-DD
+    const minDateString = minDate.toISOString().split("T")[0];
+    const maxDateString = maxDate.toISOString().split("T")[0];
+
+    // Establecemos los atributos min y max en el input de fecha
+    const fechaInput = document.getElementById("fecha");
+    fechaInput.min = minDateString;
+    fechaInput.max = maxDateString;
   </script>
+  <script>
+    /* defind global options */
+    Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
+    Chart.defaults.global.defaultFontColor = colors.mutedColor;
+  </script>
+  <script src="js/gauge.min.js"></script>
+  <script src="js/jquery.sparkline.min.js"></script>
+  <script src="js/apexcharts.min.js"></script>
+  <script src="js/apexcharts.custom.js"></script>
   <script src='js/jquery.mask.min.js'></script>
   <script src='js/select2.min.js'></script>
   <script src='js/jquery.steps.min.js'></script>
