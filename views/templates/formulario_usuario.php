@@ -19,7 +19,6 @@ try {
   // Obtén los cuerpos colegiados
   $cuerposColegiados = $consultas->obtenerCuerposColegiados();
 
-
   // Obtén los tipos de usuario
   $tiposUsuario = $consultas->obtenerTiposDeUsuario();
 
@@ -29,9 +28,6 @@ try {
   $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
   echo json_encode($response);
   exit();  // Finaliza la ejecución si no hay conexión
-}
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 ?>
 <!doctype html>
@@ -56,26 +52,23 @@ if (isset($_POST['logout'])) {
   <link rel="stylesheet" href="css/jquery.steps.css">
   <link rel="stylesheet" href="css/jquery.timepicker.css">
   <link rel="stylesheet" href="css/quill.snow.css">
+  <link rel="stylesheet" href="css/dataTables.bootstrap4.css">
+    <!-- Incluir SweetAlert CSS y JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
-  <script src="js/jquery.min.js"></script>
-  <script src="js/popper.min.js"></script>
-  <script src="js/moment.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/simplebar.min.js"></script>
-  <script src='js/daterangepicker.js'></script>
-  <script src='js/jquery.stickOnScroll.js'></script>
-  <script src="js/tinycolor-min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/d3.min.js"></script>
-  <script src="js/topojson.min.js"></script>
-  <script src="js/datamaps.all.min.js"></script>
-  <script src="js/datamaps-zoomto.js"></script>
-  <script src="js/datamaps.custom.js"></script>
-  <script src="js/Chart.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Luego incluye SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </head>
 
 <body class="vertical  light  ">
@@ -113,7 +106,7 @@ if (isset($_POST['logout'])) {
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
+            <a class="dropdown-item" href="#">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -195,13 +188,11 @@ if (isset($_POST['logout'])) {
             <li class="nav-item w-100">
               <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
             </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_incidencias.php"><span class="ml-1 item-text">Incidencias</span></a>
-            </li>
+
             <li class="nav-item w-100">
               <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
             </li>
-          </ul>
+            
           </ul>
         </ul>
       </nav>
@@ -283,7 +274,6 @@ if (isset($_POST['logout'])) {
                         <div class="invalid-feedback">Este campo no puede estar vacío.</div>
                       </div>
                     </div>
-                  </div>
 
                     <div class="row">
                       <div class="col-sm-12 col-md-4 mt-3">
@@ -357,13 +347,6 @@ if (isset($_POST['logout'])) {
                         <img id="imagePreview" src="#" alt="Vista previa de la imagen" style="display:none; width: 200px; height: 200px;">
                       </div>
                     </div>
-                    <div class="col-sm-12 col-md-4 mt-3">
-                      <label for="sexo_sexo_id" class="form-label">Sexo:</label>
-                      <select id="sexo_sexo_id" name="sexo_sexo_id" class="form-control" required>
-                        <option value="" disabled selected>Seleccione una opcion.</option>
-                        <?php foreach ($sexo as $sexo): ?>
-                          <option value="<?php echo $sexo['sexo_id']; ?>"><?php echo htmlspecialchars($sexo['descripcion']); ?></option>
-                        <?php endforeach; ?>
 
                     <div class="row mt-4">
                       <div class="col-md-12 text-center">
