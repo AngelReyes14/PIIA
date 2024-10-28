@@ -2,6 +2,7 @@
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('../../models/session.php');
+include('aside.php');
 
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
@@ -24,8 +25,10 @@ try {
   echo json_encode($response);
   exit();  // Finaliza la ejecución si no hay conexión
 }
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
-
 <!doctype html>
 <html lang="en">
 
@@ -61,6 +64,20 @@ try {
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+  <!-- Incluye jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Luego incluye SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Finalmente tu script personalizado -->
+<script>
+    // Tu código JavaScript aquí
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
 
 
@@ -68,12 +85,13 @@ try {
 
 <body class="vertical  light  ">
   <div class="wrapper">
-    <nav class="topnav navbar navbar-light">
+  <nav class="topnav navbar navbar-light">
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
       <form class="form-inline mr-auto searchform text-muted">
-        <input class="form-control mr-sm-2 bg-transparent border-0 pl-4 text-muted" type="search" placeholder="Type something..." aria-label="Search">
+        <input class="form-control mr-sm-2 bg-transparent border-0 pl-4 text-muted" type="search"
+          placeholder="Type something..." aria-label="Search">
       </form>
       <ul class="nav">
         <li class="nav-item">
@@ -93,94 +111,26 @@ try {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="avatar avatar-sm mt-2">
               <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
+            <!-- Formulario oculto para cerrar sesión -->
+            <form method="POST" action="" id="logoutForm">
+              <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
+            </form>
           </div>
+
         </li>
       </ul>
     </nav>
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-        <i class="fe fe-x"><span class="sr-only"></span></i>
-      </a>
-      <nav class="vertnav navbar navbar-light">
-        <!-- nav bar -->
-        <div class="w-100 mb-4 d-flex">
-          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-          </a>
-        </div>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="index.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Inicio</span>
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-              <i class="fe fe-home fe-16"></i>
-              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-            </a>
-            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-              <li class="nav-item">
-                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                    class="ml-1 item-text">Docentes</span></a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-              </li>
 
-            </ul>
-          </li>
-        </ul>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Recursos humanos</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="recursos_humanos_empleados.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Empleados</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Desarrollo Académico</span>
-          </p>
-          <li class="nav-item w-100">
-            <a class="nav-link" href="desarrollo_academico_docentes.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Docentes</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Registros</span>
-          </p>
-          <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_materia.php"><span
-                  class="ml-1 item-text">Materias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-            </li>
-          </ul>
-        </ul>
-      </nav>
-    </aside>
     <main role="main" class="main-content">
 
       <div class="col-md-12">
@@ -442,6 +392,117 @@ try {
     </main> <!-- main -->
   </div> <!-- .wrapper -->
 <!-- jQuery (necesario para DataTables) -->
+<script>
+    // Función para previsualizar la imagen seleccionada
+    function previewImage() {
+        const file = document.getElementById('fileInput').files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('imagePreview');
+            img.src = e.target.result;
+            img.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+
+    // Limpiar campos al cargar la página
+    window.onload = function() {
+        document.getElementById('formRegistroGrupo').reset();
+    };
+
+    $(document).ready(function() {
+
+        // Función para validar y manejar el formulario
+        $('#formRegistroGrupo').on('submit', function(event) {
+            event.preventDefault(); // Prevenir el envío del formulario
+
+            // Validaciones
+            const nombreGrupo = $('#grupo').val().trim();
+            const semestre = $('#semestre').val();
+            const turno = $('#turno').val();
+            const periodo = $('#periodo').val();
+
+            // Validación de campos vacíos
+            if (!nombreGrupo || !semestre || !turno || !periodo ) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Todos los campos son obligatorios.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+
+            // Opcional: Validaciones adicionales según tus requisitos
+            // Por ejemplo, verificar la longitud del nombre del grupo
+            if (nombreGrupo.length < 3) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'El nombre del grupo debe tener al menos 3 caracteres.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+
+            // Mostrar una confirmación antes de enviar el formulario
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¿Deseas enviar el formulario?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Envía el formulario
+                    $('#formRegistroGrupo')[0].submit();
+                }
+            });
+        });
+
+        // Función para comprobar mensajes de la URL
+        function checkForMessages() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+
+            if (success === 'true') {
+                Swal.fire({
+                    title: 'Éxito!',
+                    text: 'Formulario enviado con éxito!',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar'
+                });
+            } else if (error) {
+                let errorMessage = '';
+
+                switch (error) {
+                    case 'duplicate':
+                        errorMessage = 'Este registro ya existe.';
+                        break;
+                    case 'invalid':
+                        errorMessage = 'Datos inválidos proporcionados.';
+                        break;
+                    // Puedes agregar más casos según tus necesidades
+                    default:
+                        errorMessage = 'Error desconocido.';
+                }
+
+                Swal.fire({
+                    title: 'Error!',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        }
+
+        // Llamamos a la función al cargar la página para verificar si hay mensajes en la URL
+        checkForMessages();
+    });
+</script>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- DataTables JS -->
@@ -463,10 +524,11 @@ try {
 <script src='js/select2.min.js'></script>
 <script src='js/jquery.steps.min.js'></script>
 <script src='js/jquery.validate.min.js'></script>
-<script src='js/jquery.timepicker.js'></script>
+<script src='js/jquery.timepicker.js'></script>|
 <script src='js/dropzone.min.js'></script>
 <script src='js/uppy.min.js'></script>
 <script src='js/quill.min.js'></script>
+<script src='js/apps.js'></script>
 
 <!-- Código de inicialización de DataTable -->
 <script>

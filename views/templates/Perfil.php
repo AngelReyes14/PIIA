@@ -1,43 +1,63 @@
 <?php
 include('../../models/session.php');
-include('../../controllers/db.php');
-include('../../models/consultas.php');
+include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Inicializa la respuesta por defecto
-$response = ['status' => 'error', 'message' => ''];
+// El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
 
-// Intenta conectar a la base de datos
-try {
-  // Inicializa las consultas
-  $consultas = new Consultas($conn);
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
-  // Obtén las carreras y semestres
-  $semestres = $consultas->obtenerSemestres();
+// Crear una instancia de la clase Consultas
+$consultas = new Consultas($conn);
 
-  $materias = $consultas->obtenerMaterias();
-  
-  $grupos = $consultas->obtenerGrupos();
+// Llamamos al método para obtener el usuario actual
+$usuario = $consultas->obtenerUsuarioPorId($idusuario);
+// Verificamos si el resultado de $usuario está bien
+echo "<script>console.log('Usuario:', " . json_encode($usuario) . ");</script>";
 
-  $periodos = $consultas ->obtenerPeriodo();
+// Llamamos al método para obtener la carrera del usuario
+$carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
-  $materias = $consultas->verMaterias();
+// Verificamos si el resultado de $carrera está bien
+echo "<script>console.log('Carrera:', " . json_encode($carrera) . ");</script>";
 
-  $materiagrupo = $consultas->verMateriasGrupo();
-
-} catch (Exception $e) {
-  // Si falla la conexión, retorna un error
-  $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
-  echo json_encode($response);
-  exit();  // Finaliza la ejecución si no hay conexión
+// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
+if ($carrera) {
+    $usuario = array_merge($usuario, $carrera);
 }
 
+// Verificamos si la fusión de los arrays está bien
+echo "<script>console.log('Usuario con Carrera:', " . json_encode($usuario) . ");</script>";
+
+// Supongamos que la fecha de contratación viene del array $usuario
+$fechaContratacion = $usuario["fecha_contratacion"];
+
+// Convertimos la fecha de contratación en un objeto DateTime
+$fechaContratacionDate = new DateTime($fechaContratacion);
+
+// Obtenemos la fecha actual
+$fechaActual = new DateTime();
+
+// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
+$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
+
+// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
+$usuario['antiguedad'] = $antiguedad;
+
+// Verificamos el resultado final de $usuario
+echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usuario) . ");</script>";
+
+// Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 ?>
+
 <!doctype html>
 <html lang="en">
+
+
 
 <head>
   <meta charset="utf-8">
@@ -63,6 +83,14 @@ if (isset($_POST['logout'])) {
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- CSS del Date Range Picker -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<!-- JS del Date Range Picker -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 </head>
 
@@ -98,7 +126,7 @@ if (isset($_POST['logout'])) {
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
+            <a class="dropdown-item" href="#">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -108,121 +136,101 @@ if (isset($_POST['logout'])) {
         </li>
       </ul>
     </nav>
+    
     <main role="main" class="main-content">
 
-    <div class="container-fluid">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10">
-      <h2 class="page-title">Alta de materias</h2>
-      <div class="card my-4">
+
+<!-- Contenido de la página -->
+<div class="container-fluid px-0">
+    <div class="card w-100">
         <div class="card-header">
+            <h2>Perfil del Usuario</h2>
         </div>
         <div class="card-body">
-          <div id="example-basic">
-            <h3>Registro de materias</h3>
-            <section>
-              <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroMateria">
-                <input type="hidden" name="form_type" value="materia">
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="nombre_materia" class="form-label-custom">Nombre de la materia:</label>
-                      <input class="form-control" id="nombre_materia" name="nombre_materia" type="text" required>
+            <div class="row">
+                <!-- Columna para la imagen -->
+                <div class="col-12 col-md-5 col-xl-3 text-center">
+                    <strong class="name-line text-start">Foto del Docente:</strong> <!-- Alineado a la izquierda -->
+                    <br>
+                    <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
+                    
+                    <!-- Botón debajo de la imagen -->
+                    <div class="mt-3"> <!-- Se añade un div para el margen -->
+                        <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="credito_materia" class="form-label-custom">Créditos de la materia:</label>
-                      <input type="number" class="form-control" id="credito_materia" name="credito_materia" required>
-                    </div>
-                  </div>
                 </div>
 
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="hora_teorica" class="form-label-custom">Horas teóricas:</label>
-                      <input type="number" class="form-control" id="hora_teorica" name="hora_teorica" required>
+                <!-- Modal para cambiar imagen -->
+                <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
+                                        <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="hora_practica" class="form-label-custom">Horas prácticas:</label>
-                      <input type="number" class="form-control" id="hora_practica" name="hora_practica" required>
+                </div>
+
+                <!-- Columna para los campos -->
+                <div class="col-md-7">
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Nombre:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Correo Electrónico:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['correo']); ?>" readonly>
+                        </div>
                     </div>
-                  </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Edad:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['edad']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Cédula:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Fecha de Contratación:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['fecha_contratacion']); ?>" readonly>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Grado Académico:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['grado_academico']); ?>" readonly>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Antigüedad:</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años" readonly>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="text-center mt-4">
-                  <input type="submit" id="submit-materia" class="btn btn-primary" value="Registrar Materia">
-                </div>
-              </form>
-            </section>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <h3>Asignar materias a grupos</h3>
-            <section>
-            <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formAsignarMateria">
-            <input type="hidden" name="form_type" value="materia-grupo">
-              <div class="form-group">
-                <label for="semestre" class="form-label-custom">Materia:</label>
-                <select class="form-control" id="materia" name="materia" required>
-                  <option value="">Selecciona una materia</option>
-                  <?php foreach ($materias as $materia): ?>
-                    <option value="<?php echo $materia['materia_id']; ?>"><?php echo htmlspecialchars($materia['descripcion']); ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="grupo" class="form-label-custom">Grupo:</label>
-                <select class="form-control" id="grupo" name="grupo" required>
-                  <option value="">Selecciona un Grupo</option>
-                  <?php foreach ($grupos as $grupo): ?>
-                    <option value="<?php echo $grupo['grupo_id']; ?>"><?php echo htmlspecialchars($grupo['descripcion']); ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="periodo" class="form-label-custom">Periodo:</label>
-                <select class="form-control" id="periodo" name="periodo" required>
-                  <option value="">Selecciona un periodo</option>
-                  <?php foreach ($periodos as $periodo): ?>
-                    <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="text-center mt-4">
-                  <input type="submit" id="submit-materia-grupo" class="btn btn-primary" value="Asignar materia">
-                </div>
-              </form>
-
-            </section>
-
-          </div>
-        </div> <!-- .card-body -->
-      </div> <!-- .card -->
-    </div> <!-- .col-12 -->
-  </div> <!-- .row -->
-</div> <!-- .container-fluid -->
-
-<script>
- $(document).ready(function() {
-  $("#formAsignarMateria").steps({
-    headerTag: "h3",
-    bodyTag: "section",
-    transitionEffect: "fade", // Cambiar el efecto de transición a "fade"
-    transitionEffectSpeed: 1000, // Aumentar la duración de la transición (en milisegundos)
-    autoFocus: true,
-    enablePagination: false, // Desactivar los botones Next y Previous
-    enableAllSteps: true, // Hacer clickeables los encabezados
-    saveState: false, // No guardar el estado, permitir el cambio de pestañas sin validación
-    onStepChanged: function(event, currentIndex) {
-      // Acciones a realizar cuando cambie la pestaña, si es necesario
-    }
-  });
-});
-
-</script>
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_GET['success']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
         aria-hidden="true">
@@ -350,94 +358,6 @@ if (isset($_POST['logout'])) {
           </div>
         </div>
       </div>
-
-      <div class="container-fluid">
-  <div class="row">
-    <!-- Primera tabla -->
-    <div class="col-6">
-      <h2 class="mb-2 page-title">Materias registradas</h2>
-      <div class="row my-4">
-        <!-- Table -->
-        <div class="col-md-12">
-          <div class="card shadow">
-            <div class="card-body">
-              <!-- Table -->
-              <table class="table datatables" id="tabla-materias-1">
-                <thead class="thead-dark">
-                  <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Créditos</th>
-                    <th>Horas Teóricas</th>
-                    <th>Horas Prácticas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php if ($materias): ?>
-                    <?php foreach ($materias as $materia): ?>
-                      <tr>
-                        <td><?php echo htmlspecialchars($materia['materia_id']); ?></td>
-                        <td><?php echo htmlspecialchars($materia['descripcion']); ?></td>
-                        <td><?php echo htmlspecialchars($materia['credito']); ?></td>
-                        <td><?php echo htmlspecialchars($materia['hora_teorica']); ?></td>
-                        <td><?php echo htmlspecialchars($materia['hora_practica']); ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php else: ?>
-                    <tr>
-                      <td colspan="5" class="text-center">No hay materias registradas.</td>
-                    </tr>
-                  <?php endif; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div> <!-- End table -->
-      </div> <!-- End section -->
-    </div> <!-- End .col-6 -->
-
-    <!-- Segunda tabla -->
-    <div class="col-6">
-      <h2 class="mb-2 page-title">Materias asignadas a grupos</h2>
-      <div class="row my-4">
-        <!-- Table -->
-        <div class="col-md-12">
-          <div class="card shadow">
-            <div class="card-body">
-              <!-- Table -->
-              <table class="table datatables" id="tabla-materias-2">
-                <thead class="thead-dark">
-                  <tr>
-                    <th>Nombre de la materia</th>
-                    <th>Nombre del grupo</th>
-                    <th>Período</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php if ($materiagrupo): ?>
-                    <?php foreach ($materiagrupo as $materiasgrupos): ?>
-                      <tr>
-                        <td><?php echo htmlspecialchars($materiasgrupos['materia_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($materiasgrupos['grupo_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($materiasgrupos['periodo_nombre']); ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php else: ?>
-                    <tr>
-                      <td colspan="5" class="text-center">No hay materias registradas.</td>
-                    </tr>
-                  <?php endif; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div> <!-- End table -->
-      </div> <!-- End section -->
-    </div> <!-- End .col-6 -->
-  </div> <!-- .row -->
-</div> <!-- .container-fluid -->
-
-
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -462,7 +382,6 @@ if (isset($_POST['logout'])) {
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
     Chart.defaults.global.defaultFontColor = colors.mutedColor;
   </script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src='js/jquery.steps.min.js'></script>
 <script src="js/jquery.validate.min.js"></script>
 <script src="js/gauge.min.js"></script>
@@ -476,7 +395,14 @@ if (isset($_POST['logout'])) {
 <script src='js/uppy.min.js'></script>
 <script src='js/quill.min.js'></script>
 
+
+
   <script>
+    document.getElementById('changeProfilePictureBtn').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('changeImageModal'));
+        myModal.show();
+    });
+
     $('.select2').select2({
       theme: 'bootstrap4',
     });
