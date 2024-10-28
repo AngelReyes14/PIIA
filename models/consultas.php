@@ -5,7 +5,13 @@ class Consultas {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    public function obtenerIncidencias() {
+        $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -63,6 +69,16 @@ class Consultas {
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function obtenerTipoUsuarioPorId($usuario_id) {
+        $sql = "select tipo_usuario_tipo_usuario_id from vista_usuarios where usuario_id = :usuario_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['tipo_usuario_tipo_usuario_id'] : null; // Retorna solo el ID
+    }
+    
 
    public function actualizarImagenPerfil($imagenUrl, $idusuario) {
     if (empty($imagenUrl)) {
