@@ -303,6 +303,227 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         return $row['total'];
     }
+
+    public function datosCarreraPorId($usuarioId) {
+        try {
+            // Primera consulta para obtener el ID de la carrera usando el usuario ID
+            $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :usuario_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener el resultado de carrera_id
+            $carrera = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($carrera) {
+                $carreraId = $carrera['carrera_carrera_id'];
+    
+                // Segunda consulta para obtener todos los datos de la carrera usando el carrera_id
+                $query = "SELECT * FROM vista_datos_carrera WHERE carrera_id = :carrera_id";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+                $stmt->execute();
+                
+                // Retorna todos los datos de la carrera
+                return $stmt->fetch(PDO::FETCH_ASSOC);
+            } else {
+                return null; // Retorna null si no encuentra una carrera asociada al usuario
+            }
+        } catch (PDOException $e) {
+            // Manejo de errores
+            echo "Error: " . $e->getMessage();
+            return null;
+        }
+    }
+    
+    public function mujeresCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_mujeres 
+        FROM usuario
+        WHERE carrera_carrera_id = :carrera_id AND sexo_sexo_id = 2";// Suponiendo que '1' representa mujeres
+        
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula el parámetro correctamente
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT); // Asegúrate de que el nombre sea exactamente ':carrera_id'
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+    
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        // Retorna el total de mujeres
+        return $result['total_mujeres'];
+    }
+
+    public function hombresCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_hombres 
+        FROM usuario
+        WHERE carrera_carrera_id = :carrera_id AND sexo_sexo_id = 1";// Suponiendo que '1' representa hombres
+        
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula el parámetro correctamente
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT); // Asegúrate de que el nombre sea exactamente ':carrera_id'
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+    
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        // Retorna el total de mujeres
+        return $result['total_hombres'];
+    }
+
+    public function docentesCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_docentes 
+                FROM usuario 
+                WHERE carrera_carrera_id = :carrera_id 
+                AND tipo_usuario_tipo_usuario_id = :tipo_usuario_id"; // Asegúrate de que este es el ID para docentes
+    
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula los parámetros
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+        
+        // Aquí puedes poner el ID correspondiente para los docentes. Asegúrate de reemplazarlo por el correcto.
+        $tipoUsuarioDocente = 1; // Supongamos que '1' es el ID para docentes, cámbialo según tu base de datos.
+        $stmt->bindParam(':tipo_usuario_id', $tipoUsuarioDocente, PDO::PARAM_INT);
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+        
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Retorna el total de docentes
+        return $result['total_docentes'];
+    }
+    
+    public function gruposCarrera($carreraId) {
+        try {
+            // Primera consulta: obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0); // Obtiene una columna como array
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retorna 0
+            }
+            
+            // Segunda consulta: contar grupos para los semestres obtenidos
+            $placeholders = implode(',', array_fill(0, count($semestres), '?')); // Genera los placeholders para la consulta
+            $sql = "SELECT COUNT(*) as total_grupos 
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders)";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres); // Pasa el array de semestres como parámetros
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Retorna el total de grupos
+            return $result['total_grupos'];
+            
+        } catch (PDOException $e) {
+            // Manejo de errores
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+    public function gruposTurnoMatutino($carreraId) {
+        try {
+            // Obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retornar 0
+            }
+            
+            // Contar grupos del turno matutino
+            $placeholders = implode(',', array_fill(0, count($semestres), '?'));
+            $sql = "SELECT COUNT(*) as total_grupos_matutino 
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders) AND turno_idturno = '1'";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres);
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return $result['total_grupos_matutino'];
+            
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+    public function gruposTurnoVespertino($carreraId) {
+        try {
+            // Obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retornar 0
+            }
+            
+            // Contar grupos del turno vespertino
+            $placeholders = implode(',', array_fill(0, count($semestres), '?'));
+            $sql = "SELECT COUNT(*) as total_grupos_vespertino
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders) AND turno_idturno = '2'";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres);
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return $result['total_grupos_vespertino'];
+            
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+
 }
 
 
