@@ -2,9 +2,11 @@
 class Consultas {
     private $conn;
 
+
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -12,6 +14,20 @@ class Consultas {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    // Método en la clase Consultas para obtener períodos
+    public function obtenerPeriodos() {
+        $query = "SELECT periodo_id, descripcion, fecha_inicio, fecha_termino FROM periodo ORDER BY fecha_inicio DESC"; // Ajusta la consulta según tu tabla
+        $result = $this->conn->query($query);
+    
+        $periodos = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) { // Cambia a fetch(PDO::FETCH_ASSOC) si estás usando PDO
+                $periodos[] = $row;
+            }
+        }
+        return $periodos;
+    }
+    
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
