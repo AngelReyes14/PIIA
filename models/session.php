@@ -36,6 +36,7 @@ class SessionManager
         $_SESSION['last_activity'] = time();
     }
 
+
     // Método para destruir la sesión
     public function destroySession()
     {
