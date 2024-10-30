@@ -144,25 +144,32 @@ function toggleEconomicDay(event) {
     const month = parseInt(event.target.getAttribute('data-month'));
     const year = parseInt(event.target.getAttribute('data-year'));
 
-    const isEconomicDay = economicDays.some(dayObj =>
-      dayObj.date.getDate() === day &&
-      dayObj.date.getMonth() === month &&
-      dayObj.date.getFullYear() === year
-    );
+    const currentDay = new Date(year, month, day);
 
-    if (isEconomicDay) {
-      // Remove the economic day
-      economicDays = economicDays.filter(dayObj =>
-        !(dayObj.date.getDate() === day && dayObj.date.getMonth() === month && dayObj.date.getFullYear() === year)
-      );
-    } else {
-      // Add a new economic day
-      economicDays.push({ date: new Date(year, month, day), type: 'DiaEconomico' });
+    // Verificar si el día es hábil antes de abrir el modal
+    const { minDate, maxDate } = calculateDateRange();
+    if (currentDay >= minDate && currentDay <= maxDate) {
+      // Cargar el contenido del modal usando AJAX
+      fetch('modal_incidencias.php')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(data => {
+          document.getElementById('modalContent').innerHTML = data;
+          // Mostrar el modal
+          const modal = new bootstrap.Modal(document.getElementById('incidenciasModal'));
+          modal.show();
+        })
+        .catch(error => {
+          console.error('Error al cargar el contenido del modal:', error);
+        });
     }
-
-    renderCalendar(); // Re-render calendar to reflect changes
   }
 }
+
 
 // Add event listener for clicking on days
 daysContainer.addEventListener('click', toggleEconomicDay);
