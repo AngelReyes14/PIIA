@@ -238,7 +238,6 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-
     // Método para obtener semestres basados en la carrera seleccionada
     public function obtenerSemestresPorCarrera($carrera_id) {
         if (empty($carrera_id)) {
@@ -303,8 +302,8 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         return $row['total'];
     }
-}
 
+}
 
 class Grupo {
     private $conn;
@@ -697,7 +696,6 @@ class Usuario {
     }
 }
 
-
 class UsuarioHasCarrera {
     private $conn;
 
@@ -755,6 +753,63 @@ class UsuarioHasCarrera {
             header("Location: ../views/templates/form_usuarios-carreras.php?success=true");
         } catch (PDOException $e) {
             header("Location: ../views/templates/form_usuarios-carreras.php?error=insert");
+        }
+    }
+}
+
+class IncidenciaUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener los datos del formulario
+            $incidenciaId = $_POST['incidencias'];
+            $usuarioId = $_POST['usuario-servidor-publico']; 
+            $fechaSolicitada = $_POST['fecha'];
+            $motivo = $_POST['motivo'];
+            $horarioInicio = $_POST['start-time'];
+            $horarioTermino = $_POST['end-time'];
+            $horario_incidencia = $_POST['time'];
+            $diaIncidencia = $_POST['dia-incidencia']; 
+            $carreraId = $_POST['area'];
+
+            // Validar los datos (ejemplo básico, se puede expandir)
+            if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
+                echo "Por favor, completa todos los campos requeridos.";
+                return;
+            }
+
+            // Insertar los datos en la base de datos
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
+        }
+    }
+
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
+        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
+                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidencia_id', $incidenciaId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':horario_inicio', $horarioInicio);
+        $stmt->bindParam(':horario_termino', $horarioTermino);
+        $stmt->bindParam(':horario_incidencia', $horario_incidencia);
+        $stmt->bindParam(':dia_incidencia', $diaIncidencia);
+        $stmt->bindParam(':carrera_id', $carreraId);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_incidencias.php?success=true");
+            exit(); // Asegúrate de detener el script después de la redirección
+        } catch (PDOException $e) {
+            error_log("Error: " . $e->getMessage()); // Registra el error en el log
+            echo "Ocurrió un error al procesar la solicitud.";
+            exit();
         }
     }
 }
