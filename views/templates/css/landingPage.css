@@ -1,0 +1,151 @@
+/* Estilos para pantallas grandes */
+.cardPrincipal {
+    border: none;
+    box-shadow: none;
+    height: 100%;
+}
+
+.contenido {
+    height: 100%;
+}
+
+.titulo {
+    margin-left: 20px;
+    color: #000000;
+}
+
+.subtitulo {
+    margin-left: 20px;
+    color: #000000;
+}
+
+.separador {
+    border: 5px solid #008a45;
+    margin: 20px 0 20px 20px;
+    max-width: 500px;
+}
+
+.carta {
+    height: 100%;
+    /* La tarjeta ocupa toda la altura */
+    display: flex;
+    flex-direction: row;
+}
+
+.page-title {
+    font-size: 60px;
+}
+
+.texto {
+    font-size: 18px;
+    margin-left: 20px;
+    max-width: 600px;
+    color: #000000;
+}
+
+/* Animación para la imagen */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+@keyframes anim{
+    from{
+        left: -100%
+    }
+    to{
+
+        left: 0%;
+    }
+}
+
+/* Aplica la animación a la imagen */
+.logo {
+    position: relative;
+    left: -100%;
+    animation: fadeIn 1s ease-in, anim 1s forwards; /* Ambas animaciones aplicadas */}
+.texto {
+    animation: fadeIn 1s ease-in; /* Duración de 2 segundos, suavidad */
+}
+.titulo {
+    animation: fadeIn 1s ease-in; /* Duración de 2 segundos, suavidad */
+}
+.subtitulo {
+    animation: fadeIn 1s ease-in; /* Duración de 2 segundos, suavidad */
+}
+.separador {
+    animation: fadeIn 1s ease-in; /* Duración de 2 segundos, suavidad */
+}
+
+/* Estilos para pantallas más pequeñas, de hasta 1500px */
+@media (max-width: 1500px) {
+    .carta {
+        height: 700px !important;
+        /* La altura se adapta al contenido */
+    }
+
+    .page-title {
+        font-size: 45px;
+        /* Ajusta el tamaño del texto */
+        margin-left: 10px;
+    }
+
+    .texto {
+        font-size: 16px;
+        /* Ajusta el tamaño del párrafo */
+        margin-left: 20px;
+        max-width: 100%;
+        /* Se expande según el ancho */
+    }
+
+    .logo {
+        position: absolute;
+        bottom: 0;
+        /* Alinea la imagen al fondo */
+        right: 0;
+        /* Alinea la imagen a la derecha */
+        height: auto;
+        /* Mantiene la proporción original de la imagen */
+    }
+}
+
+@media (max-width: 768px) {
+    .carta {
+        flex-direction: column;
+        /* Apila las columnas verticalmente */
+        height: auto;
+        /* Ajusta la altura al contenido */
+    }
+
+    .page-title {
+        font-size: 36px;
+        /* Ajusta el tamaño del texto para móviles */
+        margin-left: 0;
+        /* Elimina el margen izquierdo */
+    }
+
+    .texto {
+        font-size: 14px;
+        /* Ajusta el tamaño del párrafo */
+        margin-left: 20px;
+        /* Elimina el margen izquierdo */
+        max-width: 100%;
+        /* Asegura que el texto ocupe el ancho disponible */
+    }
+
+    .logo {
+        position: absolute;
+        bottom: 0;
+        /* Alinea la imagen al fondo */
+        right: 0;
+        /* Alinea la imagen a la derecha */
+        height: 300px;
+        /* Ajusta el tamaño de la imagen para móviles */
+    }
+}
