@@ -1,8 +1,10 @@
 <?php
+// Incluir archivos necesarios
 include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
+
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
@@ -43,10 +45,13 @@ $usuario['antiguedad'] = $antiguedad;
 
 // Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
-?>
 
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+?>
 
 <!doctype html>
 <html lang="en">
@@ -135,107 +140,6 @@ if (isset($_POST['logout'])) {
       </ul>
     </nav>
   </div>
-<<<<<<< HEAD
-  <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-    <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-      <i class="fe fe-x"><span class="sr-only"></span></i>
-    </a>
-    <nav class="vertnav navbar navbar-light">
-      <!-- nav bar -->
-      <div class="w-100 mb-4 d-flex">
-        <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-          <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-        </a>
-      </div>
-      <ul class="navbar-nav flex-fill w-100 mb-2">
-        <li class="nav-item w-100">
-          <a class="nav-link" href="index.php">
-            <i class="fe fe-calendar fe-16"></i>
-            <span class="ml-3 item-text">Inicio</span>
-          </a>
-        </li>
-        <li class="nav-item dropdown">
-          <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-            <i class="fe fe-home fe-16"></i>
-            <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-          </a>
-          <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-            <li class="nav-item">
-              <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                  class="ml-1 item-text">Docentes</span></a>
-            </li>
-            <li class="nav-item active">
-              <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-            </li>
-
-          </ul>
-        </li>
-      </ul>
-      <p class="text-muted nav-heading mt-4 mb-1">
-        <span>Recursos humanos</span>
-      </p>
-      <ul class="navbar-nav flex-fill w-100 mb-2">
-        <li class="nav-item w-100">
-          <a class="nav-link" href="recursos_humanos_empleados.php">
-            <i class="fe fe-calendar fe-16"></i>
-            <span class="ml-3 item-text">Empleados</span>
-          </a>
-        </li>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Desarrollo Académico</span>
-        </p>
-        <li class="nav-item w-100">
-          <a class="nav-link" href="desarrollo_academico_docentes.php">
-            <i class="fe fe-calendar fe-16"></i>
-            <span class="ml-3 item-text">Docentes</span>
-          </a>
-        </li>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Registros</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link pl-3" href="form_materia.php"><span
-                class="ml-1 item-text">Materias</span></a>
-          </li>
-          <li class="nav-item w-100">
-            <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-          </li>
-          <li class="nav-item w-100">
-            <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-          </li>
-          <li class="nav-item w-100">
-            <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-          </li>
-
-          <li class="nav-item w-100">
-            <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
-          </li>
-        </ul>
-      </ul>
-    </nav>
-  </aside>
-
-
-  <!-- Código HTML del carrusel -->
-  <main role="main" class="main-content">
-    <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
-      <div class="container-fluid mb-3">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-          PERFIL DOCENTE
-        </div>
-        <div class="row justify-content-center mb-0">
-          <div class="col-12">
-            <div class="row">
-              <div class="col-md-12 col-xl-12 mb-0">
-                <div class="card box-shadow-div text-red rounded-lg">
-                  <div class="row align-items-center">
-                    <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
-                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                      <span class="visually-hidden"></span>
-                    </button>
-=======
-  
     <!-- Código HTML del carrusel -->
 <main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -280,7 +184,6 @@ if (isset($_POST['logout'])) {
                             <!-- Más elementos del carrusel se generarán dinámicamente -->
                           </div>
                         </div>
->>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
 
                     <div class="col-10">
                       <div class="carousel-inner" id="carouselContent">
@@ -342,74 +245,7 @@ if (isset($_POST['logout'])) {
         idusuario++; // Incrementa el ID del usuario
         updateUrl(idusuario); // Actualiza la URL
       });
-
-      // Lógica para ir al usuario anterior (si es necesario)
-      anterior.addEventListener("click", () => {
-        if (idusuario > 1) { // Asegúrate de que no baje de 1
-          idusuario--; // Decrementa el ID del usuario
-          updateUrl(idusuario); // Actualiza la URL
-        }
-      });
-    </script>
-
-    <!---Parte de recursos humanos --->
-    <div class="container-fluid mt-0">
-      <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-        RECURSOS HUMANOS
-      </div>
-      <!-- Tarjeta principal -->
-      <div class="card shadow-lg p-4 mb-3">
-        <div class="wrapper">
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-12">
-                <!-- Título principal -->
-                <div class="row align-items-center my-3">
-                </div>
-                <!-- Filtros -->
-                <div class="container-filter mb-3 d-flex flex-wrap ">
-                  <!-- Filtro de Periodo -->
-                  <div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
-                    <button class="btn-filter d-flex align-items-center">
-                      <span class="fe fe-24 fe-filter me-2"></span>
-                      <span class="filter-label" data-placeholder="Periodo">Periodo</span>
-                    </button>
-                    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                      <ul class="list-unstyled m-0 p-2">
-                        <li><a href="#" data-month="8" data-year="2024" class="d-block py-1">2024-2</a></li>
-                        <li><a href="#" data-month="2" data-year="2024" class="d-block py-1">2024-1</a></li>
-                        <li><a href="#" data-month="8" data-year="2023" class="d-block py-1">2023-2</a></li>
-                        <li><a href="#" data-month="2" data-year="2023" class="d-block py-1">2023-1</a></li>
-                        <li><a href="#" data-month="8" data-year="2022" class="d-block py-1">2022-2</a></li>
-                        <li><a href="#" data-month="2" data-year="2022" class="d-block py-1">2022-1</a></li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <!-- Filtro de División -->
-                  <div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
-                    <button class="btn-filter d-flex align-items-center">
-                      <span class="fe fe-24 fe-filter me-2"></span>
-                      <span class="filter-label" data-placeholder="División">División</span>
-                    </button>
-                    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                      <ul class="list-unstyled m-0 p-2">
-                        <li><a href="#" class="d-block py-1">ISC</a></li>
-                        <li><a href="#" class="d-block py-1">Administracion</a></li>
-                        <li><a href="#" class="d-block py-1">Quimica</a></li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <!-- Sección de Incidencias -->
-                <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
-                <div class="row">
-                  <!-- Bloque de Días Económicos -->
-                  <div
-                    class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-1 order-lg-2 order-md-2 order-sm-2 order-2">
-                    <div class="card-body-calendar box-shadow-div mb-3">
-                      <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-                      <div class="text-verde">4</div>
+   
                     </div>
                     <div class="card-body-calendar box-shadow-div">
                       <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
@@ -1501,10 +1337,25 @@ if (isset($_POST['logout'])) {
     }
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
-  </script>
-  <script>
 
   </script>
+  <script>
+  
+        </script>
+        <script>
+    // Mostrar las opciones al hacer clic en el botón
+    document.getElementById('periodoDropdown').addEventListener('click', function() {
+        const filterOptions = document.getElementById('filterOptions');
+        filterOptions.classList.toggle('d-none'); // Alternar la visibilidad de las opciones
+    });
+
+    // Manejar el evento de cambio en el combo box
+    document.getElementById('periodoSelect').addEventListener('change', function() {
+        const selectedPeriod = this.value;
+        console.log("Periodo seleccionado:", selectedPeriod);
+        // Aquí puedes realizar más acciones si lo deseas
+    });
+</script>
 </body>
 
 </html>
