@@ -197,24 +197,6 @@ if (isset($_POST['logout'])) {
                 </tbody>
               </table>
             </div>
-<<<<<<< HEAD
-          </div>
-        </div> <!-- simple table -->
-      </div> <!-- end section -->
-    </div> <!-- .col-12 -->
-  </div> <!-- .row -->
-</div> <!-- .container-fluid -->
-
-
-        <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-=======
           </div> <!-- simple table -->
         </div> <!-- end section -->
       </div> <!-- .col-12 -->
@@ -237,7 +219,6 @@ if (isset($_POST['logout'])) {
             <div class="row align-items-center">
               <div class="col-auto">
                 <span class="fe fe-box fe-24"></span>
->>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
               </div>
               <div class="col">
                 <small><strong>Package has uploaded successfull</strong></small>
