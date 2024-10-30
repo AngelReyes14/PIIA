@@ -8,6 +8,11 @@ include('aside.php');
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
+
 // Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 
@@ -122,12 +127,11 @@ $periodos = $consultas->obtenerPeriodos();
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
-            </span>
-          </a>
+        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="avatar avatar-sm mt-2">
+        <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" alt="Avatar del usuario" class="avatar-img rounded-circle">
+    </span>
+</a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
