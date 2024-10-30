@@ -60,7 +60,6 @@ if (isset($_POST['logout'])) {
 
 
 </head>
-
 <body class="vertical  light  ">
   <div class="wrapper">
     <nav class="topnav navbar navbar-light">
@@ -164,37 +163,58 @@ if (isset($_POST['logout'])) {
   </div>
 
   <div class="container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-12">
-        <div class="d-flex justify-content-center align-items-center mb-3 col">
-          <p class="titulo-grande"><strong>Asignacion de datos Usuario</strong></p>
-        </div>
-        <div class="row my-4">
-          <!-- Small table -->
-          <div class="col-md-12">
-            <div class="card shadow">
-              <div class="card-body">
-                <!-- table -->
-                <table class="table datatables" id="dataTable-1">
-                  <thead>
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <div class="d-flex justify-content-center align-items-center mb-3 col">
+        <p class="titulo-grande"><strong>Asignación de datos Usuario</strong></p>
+      </div>
+      <div class="row my-4">
+        <!-- Small table -->
+        <div class="col-md-12">
+          <div class="card shadow">
+            <div class="card-body">
+              <!-- table -->
+              <table class="table datatables" id="dataTable-1">
+                <thead>
+                  <tr>
+                    <th>Nombre Usuario</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                    <th>Nombre Carrera</th>
+                    <th>Periodo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach ($usuarioCarrera as $usuarioCarrera): ?>
                     <tr>
-                      <th>Nombre Usuario</th>
-                      <th>Nombre Carrera</th>
-                      <th>Periodo</th>
+                      <td><?php echo htmlspecialchars($usuarioCarrera['nombre_usuario']); ?></td>
+                      <td><?php echo htmlspecialchars($usuarioCarrera['apellido_p']); ?></td>
+                      <td><?php echo htmlspecialchars($usuarioCarrera['apellido_m']); ?></td>
+                      <td><?php echo htmlspecialchars($usuarioCarrera['nombre_carrera']); ?></td>
+                      <td><?php echo htmlspecialchars($usuarioCarrera['descripcion']); ?></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    <?php foreach ($usuarioCarrera as $usuarioCarrera): ?>
-                      <tr>
-                        <td><?php echo htmlspecialchars($usuarioCarrera['nombre_usuario']); ?></td>
-                        <td><?php echo htmlspecialchars($usuarioCarrera['nombre_carrera']); ?></td>
-                        <td><?php echo htmlspecialchars($usuarioCarrera['descripcion']); ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  </tbody>
-                </table>
-              </div>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
             </div>
+<<<<<<< HEAD
+          </div>
+        </div> <!-- simple table -->
+      </div> <!-- end section -->
+    </div> <!-- .col-12 -->
+  </div> <!-- .row -->
+</div> <!-- .container-fluid -->
+
+
+        <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+=======
           </div> <!-- simple table -->
         </div> <!-- end section -->
       </div> <!-- .col-12 -->
@@ -217,6 +237,7 @@ if (isset($_POST['logout'])) {
             <div class="row align-items-center">
               <div class="col-auto">
                 <span class="fe fe-box fe-24"></span>
+>>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
               </div>
               <div class="col">
                 <small><strong>Package has uploaded successfull</strong></small>

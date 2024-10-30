@@ -96,6 +96,57 @@ if (isset($_POST['logout'])) {
     </nav>
 
 
+<<<<<<< HEAD
+            </ul>
+          </li>
+        </ul>
+        <p class="text-muted nav-heading mt-4 mb-1">
+          <span>Recursos humanos</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+          <li class="nav-item w-100">
+            <a class="nav-link" href="recursos_humanos_empleados.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Empleados</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Desarrollo Académico</span>
+          </p>
+          <li class="nav-item w-100">
+            <a class="nav-link" href="desarrollo_academico_docentes.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Docentes</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Registros</span>
+          </p>
+          <ul class="navbar-nav flex-fill w-100 mb-2">
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_materia.php"><span
+                  class="ml-1 item-text">Materias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
+            </li>
+
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
+            </li>
+            
+          </ul>
+        </ul>
+      </nav>
+    </aside>
+=======
+>>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
     <main role="main" class="main-content mt-5">
       <!-- Mensajes de estado -->
       <?php if (isset($_GET['status'])): ?>

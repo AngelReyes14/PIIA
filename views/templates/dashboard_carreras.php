@@ -84,6 +84,90 @@ if (isset($_POST['logout'])) {
         </li>
       </ul>
     </nav>
+<<<<<<< HEAD
+
+    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
+      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
+        <i class="fe fe-x"><span class="sr-only"></span></i>
+      </a>
+      <nav class="vertnav navbar navbar-light">
+        <!-- nav bar -->
+        <div class="w-100 mb-4 d-flex">
+          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
+            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
+          </a>
+        </div>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+          <li class="nav-item w-100">
+            <a class="nav-link" href="index.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Inicio</span>
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+              <i class="fe fe-home fe-16"></i>
+              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
+            </a>
+            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
+              <li class="nav-item">
+                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
+                    class="ml-1 item-text">Docentes</span></a>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
+              </li>
+
+            </ul>
+          </li>
+        </ul>
+        <p class="text-muted nav-heading mt-4 mb-1">
+          <span>Recursos humanos</span>
+        </p>
+        <ul class="navbar-nav flex-fill w-100 mb-2">
+          <li class="nav-item w-100">
+            <a class="nav-link" href="recursos_humanos_empleados.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Empleados</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Desarrollo Académico</span>
+          </p>
+          <li class="nav-item w-100">
+            <a class="nav-link" href="desarrollo_academico_docentes.php">
+              <i class="fe fe-calendar fe-16"></i>
+              <span class="ml-3 item-text">Docentes</span>
+            </a>
+          </li>
+          <p class="text-muted nav-heading mt-4 mb-1">
+            <span>Registros</span>
+          </p>
+          <ul class="navbar-nav flex-fill w-100 mb-2">
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_materia.php"><span
+                  class="ml-1 item-text">Materias</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
+            </li>
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
+            </li>
+
+            <li class="nav-item w-100">
+              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
+            </li>
+          </ul>
+        </ul>
+      </nav>
+    </aside>
+
+=======
+>>>>>>> c47c6c9d8efab812a955ffc565da9b1a5ee6145a
     <main role="main" class="main-content mt-5">
       <div class="container-fluid">
         <div class="row justify-content-center">
@@ -91,7 +175,7 @@ if (isset($_POST['logout'])) {
             <div class="row">
               <div class="col">
 
-            </div>
+              </div>
               <div class="col-auto">
                 <form class="form-inline">
                   <div class="form-group d-none d-lg-inline">
@@ -108,479 +192,479 @@ if (isset($_POST['logout'])) {
               </div>
             </div>
 
-<!-- Contenedor blanco con borde redondeado negro -->
-<div class="container-fluid mt-5 bg-white rounded border border-black p-5">
-  <div class="row">
-    <!-- Columna Izquierda (División y Promedio evaluación docente) -->
-    <div class="col-md-4">
-      <!-- División de Sistemas Computacionales -->
-      <div class="card p-5 text-center box-shadow-div mb-3 custom-card">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div cont-div">
-          División de Sistemas Computacionales
-        </div>
-        <!-- Contenedor para centrar la imagen -->
-        <div class="d-flex justify-content-center">
-          <img src="assets/images/Logo_ISC.png" alt="División de Sistemas Computacionales" class="division-img">
-        </div>
-      </div>
+            <!-- Contenedor blanco con borde redondeado negro -->
+            <div class="container-fluid mt-5 bg-white rounded border border-black p-5">
+              <div class="row">
+                <!-- Columna Izquierda (División y Promedio evaluación docente) -->
+                <div class="col-md-4">
+                  <!-- División de Sistemas Computacionales -->
+                  <div class="card p-5 text-center box-shadow-div mb-3 custom-card">
+                    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div cont-div">
+                      División de Sistemas Computacionales
+                    </div>
+                    <!-- Contenedor para centrar la imagen -->
+                    <div class="d-flex justify-content-center">
+                      <img src="assets/images/Logo_ISC.png" alt="División de Sistemas Computacionales" class="division-img">
+                    </div>
+                  </div>
 
-      <!-- Promedio evaluación docente -->
-      <div class="card p-5 text-center box-shadow-div mb-3 custom-card">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div cont-div">
-          Promedio evaluación docente
-        </div>
-        <div class="d-flex justify-content-center" >
-          <div id="radialbarWidget"></div>
-        </div>
-        <p>Ciclo 2024 </p> <!-- Aquí se agregará la  -->
-      </div>
-    </div>
+                  <!-- Promedio evaluación docente -->
+                  <div class="card p-5 text-center box-shadow-div mb-3 custom-card">
+                    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div cont-div">
+                      Promedio evaluación docente
+                    </div>
+                    <div class="d-flex justify-content-center">
+                      <div id="radialbarWidget"></div>
+                    </div>
+                    <p>Ciclo 2024 </p> <!-- Aquí se agregará la  -->
+                  </div>
+                </div>
 
-<!-- Columna Derecha (Información de la carrera, texto centrado) -->
-<div class="col-md-8 carta_Informacion">
-  <div class="card p-5 box-shadow-div large-text h-100">
-    <!-- Card verde para el título -->
-    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 ">
-      <h4 class="text-center text-white mb-0">Información de la carrera</h4>
-    </div>
+                <!-- Columna Derecha (Información de la carrera, texto centrado) -->
+                <div class="col-md-8 carta_Informacion">
+                  <div class="card p-5 box-shadow-div large-text h-100">
+                    <!-- Card verde para el título -->
+                    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 ">
+                      <h4 class="text-center text-white mb-0">Información de la carrera</h4>
+                    </div>
 
-    <!-- Contenido de la información de la carrera -->
-    <div class="row">
-      <div class="col-md-6">
-        <p><strong class="text-green">Año de Validación:</strong><br> 2010</p>
-        <p><strong class="text-green">Número de Docentes Mujeres:</strong><br> 10</p>
-        <p><strong class="text-green">Número de Docentes Hombres:</strong><br> 22</p>
-        <p><strong class="text-green">Número de Docentes:</strong><br> 32</p>
-      </div>
-      <div class="col-md-6">
-        <p><strong class="text-green">Promedio de Evaluación:</strong><br> 85%</p>
-        <p><strong class="text-green">Turno de Grupos:</strong><br> 20 Matutino, 10 Vespertino</p>
-        <p><strong class="text-green">Grupos en la carrera:</strong><br> 30</p>
-        <p><strong class="text-green">Organismo certificador:</strong><br> CACEI</p>
-      </div>
-    </div>
+                    <!-- Contenido de la información de la carrera -->
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong class="text-green">Año de Validación:</strong><br> 2010</p>
+                        <p><strong class="text-green">Número de Docentes Mujeres:</strong><br> 10</p>
+                        <p><strong class="text-green">Número de Docentes Hombres:</strong><br> 22</p>
+                        <p><strong class="text-green">Número de Docentes:</strong><br> 32</p>
+                      </div>
+                      <div class="col-md-6">
+                        <p><strong class="text-green">Promedio de Evaluación:</strong><br> 85%</p>
+                        <p><strong class="text-green">Turno de Grupos:</strong><br> 20 Matutino, 10 Vespertino</p>
+                        <p><strong class="text-green">Grupos en la carrera:</strong><br> 30</p>
+                        <p><strong class="text-green">Organismo certificador:</strong><br> CACEI</p>
+                      </div>
+                    </div>
 
-    <p><strong class="text-green">Acreditación:</strong><br> 10 Noviembre de 2020 - 10 Noviembre de 2025</p>
-  </div>
-</div>
-
-
+                    <p><strong class="text-green">Acreditación:</strong><br> 10 Noviembre de 2020 - 10 Noviembre de 2025</p>
+                  </div>
+                </div>
 
 
-<!-- Donut Chart Card -->
-<div class="col-12 col-md-6 carta_Informacion">
-  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-    <div class="card-header carta_Informacion">
-      <strong class="card-title text-green mb-0 carta_Informacion">
-        Grado académico de docentes en la división
-      </strong>
-    </div>
-    <div class="card-body text-center">
-      <div id="donutChart"></div> <!-- Contenedor de la gráfica -->
-    </div> <!-- /.card-body -->
-  </div> <!-- /.card -->
-</div> <!-- /.col -->
 
 
-      <!-- Tabla de Docentes -->
-      <div class="col-12 col-md-6 mt-5 carta_Informacion">
-        <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-          <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+                <!-- Donut Chart Card -->
+                <div class="col-12 col-md-6 carta_Informacion">
+                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+                    <div class="card-header carta_Informacion">
+                      <strong class="card-title text-green mb-0 carta_Informacion">
+                        Grado académico de docentes en la división
+                      </strong>
+                    </div>
+                    <div class="card-body text-center">
+                      <div id="donutChart"></div> <!-- Contenedor de la gráfica -->
+                    </div> <!-- /.card-body -->
+                  </div> <!-- /.card -->
+                </div> <!-- /.col -->
+
+
+                <!-- Tabla de Docentes -->
+                <div class="col-12 col-md-6 mt-5 carta_Informacion">
+                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                      <thead>
+                        <tr>
+                          <th>Nombre Docente</th>
+                          <th>N. Empleado</th>
+                          <th>Grado académico</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Juan Carlos Tinoco Villagran</td>
+                          <td>E6748521394</td>
+                          <td>Licenciatura</td>
+                        </tr>
+                        <tr>
+                          <td>Jose Luis Orozco Garcia</td>
+                          <td>E6748521393</td>
+                          <td>Maestría</td>
+                        </tr>
+                        <tr>
+                          <td>Eden Muñoz Lopez</td>
+                          <td>E6748521392</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Iker Ruiz Lopez</td>
+                          <td>E6748522192</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Abel Gallardo Garcia</td>
+                          <td>E6748521006</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Carlos Roberto Chia</td>
+                          <td>E67485213711</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+
+
+          <!-- Nuevo Contenedor Principal: Incidencias -->
+          <div class="container-fluid mt-5 box-shadow-div p-5">
+            <!-- Título de Incidencias -->
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              Incidencias
+            </div>
+
+            <!-- Contenedor de la Tarjeta de Incidencias -->
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Columna completa para la tarjeta -->
+                <div class="col-12">
+                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+                    <!-- Encabezado de la Tarjeta -->
+                    <div class="card-header">
+                      <strong class="card-title text-green mb-0">Resumen de Incidencias</strong>
+                    </div>
+
+                    <!-- Cuerpo de la tarjeta -->
+                    <div class="card-body text-center">
+                      <!-- Gráfico de dona para incidencias -->
+                      <div id="donutChart3"></div>
+
+                      <!-- Tabla de incidencias -->
+                      <table class="table table-striped mt-3">
+                        <thead>
+                          <tr>
+                            <th>ID Incidencia</th>
+                            <th>Descripción</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>001</td>
+                            <td>Incidencia de ejemplo 1</td>
+                            <td>12/09/2024</td>
+                            <td>Resuelta</td>
+                          </tr>
+                          <tr>
+                            <td>002</td>
+                            <td>Incidencia de ejemplo 2</td>
+                            <td>13/09/2024</td>
+                            <td>Pendiente</td>
+                          </tr>
+                          <!-- Añadir más filas según sea necesario -->
+                        </tbody>
+                      </table>
+                    </div> <!-- /.card-body -->
+                  </div> <!-- /.card -->
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+
+
+
+          <!-- Contenedor de Cursos Pedagógicos -->
+          <div class="container-fluid mt-5  box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              Cursos Diciplinarios
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Gráfico de Cursos Pedagógicos -->
+                <div class="col-md-12">
+                  <div class="chart-box box-shadow-div mb-4">
+                    <div id="columnChart"></div> <!-- Gráfico de Cursos Pedagógicos -->
+                  </div>
+                </div> <!-- /.col -->
+
+                <!-- Tabla de Cursos Pedagógicos -->
+                <div class="col-md-12 carta_Informacion">
+                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                      <h4 class="mb-0 text-green carta_Informacion">Cursos Diciplinarios</h4>
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                      <thead>
+                        <tr>
+                          <th>Curso</th>
+                          <th>Fecha</th>
+                          <th>Docente</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Curso de Metodologías de Enseñanza</td>
+                          <td>05/10/2024</td>
+                          <td>María López Pérez</td>
+                        </tr>
+                        <tr>
+                          <td>Curso de Evaluación Pedagógica</td>
+                          <td>12/10/2024</td>
+                          <td>Carlos García Martínez</td>
+                        </tr>
+                        <tr>
+                          <td>Curso de Innovación Educativa</td>
+                          <td>20/10/2024</td>
+                          <td>Lucía Rodríguez Sánchez</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+
+          <!-- Contenedor de Cursos Pedagógicos -->
+          <div class="container-fluid mt-5  box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              Cursos Pedagógicos
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Gráfico de Cursos Pedagógicos -->
+                <div class="col-md-12">
+                  <div class="chart-box box-shadow-div mb-4">
+                    <div id="columnChart2"></div> <!-- Gráfico de Cursos Pedagógicos -->
+                  </div>
+                </div> <!-- /.col -->
+
+                <!-- Tabla de Cursos Pedagógicos -->
+                <div class="col-md-12 carta_Informacion">
+                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                      <h4 class="mb-0 text-green carta_Informacion ">Cursos Pedagógicos</h4>
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                      <thead>
+                        <tr>
+                          <th>Curso</th>
+                          <th>Fecha</th>
+                          <th>Docente</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Curso de Metodologías de Enseñanza</td>
+                          <td>05/10/2024</td>
+                          <td>María López Pérez</td>
+                        </tr>
+                        <tr>
+                          <td>Curso de Evaluación Pedagógica</td>
+                          <td>12/10/2024</td>
+                          <td>Carlos García Martínez</td>
+                        </tr>
+                        <tr>
+                          <td>Curso de Innovación Educativa</td>
+                          <td>20/10/2024</td>
+                          <td>Lucía Rodríguez Sánchez</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+
+          <!-- Contenedor de Promedio de Calificaciones -->
+          <div class="container-fluid mt-5  box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              Promedio de Calificaciones
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Tabla de Promedio de Calificaciones -->
+                <div class="col-md-12 carta_Informacion">
+                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                      <thead>
+                        <tr>
+                          <th>Docentes</th>
+                          <th>Evaluación Estudiantil</th>
+                          <th>Evaluación TECNM</th>
+                          <th>Promedio por semestre</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Juan Carlos Tinoco Villagran</td>
+                          <td>80.0</td>
+                          <td>80.0</td>
+                          <td>80.0</td>
+                        </tr>
+                        <tr>
+                          <td>Jose Luis Orozco Garcia</td>
+                          <td>70.0</td>
+                          <td>70.0</td>
+                          <td>70.0</td>
+                        </tr>
+                        <tr>
+                          <td>Eden Muñoz Lopez</td>
+                          <td>75.0</td>
+                          <td>75.0</td>
+                          <td>75.0</td>
+                        </tr>
+                        <tr>
+                          <td>Edwin Luna Castillo</td>
+                          <td>60.5</td>
+                          <td>60.5</td>
+                          <td>60.5</td>
+                        </tr>
+                        <tr>
+                          <td>Alfredo Olivas Ruiz</td>
+                          <td>82.0</td>
+                          <td>82.0</td>
+                          <td>82.0</td>
+                        </tr>
+                        <tr>
+                          <td>Cosme Tadeo Lopez Varela</td>
+                          <td>90.2</td>
+                          <td>90.2</td>
+                          <td>90.2</td>
+                        </tr>
+                        <tr>
+                          <td>Virlán García Nuñez</td>
+                          <td>98.3</td>
+                          <td>98.3</td>
+                          <td>98.3</td>
+                        </tr>
+                        <tr>
+                          <td>Cornelio Vega Chairez</td>
+                          <td>87.4</td>
+                          <td>87.4</td>
+                          <td>87.4</td>
+                        </tr>
+                        <tr>
+                          <td>Julion Alvarez Buendla</td>
+                          <td>74.1</td>
+                          <td>74.1</td>
+                          <td>74.1</td>
+                        </tr>
+                        <tr>
+                          <td>Ariel Camacho Torres</td>
+                          <td>84.2</td>
+                          <td>84.2</td>
+                          <td>84.2</td>
+                        </tr>
+                        <tr>
+                          <td>Amanda Rivera de Miguel</td>
+                          <td>98.2</td>
+                          <td>98.2</td>
+                          <td>98.2</td>
+                        </tr>
+                        <tr>
+                          <td>Jenifer Espinoza German</td>
+                          <td>95.2</td>
+                          <td>95.2</td>
+                          <td>95.2</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+
+          <!-- Nuevo Contenedor Principal: PERSONAL -->
+          <div class="container-fluid mt-5 box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              DIRECCIÓN ACADÉMICA
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Donut Chart Card -->
+                <div class="col-12 col-md-6 carta_Informacion">
+                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+                    <div class="card-header carta_Informacion">
+                      <strong class="card-title text-green mb-0 carta_Informacion">Grado académico de docentes en la división</strong>
+                    </div>
+                    <div class="card-body text-center">
+                      <div id="donutChart2"></div>
+                    </div> <!-- /.card-body -->
+                  </div> <!-- /.card -->
+                </div> <!-- /.col -->
+                <!-- Tabla de Docentes -->
+                <div class="col-12 col-md-6 mt-5 carta_Informacion">
+                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                      <thead>
+                        <tr>
+                          <th>Nombre Docente</th>
+                          <th>N. Empleado</th>
+                          <th>Grado académico</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Juan Carlos Tinoco Villagran</td>
+                          <td>E6748521394</td>
+                          <td>Licenciatura</td>
+                        </tr>
+                        <tr>
+                          <td>Jose Luis Orozco Garcia</td>
+                          <td>E6748521393</td>
+                          <td>Maestría</td>
+                        </tr>
+                        <tr>
+                          <td>Eden Muñoz Lopez</td>
+                          <td>E6748521392</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Iker Ruiz Lopez</td>
+                          <td>E6748522192</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Abel Gallardo Garcia</td>
+                          <td>E6748521006</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                        <tr>
+                          <td>Carlos Roberto Chia</td>
+                          <td>E67485213711</td>
+                          <td>Ingeniería</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <!-- Card para TOTAL DE HORAS MAXIMAS -->
+                    <div class="card mt-3 text-center">
+                      <div class="card-body  box-shadow-div">
+                        <h5 class="card-title font-weight-bold">TOTAL DE HORAS MÁXIMAS</h5>
+                        <p class="card-text font-weight-bold">40</p>
+                      </div>
+                    </div>
+                  </div>
+                </div> <!-- /.col -->
+
+
+              </div>
+            </div>
+
           </div>
-          <table class="table table-striped carta_Informacion">
-            <thead>
-              <tr>
-                <th>Nombre Docente</th>
-                <th>N. Empleado</th>
-                <th>Grado académico</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Juan Carlos Tinoco Villagran</td>
-                <td>E6748521394</td>
-                <td>Licenciatura</td>
-              </tr>
-              <tr>
-                <td>Jose Luis Orozco Garcia</td>
-                <td>E6748521393</td>
-                <td>Maestría</td>
-              </tr>
-              <tr>
-                <td>Eden Muñoz Lopez</td>
-                <td>E6748521392</td>
-                <td>Ingeniería</td>
-              </tr>
-              <tr>
-                <td>Iker Ruiz Lopez</td>
-                <td>E6748522192</td>
-                <td>Ingeniería</td>
-              </tr>
-              <tr>
-                <td>Abel Gallardo Garcia</td>
-                <td>E6748521006</td>
-                <td>Ingeniería</td>
-              </tr>
-              <tr>
-                <td>Carlos Roberto Chia</td>
-                <td>E67485213711</td>
-                <td>Ingeniería</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div> <!-- /.col -->
-    </div> <!-- /.row -->
-  </div> <!-- /.container-fluid -->
-</div> <!-- /.container-fluid -->
-
-
- <!-- Nuevo Contenedor Principal: Incidencias -->
-<div class="container-fluid mt-5 box-shadow-div p-5">
-  <!-- Título de Incidencias -->
-  <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-    Incidencias
-  </div>
-
-  <!-- Contenedor de la Tarjeta de Incidencias -->
-  <div class="container-fluid p-3">
-    <div class="row">
-      <!-- Columna completa para la tarjeta -->
-      <div class="col-12">
-        <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-          <!-- Encabezado de la Tarjeta -->
-          <div class="card-header">
-            <strong class="card-title text-green mb-0">Resumen de Incidencias</strong>
-          </div>
-
-          <!-- Cuerpo de la tarjeta -->
-          <div class="card-body text-center">
-            <!-- Gráfico de dona para incidencias -->
-            <div id="donutChart3"></div>
-            
-            <!-- Tabla de incidencias -->
-            <table class="table table-striped mt-3">
-              <thead>
-                <tr>
-                  <th>ID Incidencia</th>
-                  <th>Descripción</th>
-                  <th>Fecha</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>001</td>
-                  <td>Incidencia de ejemplo 1</td>
-                  <td>12/09/2024</td>
-                  <td>Resuelta</td>
-                </tr>
-                <tr>
-                  <td>002</td>
-                  <td>Incidencia de ejemplo 2</td>
-                  <td>13/09/2024</td>
-                  <td>Pendiente</td>
-                </tr>
-                <!-- Añadir más filas según sea necesario -->
-              </tbody>
-            </table>
-          </div> <!-- /.card-body -->
-        </div> <!-- /.card -->
-      </div> <!-- /.col -->
-    </div> <!-- /.row -->
-  </div> <!-- /.container-fluid -->
-</div> <!-- /.container-fluid -->
-
-            
-
-<!-- Contenedor de Cursos Pedagógicos -->
-<div class="container-fluid mt-5  box-shadow-div p-5">
-  <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-    Cursos Diciplinarios
-  </div>
-  <div class="container-fluid p-3">
-    <div class="row">
-      <!-- Gráfico de Cursos Pedagógicos -->
-      <div class="col-md-12">
-        <div class="chart-box box-shadow-div mb-4">
-          <div id="columnChart"></div> <!-- Gráfico de Cursos Pedagógicos -->
-        </div>
-      </div> <!-- /.col -->
-
-      <!-- Tabla de Cursos Pedagógicos -->
-      <div class="col-md-12 carta_Informacion">
-        <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-          <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion">Cursos Diciplinarios</h4>
-          </div>
-          <table class="table table-striped carta_Informacion">
-            <thead>
-              <tr>
-                <th>Curso</th>
-                <th>Fecha</th>
-                <th>Docente</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Curso de Metodologías de Enseñanza</td>
-                <td>05/10/2024</td>
-                <td>María López Pérez</td>
-              </tr>
-              <tr>
-                <td>Curso de Evaluación Pedagógica</td>
-                <td>12/10/2024</td>
-                <td>Carlos García Martínez</td>
-              </tr>
-              <tr>
-                <td>Curso de Innovación Educativa</td>
-                <td>20/10/2024</td>
-                <td>Lucía Rodríguez Sánchez</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div> <!-- /.col -->
-    </div> <!-- /.row -->
-  </div> <!-- /.container-fluid -->
-</div> <!-- /.container-fluid -->
-
-<!-- Contenedor de Cursos Pedagógicos -->
-<div class="container-fluid mt-5  box-shadow-div p-5">
-  <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-    Cursos Pedagógicos
-  </div>
-  <div class="container-fluid p-3">
-    <div class="row">
-      <!-- Gráfico de Cursos Pedagógicos -->
-      <div class="col-md-12">
-        <div class="chart-box box-shadow-div mb-4">
-          <div id="columnChart2"></div> <!-- Gráfico de Cursos Pedagógicos -->
-        </div>
-      </div> <!-- /.col -->
-
-      <!-- Tabla de Cursos Pedagógicos -->
-      <div class="col-md-12 carta_Informacion">
-        <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-          <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion ">Cursos Pedagógicos</h4>
-          </div>
-          <table class="table table-striped carta_Informacion">
-            <thead>
-              <tr>
-                <th>Curso</th>
-                <th>Fecha</th>
-                <th>Docente</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Curso de Metodologías de Enseñanza</td>
-                <td>05/10/2024</td>
-                <td>María López Pérez</td>
-              </tr>
-              <tr>
-                <td>Curso de Evaluación Pedagógica</td>
-                <td>12/10/2024</td>
-                <td>Carlos García Martínez</td>
-              </tr>
-              <tr>
-                <td>Curso de Innovación Educativa</td>
-                <td>20/10/2024</td>
-                <td>Lucía Rodríguez Sánchez</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div> <!-- /.col -->
-    </div> <!-- /.row -->
-  </div> <!-- /.container-fluid -->
-</div> <!-- /.container-fluid -->
-
-<!-- Contenedor de Promedio de Calificaciones -->
-<div class="container-fluid mt-5  box-shadow-div p-5">
-  <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-    Promedio de Calificaciones
-  </div>
-  <div class="container-fluid p-3">
-    <div class="row">
-      <!-- Tabla de Promedio de Calificaciones -->
-      <div class="col-md-12 carta_Informacion">
-        <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-          <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-          </div>
-          <table class="table table-striped carta_Informacion">
-            <thead>
-              <tr>
-                <th>Docentes</th>
-                <th>Evaluación Estudiantil</th>
-                <th>Evaluación TECNM</th>
-                <th>Promedio por semestre</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Juan Carlos Tinoco Villagran</td>
-                <td>80.0</td>
-                <td>80.0</td>
-                <td>80.0</td>
-              </tr>
-              <tr>
-                <td>Jose Luis Orozco Garcia</td>
-                <td>70.0</td>
-                <td>70.0</td>
-                <td>70.0</td>
-              </tr>
-              <tr>
-                <td>Eden Muñoz Lopez</td>
-                <td>75.0</td>
-                <td>75.0</td>
-                <td>75.0</td>
-              </tr>
-              <tr>
-                <td>Edwin Luna Castillo</td>
-                <td>60.5</td>
-                <td>60.5</td>
-                <td>60.5</td>
-              </tr>
-              <tr>
-                <td>Alfredo Olivas Ruiz</td>
-                <td>82.0</td>
-                <td>82.0</td>
-                <td>82.0</td>
-              </tr>
-              <tr>
-                <td>Cosme Tadeo Lopez Varela</td>
-                <td>90.2</td>
-                <td>90.2</td>
-                <td>90.2</td>
-              </tr>
-              <tr>
-                <td>Virlán García Nuñez</td>
-                <td>98.3</td>
-                <td>98.3</td>
-                <td>98.3</td>
-              </tr>
-              <tr>
-                <td>Cornelio Vega Chairez</td>
-                <td>87.4</td>
-                <td>87.4</td>
-                <td>87.4</td>
-              </tr>
-              <tr>
-                <td>Julion Alvarez Buendla</td>
-                <td>74.1</td>
-                <td>74.1</td>
-                <td>74.1</td>
-              </tr>
-              <tr>
-                <td>Ariel Camacho Torres</td>
-                <td>84.2</td>
-                <td>84.2</td>
-                <td>84.2</td>
-              </tr>
-              <tr>
-                <td>Amanda Rivera de Miguel</td>
-                <td>98.2</td>
-                <td>98.2</td>
-                <td>98.2</td>
-              </tr>
-              <tr>
-                <td>Jenifer Espinoza German</td>
-                <td>95.2</td>
-                <td>95.2</td>
-                <td>95.2</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div> <!-- /.col -->
-    </div> <!-- /.row -->
-  </div> <!-- /.container-fluid -->
-</div> <!-- /.container-fluid -->
-
-<!-- Nuevo Contenedor Principal: PERSONAL -->
-<div class="container-fluid mt-5 box-shadow-div p-5">
-  <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-    DIRECCIÓN ACADÉMICA 
-  </div>
-  <div class="container-fluid p-3">
-    <div class="row">
-      <!-- Donut Chart Card -->
-      <div class="col-12 col-md-6 carta_Informacion">
-        <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-          <div class="card-header carta_Informacion">
-            <strong class="card-title text-green mb-0 carta_Informacion">Grado académico de docentes en la división</strong>
-          </div>
-          <div class="card-body text-center">
-            <div id="donutChart2"></div>
-          </div> <!-- /.card-body -->
-        </div> <!-- /.card -->
-      </div> <!-- /.col -->
-<!-- Tabla de Docentes -->
-<div class="col-12 col-md-6 mt-5 carta_Informacion">
-  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-    </div>
-    <table class="table table-striped carta_Informacion">
-      <thead>
-        <tr>
-          <th>Nombre Docente</th>
-          <th>N. Empleado</th>
-          <th>Grado académico</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Juan Carlos Tinoco Villagran</td>
-          <td>E6748521394</td>
-          <td>Licenciatura</td>
-        </tr>
-        <tr>
-          <td>Jose Luis Orozco Garcia</td>
-          <td>E6748521393</td>
-          <td>Maestría</td>
-        </tr>
-        <tr>
-          <td>Eden Muñoz Lopez</td>
-          <td>E6748521392</td>
-          <td>Ingeniería</td>
-        </tr>
-        <tr>
-          <td>Iker Ruiz Lopez</td>
-          <td>E6748522192</td>
-          <td>Ingeniería</td>
-        </tr>
-        <tr>
-          <td>Abel Gallardo Garcia</td>
-          <td>E6748521006</td>
-          <td>Ingeniería</td>
-        </tr>
-        <tr>
-          <td>Carlos Roberto Chia</td>
-          <td>E67485213711</td>
-          <td>Ingeniería</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- Card para TOTAL DE HORAS MAXIMAS -->
-    <div class="card mt-3 text-center">
-      <div class="card-body  box-shadow-div">
-        <h5 class="card-title font-weight-bold">TOTAL DE HORAS MÁXIMAS</h5>
-        <p class="card-text font-weight-bold">40</p>
-      </div>
-    </div>
-  </div>
-</div> <!-- /.col -->
-
-
-          </div>
-        </div>
-        
-      </div>
     </main>
     <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
       aria-hidden="true">
@@ -743,42 +827,35 @@ if (isset($_POST['logout'])) {
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
   <script>
-    $('.select2').select2(
-      {
-        theme: 'bootstrap4',
-      });
-    $('.select2-multi').select2(
-      {
-        multiple: true,
-        theme: 'bootstrap4',
-      });
-    $('.drgpicker').daterangepicker(
-      {
-        singleDatePicker: true,
-        timePicker: false,
-        showDropdowns: true,
-        locale:
-        {
-          format: 'MM/DD/YYYY'
-        }
-      });
-    $('.time-input').timepicker(
-      {
-        'scrollDefault': 'now',
-        'zindex': '9999' /* fix modal open */
-      });
+    $('.select2').select2({
+      theme: 'bootstrap4',
+    });
+    $('.select2-multi').select2({
+      multiple: true,
+      theme: 'bootstrap4',
+    });
+    $('.drgpicker').daterangepicker({
+      singleDatePicker: true,
+      timePicker: false,
+      showDropdowns: true,
+      locale: {
+        format: 'MM/DD/YYYY'
+      }
+    });
+    $('.time-input').timepicker({
+      'scrollDefault': 'now',
+      'zindex': '9999' /* fix modal open */
+    });
     /** date range picker */
     if ($('.datetimes').length) {
-      $('.datetimes').daterangepicker(
-        {
-          timePicker: true,
-          startDate: moment().startOf('hour'),
-          endDate: moment().startOf('hour').add(32, 'hour'),
-          locale:
-          {
-            format: 'M/DD hh:mm A'
-          }
-        });
+      $('.datetimes').daterangepicker({
+        timePicker: true,
+        startDate: moment().startOf('hour'),
+        endDate: moment().startOf('hour').add(32, 'hour'),
+        locale: {
+          format: 'M/DD hh:mm A'
+        }
+      });
     }
     var start = moment().subtract(29, 'days');
     var end = moment();
@@ -786,124 +863,110 @@ if (isset($_POST['logout'])) {
     function cb(start, end) {
       $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
     }
-    $('#reportrange').daterangepicker(
-      {
-        startDate: start,
-        endDate: end,
-        ranges:
-        {
-          'Today': [moment(), moment()],
-          'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-          'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-          'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-          'This Month': [moment().startOf('month'), moment().endOf('month')],
-          'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-        }
-      }, cb);
+    $('#reportrange').daterangepicker({
+      startDate: start,
+      endDate: end,
+      ranges: {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+      }
+    }, cb);
     cb(start, end);
-    $('.input-placeholder').mask("00/00/0000",
-      {
-        placeholder: "__/__/____"
-      });
-    $('.input-zip').mask('00000-000',
-      {
-        placeholder: "____-___"
-      });
-    $('.input-money').mask("#.##0,00",
-      {
-        reverse: true
-      });
+    $('.input-placeholder').mask("00/00/0000", {
+      placeholder: "__/__/____"
+    });
+    $('.input-zip').mask('00000-000', {
+      placeholder: "____-___"
+    });
+    $('.input-money').mask("#.##0,00", {
+      reverse: true
+    });
     $('.input-phoneus').mask('(000) 000-0000');
     $('.input-mixed').mask('AAA 000-S0S');
-    $('.input-ip').mask('0ZZ.0ZZ.0ZZ.0ZZ',
-      {
-        translation:
-        {
-          'Z':
-          {
-            pattern: /[0-9]/,
-            optional: true
-          }
-        },
-        placeholder: "___.___.___.___"
-      });
+    $('.input-ip').mask('0ZZ.0ZZ.0ZZ.0ZZ', {
+      translation: {
+        'Z': {
+          pattern: /[0-9]/,
+          optional: true
+        }
+      },
+      placeholder: "___.___.___.___"
+    });
     // editor
     var editor = document.getElementById('editor');
     if (editor) {
       var toolbarOptions = [
-        [
-          {
-            'font': []
-          }],
-        [
-          {
-            'header': [1, 2, 3, 4, 5, 6, false]
-          }],
+        [{
+          'font': []
+        }],
+        [{
+          'header': [1, 2, 3, 4, 5, 6, false]
+        }],
         ['bold', 'italic', 'underline', 'strike'],
         ['blockquote', 'code-block'],
-        [
-          {
+        [{
             'header': 1
           },
           {
             'header': 2
-          }],
-        [
-          {
+          }
+        ],
+        [{
             'list': 'ordered'
           },
           {
             'list': 'bullet'
-          }],
-        [
-          {
+          }
+        ],
+        [{
             'script': 'sub'
           },
           {
             'script': 'super'
-          }],
-        [
-          {
+          }
+        ],
+        [{
             'indent': '-1'
           },
           {
             'indent': '+1'
-          }], // outdent/indent
-        [
-          {
-            'direction': 'rtl'
-          }], // text direction
-        [
-          {
+          }
+        ], // outdent/indent
+        [{
+          'direction': 'rtl'
+        }], // text direction
+        [{
             'color': []
           },
           {
             'background': []
-          }], // dropdown with defaults from theme
-        [
-          {
-            'align': []
-          }],
+          }
+        ], // dropdown with defaults from theme
+        [{
+          'align': []
+        }],
         ['clean'] // remove formatting button
       ];
-      var quill = new Quill(editor,
-        {
-          modules:
-          {
-            toolbar: toolbarOptions
-          },
-          theme: 'snow'
-        });
+      var quill = new Quill(editor, {
+        modules: {
+          toolbar: toolbarOptions
+        },
+        theme: 'snow'
+      });
     }
     // Example starter JavaScript for disabling form submissions if there are invalid fields
-    (function () {
+    (function() {
       'use strict';
-      window.addEventListener('load', function () {
+      window.addEventListener('load', function() {
         // Fetch all the forms we want to apply custom Bootstrap validation styles to
         var forms = document.getElementsByClassName('needs-validation');
         // Loop over them and prevent submission
-        var validation = Array.prototype.filter.call(forms, function (form) {
-          form.addEventListener('submit', function (event) {
+        var validation = Array.prototype.filter.call(forms, function(form) {
+          form.addEventListener('submit', function(event) {
             if (form.checkValidity() === false) {
               event.preventDefault();
               event.stopPropagation();
@@ -917,19 +980,17 @@ if (isset($_POST['logout'])) {
   <script>
     var uptarg = document.getElementById('drag-drop-area');
     if (uptarg) {
-      var uppy = Uppy.Core().use(Uppy.Dashboard,
-        {
-          inline: true,
-          target: uptarg,
-          proudlyDisplayPoweredByUppy: false,
-          theme: 'dark',
-          width: 770,
-          height: 210,
-          plugins: ['Webcam']
-        }).use(Uppy.Tus,
-          {
-            endpoint: 'https://master.tus.io/files/'
-          });
+      var uppy = Uppy.Core().use(Uppy.Dashboard, {
+        inline: true,
+        target: uptarg,
+        proudlyDisplayPoweredByUppy: false,
+        theme: 'dark',
+        width: 770,
+        height: 210,
+        plugins: ['Webcam']
+      }).use(Uppy.Tus, {
+        endpoint: 'https://master.tus.io/files/'
+      });
       uppy.on('complete', (result) => {
         console.log('Upload complete! We’ve uploaded these files:', result.successful)
       });
