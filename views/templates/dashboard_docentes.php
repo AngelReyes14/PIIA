@@ -364,6 +364,24 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
                       </div>
                     </div>
                     <!-- Avisos -->
+                     <!-- Modal -->
+<div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalContent">
+        <!-- Contenido cargado dinámicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
                     <div
                       class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
                       <div class="card-body-calendar box-shadow-div mb-3">
