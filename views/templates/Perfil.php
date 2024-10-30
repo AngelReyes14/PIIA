@@ -1,5 +1,5 @@
 <?php
-include('../../models/session.php');
+include('../../models/session.php');  
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
@@ -184,37 +184,36 @@ if (isset($_POST['logout'])) {
                 <div class="row mb-3">
                   <div class="col-sm-6">
                     <label class="form-label">Nombre:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?>">
-                  </div>
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?>" readonly>                  </div>
                   <div class="col-sm-6">
                     <label class="form-label">Correo Electrónico:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['correo']); ?>">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['correo']); ?>" readonly>
                   </div>
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">
                     <label class="form-label">Edad:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['edad']); ?>">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['edad']); ?>" readonly>
                   </div>
                   <div class="col-sm-6">
                     <label class="form-label">Cédula:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
                   </div>
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">
                     <label class="form-label">Fecha de Contratación:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['fecha_contratacion']); ?>">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['fecha_contratacion']); ?>" readonly>
                   </div>
                   <div class="col-sm-6">
                     <label class="form-label">Grado Académico:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['grado_academico']); ?>">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['grado_academico']); ?>" readonly>
                   </div>
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">
                     <label class="form-label">Antigüedad:</label>
-                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años">
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años" readonly>
                   </div>
                 </div>
               </div>
@@ -224,9 +223,9 @@ if (isset($_POST['logout'])) {
           </div>
         </div>
       </div>
+      <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
       <div class="container-fluid px-0">
-        <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
-          <div class="card text-center" style="border: none;">
+          <div id="cardProfesores" class="card text-center" style="border: none; ">
             <div class="card-body">
               <h5 class="card-title">Profesores</h5>
               <div class="filter-container" style="position: relative; display: inline-block;">
@@ -263,7 +262,7 @@ if (isset($_POST['logout'])) {
               </div>
             </div>
           </div>
-        <?php endif; ?>
+
 
         <div class="card w-100" style="border:none;">
           <div class="card-header" style="border:none;">
@@ -279,6 +278,7 @@ if (isset($_POST['logout'])) {
                   <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
                 </div>
               </div>
+
 
               <script>
                 $(document).ready(function() {
@@ -380,11 +380,26 @@ if (isset($_POST['logout'])) {
                 });
               </script>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Verifica si el tipo de usuario no es 2
+    const usuarioTipo = <?= json_encode($usuario['tipo_usuario_tipo_usuario_id']) ?>;
+    if (usuarioTipo !== 2) {
+      // Oculta la tarjeta si el tipo de usuario es diferente de 2
+      document.getElementById("cardProfesores").style.display = "none";
+    }
+  });
+</script>
+
+
 
             </div>
           </div>
         </div>
+        <?php endif; ?>
+        
       </div>
+
       <!-- Contenido de la página -->
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
