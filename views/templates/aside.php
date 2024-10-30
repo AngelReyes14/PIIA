@@ -47,6 +47,7 @@ $menuItems = [
        
     5 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
+        'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Dashboard' => [
             'Docentes' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_docentes.php'],
             'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php']
