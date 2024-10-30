@@ -380,18 +380,6 @@ if (isset($_POST['logout'])) {
                 });
               </script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    // Verifica si el tipo de usuario no es 2
-    const usuarioTipo = <?= json_encode($usuario['tipo_usuario_tipo_usuario_id']) ?>;
-    if (usuarioTipo !== 2) {
-      // Oculta la tarjeta si el tipo de usuario es diferente de 2
-      document.getElementById("cardProfesores").style.display = "none";
-    }
-  });
-</script>
-
-
 
             </div>
           </div>
