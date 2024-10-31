@@ -51,6 +51,16 @@ if (isset($_POST['logout'])) {
 // Obtener el nombre de la carrera del usuario
 $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
 $periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
+
 ?>
 
 <!doctype html>
@@ -382,18 +392,22 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   </div>
 </div>
 
-                    <div
-                      class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
-                      <div class="card-body-calendar box-shadow-div mb-3">
-                        <h3 class="h5">AVISOS</h3>
-                        <div class="text-verde">3</div>
-                      </div>
-                      <div class="card-body-calendar ">
-                        <div class="card-avisos">Faltó el día 14/02/24</div>
-                        <div class="card-avisos">Faltó el día 14/03/24</div>
-                        <div class="card-avisos">No dio 2 horas de clase al grupo 8ISC22</div>
-                      </div>
-                    </div>
+<div
+  class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
+  <div class="card-body-calendar box-shadow-div mb-3">
+    <h3 class="h5">AVISOS</h3>
+    <div class="text-verde"><?php echo count($avisos); ?></div>
+  </div>
+  <div class="card-body-calendar">
+    <?php foreach ($avisos as $aviso): ?>
+      <div class="card-avisos">
+        Motivo: <?php echo htmlspecialchars($aviso['motivo']); ?><br>
+        Fecha de incidencia: <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+
                   </div>
                 </div>
               </div>
