@@ -1,15 +1,12 @@
 <?php
+// Incluir archivos necesarios
 include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
+
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
-
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
-
-$imgUser  = $consultas->obtenerImagen($idusuario);
-
 
 // Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
@@ -48,10 +45,13 @@ $usuario['antiguedad'] = $antiguedad;
 
 // Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
-?>
 
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+?>
 
 <!doctype html>
 <html lang="en">
@@ -122,11 +122,12 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <span class="avatar avatar-sm mt-2">
-        <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" alt="Avatar del usuario" class="avatar-img rounded-circle">
-    </span>
-</a>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+            </span>
+          </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
@@ -244,39 +245,77 @@ if (isset($_POST['logout'])) {
                   </div>
                   <!-- Filtros -->
                   <div class="container-filter mb-3 d-flex flex-wrap ">
-                    <!-- Filtro de Periodo -->
-                    <div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
-                      <button class="btn-filter d-flex align-items-center">
-                        <span class="fe fe-24 fe-filter me-2"></span>
-                        <span class="filter-label" data-placeholder="Periodo">Periodo</span>
-                      </button>
-                      <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                        <ul class="list-unstyled m-0 p-2">
-                          <li><a href="#" data-month="8" data-year="2024" class="d-block py-1">2024-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2024" class="d-block py-1">2024-1</a></li>
-                          <li><a href="#" data-month="8" data-year="2023" class="d-block py-1">2023-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2023" class="d-block py-1">2023-1</a></li>
-                          <li><a href="#" data-month="8" data-year="2022" class="d-block py-1">2022-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2022" class="d-block py-1">2022-1</a></li>
-                        </ul>
-                      </div>
-                    </div>
+<!-- Filtro de Periodo -->
+<div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
+    <!-- Título del Filtro de Periodo -->
+    <span class="fe fe-24 fe-filter me-2"></span>
+    <label class="filter-label">Periodo:</label>
+    
+    <!-- Desplegable de Selección de Periodo -->
+    <div class="filter-options position-relative">
+        <select class="form-select" id="periodoSelect">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>">
+                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</div>
 
-                    <!-- Filtro de División -->
-                    <div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
-                      <button class="btn-filter d-flex align-items-center">
-                        <span class="fe fe-24 fe-filter me-2"></span>
-                        <span class="filter-label" data-placeholder="División">División</span>
-                      </button>
-                      <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                        <ul class="list-unstyled m-0 p-2">
-                          <li><a href="#" class="d-block py-1">ISC</a></li>
-                          <li><a href="#" class="d-block py-1">Administracion</a></li>
-                          <li><a href="#" class="d-block py-1">Quimica</a></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+<script>
+document.getElementById('periodoSelect').addEventListener('change', function() {
+    const selectedPeriodId = this.value;
+    console.log("Periodo seleccionado:", selectedPeriodId);
+    
+    if (selectedPeriodId) {
+        // Realiza una solicitud AJAX para obtener las fechas del periodo seleccionado
+        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.fecha_inicio && data.fecha_termino) {
+                    // Usa las fechas obtenidas para actualizar el calendario
+                    const fechaInicio = new Date(data.fecha_inicio);
+                    const fechaTermino = new Date(data.fecha_termino);
+                    
+                    // Llama a una función para actualizar el calendario con las nuevas fechas
+                    actualizarCalendario(fechaInicio, fechaTermino);
+                }
+            })
+            .catch(error => console.error("Error al obtener las fechas del periodo:", error));
+    }
+});
+
+// Función para actualizar el calendario con las fechas seleccionadas
+function actualizarCalendario(fechaInicio, fechaTermino) {
+    // Actualiza el mes y año inicial del calendario
+    currentMonth = fechaInicio.getMonth();
+    currentYear = fechaInicio.getFullYear();
+    
+    // Renderiza el calendario con el nuevo rango de fechas
+    renderCalendar();
+
+    // Lógica opcional para deshabilitar días fuera del rango
+    // Puedes implementar esta lógica en renderCalendar() o aquí
+}
+</script>
+
+
+                   <!-- Filtro de División -->
+<div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
+    <button class="btn-filter d-flex align-items-center">
+        <span class="fe fe-24 fe-filter me-2"></span>
+        <span class="filter-label" data-placeholder="División">
+            <?php echo $nombreCarrera; ?>
+        </span>
+    </button>
+    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+        <ul class="list-unstyled m-0 p-2">
+            <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+        </ul>
+    </div>
+</div>
                   <!-- Sección de Incidencias -->
                   <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
                   <div class="row">
@@ -325,6 +364,24 @@ if (isset($_POST['logout'])) {
                       </div>
                     </div>
                     <!-- Avisos -->
+                     <!-- Modal -->
+<div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalContent">
+        <!-- Contenido cargado dinámicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
                     <div
                       class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
                       <div class="card-body-calendar box-shadow-div mb-3">
@@ -1404,12 +1461,24 @@ if (isset($_POST['logout'])) {
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
 
-
-    
   </script>
   <script>
-   
+  
         </script>
+        <script>
+    // Mostrar las opciones al hacer clic en el botón
+    document.getElementById('periodoDropdown').addEventListener('click', function() {
+        const filterOptions = document.getElementById('filterOptions');
+        filterOptions.classList.toggle('d-none'); // Alternar la visibilidad de las opciones
+    });
+
+    // Manejar el evento de cambio en el combo box
+    document.getElementById('periodoSelect').addEventListener('change', function() {
+        const selectedPeriod = this.value;
+        console.log("Periodo seleccionado:", selectedPeriod);
+        // Aquí puedes realizar más acciones si lo deseas
+    });
+</script>
 </body>
 
 </html>
