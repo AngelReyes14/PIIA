@@ -103,6 +103,8 @@ $incidencias = $consultas->obtenerIncidencias();
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <main role="main" class="main-content">
       <div class="col-md-12">
+      <form id="formincidencias" method="POST" action="../../models/insert.php" enctype="multipart/form-data">
+      <input type="hidden" name="form_type" value="incidencia-usuario">
         <div class="card shadow mb-4">
           <div class="card-body">
             <div class="logo-container mb-3">
@@ -124,9 +126,6 @@ $incidencias = $consultas->obtenerIncidencias();
                         <select class="form-control" id="area" name="area" required>
                           <option value="" disabled>Selecciona una carrera</option>
                           <?php
-                          // Incluir archivo de conexión a la base de datos y sesión
-                          include('../controllers/db.php');
-                          include('../models/session.php');
 
                           // Obtener el ID del usuario a través del SessionManager
                           $idusuario = $sessionManager->getUserId();
@@ -193,17 +192,23 @@ $incidencias = $consultas->obtenerIncidencias();
 
           <div class="d-flex flex-wrap mb-3">
             <div class="form-group mr-3 flex-fill mb-3">
-              <label class="horario-label me-2">Horario:</label>
+              <label for="start-time" class="horario-label me-2">Horario entrada:</label>
               <div class="d-flex">
                 <input type="time" id="start-time" name="start-time" required class="me-1 form-control">
-                <span class="me-1">a</span>
+              </div>
+              <div class="invalid-feedback">Este campo es obligatorio.</div>
+            </div>
+
+            <div class="form-group mr-3 flex-fill mb-3">
+              <label for="end-time" class="horario-label me-2">Horario salida:</label>
+              <div class="d-flex">
                 <input type="time" id="end-time" name="end-time" required class="form-control">
               </div>
               <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
 
             <div class="form-group mr-3 flex-fill mb-3">
-              <label for="hora-incidencia" class="me-2">Hora de Incidencia:</label>
+              <label for="time" class="me-2">Hora de Incidencia:</label>
               <input class="form-control" id="example-time" type="time" name="time" required>
               <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
@@ -221,9 +226,6 @@ $incidencias = $consultas->obtenerIncidencias();
               <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
                 <option value="">Seleccione un servidor público</option>
                 <?php
-                // Incluir archivo de conexión a la base de datos
-                include('../controllers/db.php');
-                include('../models/session.php'); // Incluir el archivo de sesión para acceder a las variables de sesión
 
                 // Obtener el ID del usuario a través del SessionManager
                 $idusuario = $sessionManager->getUserId();
@@ -271,6 +273,7 @@ $incidencias = $consultas->obtenerIncidencias();
             </div>
           </div>
         </div>
+      </form>
       </div>
   </div>
   </main>
@@ -485,6 +488,25 @@ $incidencias = $consultas->obtenerIncidencias();
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
+  <script>
+$(document).ready(function() {
+    $('#submit-button').on('click', function() {
+        // Aquí puedes realizar validaciones antes de enviar
+        if ($("#formincidencias")[0].checkValidity()) {
+            // Si el formulario es válido, envíalo
+            $('#formincidencias').submit(); // Esto enviará el formulario
+        } else {
+            // Si no es válido, muestra el mensaje de error
+            $("#formincidencias")[0].reportValidity();
+        }
+    });
+
+    $('#closeModal').on('click', function() {
+        $('#customModal').modal('hide');
+    });
+});
+
+</script>
   <script>
     $('.select2').select2({
       theme: 'bootstrap4',
