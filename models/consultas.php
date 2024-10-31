@@ -118,12 +118,30 @@ class Consultas {
     }
     
 
+    public function CarreraMaestros($carrera_id) {
+        $sql = "SELECT * FROM piia.vista_usuarios where carrera_carrera_id = :carrera_id and tipo_usuario_tipo_usuario_id = 1;";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function Incidenciausuario($carrera_id) {
+        $sql = "SELECT * FROM vista_incidencias_usuarios WHERE carrera_carrera_id = :carrera_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+
     public function obtenerCarreras() {
         $query = "SELECT carrera_id, nombre_carrera FROM carrera"; // Asegúrate de que la tabla y las columnas sean correctas
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
 
     //*********************** PRUEBA ************************************************************* */    

@@ -7,7 +7,7 @@ $carreraData = [];
 
 // Check if the user is logged out and retrieve carrera data
 if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 // Retrieve user ID and carrera data
@@ -17,18 +17,19 @@ $carreraData = $consultas->datosCarreraPorId($idusuario);
 // Check if carreraData is not null and extract the ID
 $carreraId = $carreraData ? $carreraData['carrera_id'] : null;
 $docentes = $consultas->docentesCarrera($carreraId);
-$grupos = $consultas-> gruposCarrera($carreraId);
-$matutino = $consultas -> gruposTurnoMatutino($carreraId);
-$vespertino = $consultas -> gruposTurnoVespertino($carreraId);
-$materiagrupo = $consultas->verMateriasGrupo();
+$grupos = $consultas->gruposCarrera($carreraId);
+$matutino = $consultas->gruposTurnoMatutino($carreraId);
+$vespertino = $consultas->gruposTurnoVespertino($carreraId);
+$maestros = $consultas->CarreraMaestros($carreraId);
+$incidencia = $consultas -> Incidenciausuario($carreraId);
 
 // Get the count of women in the carrera
 if ($carreraId) {
-    $mujeres = $consultas->mujeresCarrera($carreraId);
-    $hombres = $consultas->hombresCarrera($carreraId);
+  $mujeres = $consultas->mujeresCarrera($carreraId);
+  $hombres = $consultas->hombresCarrera($carreraId);
 } else {
-    $mujeres = 0; 
-    $hombres = 0; 
+  $mujeres = 0;
+  $hombres = 0;
 }
 ?>
 
@@ -148,7 +149,7 @@ if ($carreraId) {
 
                     <!-- Contenedor para centrar la imagen -->
                     <div class="d-flex justify-content-center">
-                    <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid" >
+                      <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid">
                     </div>
                   </div>
 
@@ -182,8 +183,8 @@ if ($carreraId) {
                       </div>
                       <div class="col-md-6">
                         <p><strong class="text-green">Turno de Grupos:</strong><br> Matutino: <?= $matutino ?>
-                        <br> Vespertino: <strong class="text-green"></strong> <?= $vespertino ?>
-                      </p>
+                          <br> Vespertino: <strong class="text-green"></strong> <?= $vespertino ?>
+                        </p>
                         <p><strong class="text-green">Grupos en la carrera:</strong><br> <?= $grupos ?></p>
                         <p><strong class="text-green">Organismo certificador:</strong><br> <?= $carreraData['organismo_auxiliar'] ?? 'N/A' ?></p>
                       </div>
@@ -223,29 +224,36 @@ if ($carreraId) {
                       <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
                     </div>
                     <table class="table datatables" id="tabla-materias-2">
-                <thead class="thead-dark">
-                  <tr>
-                    <th>Nombre de la materia</th>
-                    <th>Nombre del grupo</th>
-                    <th>Período</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php if ($materiagrupo): ?>
-                    <?php foreach ($materiagrupo as $materiasgrupos): ?>
-                      <tr>
-                        <td><?php echo htmlspecialchars($materiasgrupos['materia_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($materiasgrupos['grupo_nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($materiasgrupos['periodo_nombre']); ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php else: ?>
-                    <tr>
-                      <td colspan="5" class="text-center">No hay materias registradas.</td>
-                    </tr>
-                  <?php endif; ?>
-                </tbody>
-              </table>
+                      <thead class="thead-dark">
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Edad</th>
+                          <th>Fecha de contratacion</th>
+                          <th>Numero de empleado</th>
+                          <th>cedula</th>
+                          <th>correo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if ($maestros): ?>
+                          <?php foreach ($maestros as $maestroscarrera): ?>
+                            <tr>
+                            <tr>
+                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
+                            </tr>                  
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
+                          </tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
                   </div>
                 </div> <!-- /.col -->
               </div> <!-- /.row -->
@@ -277,31 +285,41 @@ if ($carreraId) {
                       <div id="donutChart3"></div>
 
                       <!-- Tabla de incidencias -->
-                      <table class="table table-striped mt-3">
-                        <thead>
+                      <table class="table datatables" id="tabla-materias-2">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th>Numero de incidencia</th>
+                          <th>Usuario</th>
+                          <th>Fecha solicitada</th>
+                          <th>Motivo</th>
+                          <th>Hora de inicio</th>
+                          <th>Hora de termino</th>
+                          <th>Horario de incidencias</th>
+                          <th>Dia de las incidencias</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if ($incidencia): ?>
+                          <?php foreach ($incidencia as $incidencias): ?>
+                            <tr>
+                            <tr>
+                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
+                            </tr>                  
+                          <?php endforeach; ?>
+                        <?php else: ?>
                           <tr>
-                            <th>ID Incidencia</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
+                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>001</td>
-                            <td>Incidencia de ejemplo 1</td>
-                            <td>12/09/2024</td>
-                            <td>Resuelta</td>
-                          </tr>
-                          <tr>
-                            <td>002</td>
-                            <td>Incidencia de ejemplo 2</td>
-                            <td>13/09/2024</td>
-                            <td>Pendiente</td>
-                          </tr>
-                          <!-- Añadir más filas según sea necesario -->
-                        </tbody>
-                      </table>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
                     </div> <!-- /.card-body -->
                   </div> <!-- /.card -->
                 </div> <!-- /.col -->
@@ -542,45 +560,39 @@ if ($carreraId) {
                     <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
                       <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
                     </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+                    <table class="table datatables" id="tabla-materias-2">
+                      <thead class="thead-dark">
                         <tr>
-                          <th>Nombre Docente</th>
-                          <th>N. Empleado</th>
-                          <th>Grado académico</th>
+                          <th>Numero de incidencia</th>
+                          <th>Usuario</th>
+                          <th>Fecha solicitada</th>
+                          <th>Motivo</th>
+                          <th>Hora de inicio</th>
+                          <th>Hora de termino</th>
+                          <th>Horario de incidencias</th>
+                          <th>Dia de las incidencias</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>E6748521394</td>
-                          <td>Licenciatura</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>E6748521393</td>
-                          <td>Maestría</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>E6748521392</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Iker Ruiz Lopez</td>
-                          <td>E6748522192</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Abel Gallardo Garcia</td>
-                          <td>E6748521006</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Carlos Roberto Chia</td>
-                          <td>E67485213711</td>
-                          <td>Ingeniería</td>
-                        </tr>
+                        <?php if ($incidencia): ?>
+                          <?php foreach ($incidencia as $incidencias): ?>
+                            <tr>
+                            <tr>
+                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
+                            </tr>                  
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
+                          </tr>
+                        <?php endif; ?>
                       </tbody>
                     </table>
                     <!-- Card para TOTAL DE HORAS MAXIMAS -->
