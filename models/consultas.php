@@ -2,9 +2,11 @@
 class Consultas {
     private $conn;
 
+
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -12,6 +14,20 @@ class Consultas {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    // Método en la clase Consultas para obtener períodos
+    public function obtenerPeriodos() {
+        $query = "SELECT periodo_id, descripcion, fecha_inicio, fecha_termino FROM periodo ORDER BY fecha_inicio DESC"; // Ajusta la consulta según tu tabla
+        $result = $this->conn->query($query);
+    
+        $periodos = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) { // Cambia a fetch(PDO::FETCH_ASSOC) si estás usando PDO
+                $periodos[] = $row;
+            }
+        }
+        return $periodos;
+    }
+    
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -255,7 +271,6 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
 
     // Método para obtener semestres basados en la carrera seleccionada
     public function obtenerSemestresPorCarrera($carrera_id) {
@@ -544,6 +559,7 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 }
 
+}
 
 class Grupo {
     private $conn;
@@ -792,7 +808,7 @@ class Usuario {
             $tipo_usuario_tipo_usuario_id = $_POST['tipo_usuario_tipo_usuario_id'];
             $carrera_carrera_id = $_POST['carrera_carrera_id'];
             $cuerpo_colegiado_cuerpo_colegiado_id = $_POST['cuerpo_colegiado_cuerpo_colegiado_id'];
-
+            $periodo_periodo_id = $_POST['periodo_periodo_id']; // Agregar periodo_id
             // Manejar la carga de imagen
             $imagen_url = $this->handleImageUpload($_FILES['imagen_url']);
             if ($imagen_url === false) {
@@ -827,7 +843,7 @@ class Usuario {
             // Insertar en la base de datos
             $this->insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
                 $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id);
+                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id);
         }
     }
     
@@ -874,7 +890,7 @@ class Usuario {
 
     private function insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
+    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id) {
 
             // Verificar si el correo ya existe
     if ($this->isEmailDuplicate($correo)) {
@@ -890,7 +906,7 @@ class Usuario {
 
         $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
             :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
-            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
+            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id, :periodo_periodo_id)";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':nombre_usuario', $nombre_usuario);
@@ -909,6 +925,7 @@ class Usuario {
         $stmt->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
         $stmt->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
         $stmt->bindParam(':carrera_carrera_id', $carrera_carrera_id);
+        $stmt->bindParam(':periodo_periodo_id', $periodo_periodo_id); // Añadir bind para periodo_id
 
         try {
             $stmt->execute();
@@ -934,6 +951,7 @@ class Usuario {
         return $stmt->fetchColumn() > 0;
     }
 }
+
 class UsuarioHasCarrera {
     private $conn;
 
@@ -991,6 +1009,63 @@ class UsuarioHasCarrera {
             header("Location: ../views/templates/form_usuarios-carreras.php?success=true");
         } catch (PDOException $e) {
             header("Location: ../views/templates/form_usuarios-carreras.php?error=insert");
+        }
+    }
+}
+
+class IncidenciaUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener los datos del formulario
+            $incidenciaId = $_POST['incidencias'];
+            $usuarioId = $_POST['usuario-servidor-publico']; 
+            $fechaSolicitada = $_POST['fecha'];
+            $motivo = $_POST['motivo'];
+            $horarioInicio = $_POST['start-time'];
+            $horarioTermino = $_POST['end-time'];
+            $horario_incidencia = $_POST['time'];
+            $diaIncidencia = $_POST['dia-incidencia']; 
+            $carreraId = $_POST['area'];
+
+            // Validar los datos (ejemplo básico, se puede expandir)
+            if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
+                echo "Por favor, completa todos los campos requeridos.";
+                return;
+            }
+
+            // Insertar los datos en la base de datos
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
+        }
+    }
+
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
+        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
+                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidencia_id', $incidenciaId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':horario_inicio', $horarioInicio);
+        $stmt->bindParam(':horario_termino', $horarioTermino);
+        $stmt->bindParam(':horario_incidencia', $horario_incidencia);
+        $stmt->bindParam(':dia_incidencia', $diaIncidencia);
+        $stmt->bindParam(':carrera_id', $carreraId);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_incidencias.php?success=true");
+            exit(); // Asegúrate de detener el script después de la redirección
+        } catch (PDOException $e) {
+            error_log("Error: " . $e->getMessage()); // Registra el error en el log
+            echo "Ocurrió un error al procesar la solicitud.";
+            exit();
         }
     }
 }
