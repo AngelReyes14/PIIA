@@ -4,6 +4,10 @@ include('../../controllers/db.php'); // Asegúrate de que este archivo incluya l
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
+
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 // El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
@@ -49,9 +53,6 @@ $usuario['antiguedad'] = $antiguedad;
 echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usuario) . ");</script>";
 
 // Verificar si se ha enviado el formulario de cerrar sesión
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
 ?>
 
 <!doctype html>

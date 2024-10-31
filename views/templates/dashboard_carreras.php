@@ -20,6 +20,7 @@ $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas-> gruposCarrera($carreraId);
 $matutino = $consultas -> gruposTurnoMatutino($carreraId);
 $vespertino = $consultas -> gruposTurnoVespertino($carreraId);
+$materiagrupo = $consultas->verMateriasGrupo();
 
 // Get the count of women in the carrera
 if ($carreraId) {
@@ -181,7 +182,7 @@ if ($carreraId) {
                       </div>
                       <div class="col-md-6">
                         <p><strong class="text-green">Turno de Grupos:</strong><br> Matutino: <?= $matutino ?>
-                       <br> Vespertino: <strong class="text-green"></strong> <?= $vespertino ?>
+                        <br> Vespertino: <strong class="text-green"></strong> <?= $vespertino ?>
                       </p>
                         <p><strong class="text-green">Grupos en la carrera:</strong><br> <?= $grupos ?></p>
                         <p><strong class="text-green">Organismo certificador:</strong><br> <?= $carreraData['organismo_auxiliar'] ?? 'N/A' ?></p>
@@ -221,47 +222,30 @@ if ($carreraId) {
                     <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
                       <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
                     </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Nombre Docente</th>
-                          <th>N. Empleado</th>
-                          <th>Grado académico</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>E6748521394</td>
-                          <td>Licenciatura</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>E6748521393</td>
-                          <td>Maestría</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>E6748521392</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Iker Ruiz Lopez</td>
-                          <td>E6748522192</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Abel Gallardo Garcia</td>
-                          <td>E6748521006</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                        <tr>
-                          <td>Carlos Roberto Chia</td>
-                          <td>E67485213711</td>
-                          <td>Ingeniería</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <table class="table datatables" id="tabla-materias-2">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>Nombre de la materia</th>
+                    <th>Nombre del grupo</th>
+                    <th>Período</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php if ($materiagrupo): ?>
+                    <?php foreach ($materiagrupo as $materiasgrupos): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($materiasgrupos['materia_nombre']); ?></td>
+                        <td><?php echo htmlspecialchars($materiasgrupos['grupo_nombre']); ?></td>
+                        <td><?php echo htmlspecialchars($materiasgrupos['periodo_nombre']); ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <tr>
+                      <td colspan="5" class="text-center">No hay materias registradas.</td>
+                    </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
                   </div>
                 </div> <!-- /.col -->
               </div> <!-- /.row -->
