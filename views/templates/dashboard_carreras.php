@@ -307,9 +307,9 @@ if ($carreraId) {
                               <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_inicio']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_termino']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_incidencia']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
                             </tr>                  
                           <?php endforeach; ?>
