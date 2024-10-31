@@ -54,6 +54,30 @@ class Consultas {
     }
     
 
+    public function obtenerImagen($iduser) {
+        $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':iduser', $iduser); // Asegúrate de enlazar el parámetro
+        $stmt->execute();
+        
+        // Obtener el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Agregar "../" al inicio de la URL de la imagen si existe
+        if ($result && isset($result['imagen_url'])) {
+            $result['imagen_url'] = "../" . $result['imagen_url'];
+        }
+        
+        return $result; // Devuelve el resultado modificado
+    }
+
+    public function obtenerProfesores() {
+        $sql = "SELECT * FROM usuario WHERE tipo_usuario_tipo_usuario_id = 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
         $stmt = $this->conn->prepare($query);
@@ -559,7 +583,6 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 }
 
-}
 
 class Grupo {
     private $conn;
