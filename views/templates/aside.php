@@ -15,6 +15,7 @@ $menuItems = [
         'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php']
     ],
+
     2 => [
         'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
         'Dashboard' => [
@@ -23,6 +24,7 @@ $menuItems = [
         ],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
     ],
+
     3 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
         'Recursos Humanos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'recursos_humanos_empleados.php'],
@@ -32,6 +34,7 @@ $menuItems = [
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php']
         ]
        ],
+
        4 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
         'Desarrollo academico' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'desarrollo_academico_docentes.php'],
@@ -39,6 +42,18 @@ $menuItems = [
             'Registro de materias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_materia.php'],
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php']
+        ]
+       ],
+       
+    5 => [
+        'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
+        'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
+        'Dashboard' => [
+            'Docentes' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_docentes.php'],
+            'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php']
+        ],
+        'Formularios' => [
+            'Registro de Carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php']
         ]
     ]
 ];
