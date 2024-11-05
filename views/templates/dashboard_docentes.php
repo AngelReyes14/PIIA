@@ -1,9 +1,24 @@
 <?php
-// Incluir archivos necesarios
 include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
+
+// Crear instancia de Consultas y obtener tipo de usuario
+$consultas = new Consultas($conn);
+$idusuario = (int) $sessionManager->getUserId();
+$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Validar si el tipo de usuario fue correctamente obtenido
+if (!$tipoUsuarioId) {
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+}
+
+// Si el tipo de usuario es 1, forzar que solo se muestre su propio perfil
+if ($tipoUsuarioId === 1) {
+  // Sobrescribir el idusuario para mostrar solo la información del usuario autenticado
+  $_GET['idusuario'] = $idusuario;
+}
 
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
@@ -45,13 +60,10 @@ $usuario['antiguedad'] = $antiguedad;
 
 // Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
-
-// Obtener el nombre de la carrera del usuario
-$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
-$periodos = $consultas->obtenerPeriodos();
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -141,7 +153,7 @@ $periodos = $consultas->obtenerPeriodos();
     </nav>
   </div>
   
-    <!-- Código HTML del carrusel -->
+  <!-- Código HTML del carrusel -->
 <main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="container-fluid mb-3">
@@ -199,35 +211,49 @@ $periodos = $consultas->obtenerPeriodos();
           </div>
         </div>
       </div>
-<script>
-  // Obtener el idusuario actual desde la URL
+      <script>
+  // Pasar el tipo de usuario desde PHP a JavaScript
+  const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
+
+  // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
   const urlParams = new URLSearchParams(window.location.search);
-  let idusuario = parseInt(urlParams.get("idusuario")) || 1; // Si no hay idusuario en la URL, empezamos en 1
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1; 
 
   // Seleccionar los botones de navegación
   const anterior = document.getElementById("anterior");
   const siguiente = document.getElementById("siguiente");
-  const carouselContent = document.getElementById("carouselContent");
 
-  // Función para actualizar la URL con el nuevo idusuario
-  function updateUrl(newIdusuario) {
-    window.location.href = `?idusuario=${newIdusuario}`;
-  }
+  // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
+  if (tipoUsuarioId === 1) {
+    anterior.disabled = true;
+    siguiente.disabled = true;
+    
+    // Sobrescribir el idusuario con el id del usuario autenticado
+    idusuario = <?= json_encode($idusuario) ?>;
+  } else if (tipoUsuarioId === 2) {
 
-  // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
-  siguiente.addEventListener("click", () => {
-    idusuario++; // Incrementa el ID del usuario
-    updateUrl(idusuario); // Actualiza la URL
-  });
-
-  // Lógica para ir al usuario anterior (si es necesario)
-  anterior.addEventListener("click", () => {
-    if (idusuario > 1) { // Asegúrate de que no baje de 1
-      idusuario--; // Decrementa el ID del usuario
-      updateUrl(idusuario); // Actualiza la URL
+    // Función para actualizar la URL con el nuevo idusuario
+    function updateUrl(newIdusuario) {
+      window.location.href = `?idusuario=${newIdusuario}`;
     }
-  });
+
+    // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+    siguiente.addEventListener("click", () => {
+      idusuario++; 
+      updateUrl(idusuario); 
+    });
+
+    // Lógica para ir al usuario anterior 
+    anterior.addEventListener("click", () => {
+      if (idusuario > 1) { 
+        idusuario--; 
+        updateUrl(idusuario); 
+      }
+    });
+  }
 </script>
+
+
 
       <!---Parte de recursos humanos --->
       <div class="container-fluid mt-0">
