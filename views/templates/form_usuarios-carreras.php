@@ -2,7 +2,7 @@
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('../../models/session.php');
-
+include('aside.php');
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -21,8 +21,10 @@ try {
   echo json_encode($response);
   exit();  // Finaliza la ejecución si no hay conexión
 }
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
-
 <!doctype html>
 <html lang="en">
 
@@ -92,91 +94,14 @@ try {
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
           </div>
         </li>
       </ul>
     </nav>
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-      <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-        <i class="fe fe-x"><span class="sr-only"></span></i>
-      </a>
-      <nav class="vertnav navbar navbar-light">
-        <!-- nav bar -->
-        <div class="w-100 mb-4 d-flex">
-          <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-            <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-          </a>
-        </div>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="index.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Inicio</span>
-            </a>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-              <i class="fe fe-home fe-16"></i>
-              <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-            </a>
-            <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-              <li class="nav-item">
-                <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                    class="ml-1 item-text">Docentes</span></a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-              </li>
 
-            </ul>
-          </li>
-        </ul>
-        <p class="text-muted nav-heading mt-4 mb-1">
-          <span>Recursos humanos</span>
-        </p>
-        <ul class="navbar-nav flex-fill w-100 mb-2">
-          <li class="nav-item w-100">
-            <a class="nav-link" href="recursos_humanos_empleados.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Empleados</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Desarrollo Académico</span>
-          </p>
-          <li class="nav-item w-100">
-            <a class="nav-link" href="desarrollo_academico_docentes.php">
-              <i class="fe fe-calendar fe-16"></i>
-              <span class="ml-3 item-text">Docentes</span>
-            </a>
-          </li>
-          <p class="text-muted nav-heading mt-4 mb-1">
-            <span>Registros</span>
-          </p>
-          <ul class="navbar-nav flex-fill w-100 mb-2">
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_materia.php"><span
-                  class="ml-1 item-text">Materias</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-            </li>
-            <li class="nav-item w-100">
-              <a class="nav-link pl-3" href="form_usuarios-carreras.php"><span class="ml-1 item-text">Asigancion de Carreras</span></a>
-            </li>
-          </ul>
-        </ul>
-      </nav>
-    </aside>
     <main role="main" class="main-content">
 
     <div class="col-md-12">
@@ -275,209 +200,355 @@ try {
       </div> <!-- .col-12 -->
     </div> <!-- .row -->
   </div> <!-- .container-fluid -->
-        <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
+    </main>
+    <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group list-group-flush my-n3">
+          <div class="list-group-item bg-transparent">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <span class="fe fe-box fe-24"></span>
               </div>
-              <div class="modal-body">
-                <div class="list-group list-group-flush my-n3">
-                  <div class="list-group-item bg-transparent">
-                    <div class="row align-items-center">
-                      <div class="col-auto">
-                        <span class="fe fe-box fe-24"></span>
-                      </div>
-                      <div class="col">
-                        <small><strong>Package has uploaded successfull</strong></small>
-                        <div class="my-0 text-muted small">Package is zipped and uploaded</div>
-                        <small class="badge badge-pill badge-light text-muted">1m ago</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="list-group-item bg-transparent">
-                    <div class="row align-items-center">
-                      <div class="col-auto">
-                        <span class="fe fe-download fe-24"></span>
-                      </div>
-                      <div class="col">
-                        <small><strong>Widgets are updated successfull</strong></small>
-                        <div class="my-0 text-muted small">Just create new layout Index, form, table</div>
-                        <small class="badge badge-pill badge-light text-muted">2m ago</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="list-group-item bg-transparent">
-                    <div class="row align-items-center">
-                      <div class="col-auto">
-                        <span class="fe fe-inbox fe-24"></span>
-                      </div>
-                      <div class="col">
-                        <small><strong>Notifications have been sent</strong></small>
-                        <div class="my-0 text-muted small">Fusce dapibus, tellus ac cursus commodo</div>
-                        <small class="badge badge-pill badge-light text-muted">30m ago</small>
-                      </div>
-                    </div> <!-- / .row -->
-                  </div>
-                  <div class="list-group-item bg-transparent">
-                    <div class="row align-items-center">
-                      <div class="col-auto">
-                        <span class="fe fe-link fe-24"></span>
-                      </div>
-                      <div class="col">
-                        <small><strong>Link was attached to menu</strong></small>
-                        <div class="my-0 text-muted small">New layout has been attached to the menu</div>
-                        <small class="badge badge-pill badge-light text-muted">1h ago</small>
-                      </div>
-                    </div>
-                  </div> <!-- / .row -->
-                </div> <!-- / .list-group -->
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear All</button>
+              <div class="col">
+                <small><strong>Package has uploaded successfull</strong></small>
+                <div class="my-0 text-muted small">Package is zipped and uploaded</div>
+                <small class="badge badge-pill badge-light text-muted">1m ago</small>
               </div>
             </div>
           </div>
-        </div>
-        <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="defaultModalLabel">Shortcuts</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
+          <div class="list-group-item bg-transparent">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <span class="fe fe-download fe-24"></span>
               </div>
-              <div class="modal-body px-5">
-                <div class="row align-items-center">
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-success justify-content-center">
-                      <i class="fe fe-cpu fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Control area</p>
-                  </div>
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-primary justify-content-center">
-                      <i class="fe fe-activity fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Activity</p>
-                  </div>
-                </div>
-                <div class="row align-items-center">
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-primary justify-content-center">
-                      <i class="fe fe-droplet fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Droplet</p>
-                  </div>
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-primary justify-content-center">
-                      <i class="fe fe-upload-cloud fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Upload</p>
-                  </div>
-                </div>
-                <div class="row align-items-center">
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-primary justify-content-center">
-                      <i class="fe fe-users fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Users</p>
-                  </div>
-                  <div class="col-6 text-center">
-                    <div class="squircle bg-primary justify-content-center">
-                      <i class="fe fe-settings fe-32 align-self-center text-white"></i>
-                    </div>
-                    <p>Settings</p>
-                  </div>
-                </div>
+              <div class="col">
+                <small><strong>Widgets are updated successfull</strong></small>
+                <div class="my-0 text-muted small">Just create new layout Index, form, table</div>
+                <small class="badge badge-pill badge-light text-muted">2m ago</small>
               </div>
             </div>
           </div>
+          <div class="list-group-item bg-transparent">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <span class="fe fe-inbox fe-24"></span>
+              </div>
+              <div class="col">
+                <small><strong>Notifications have been sent</strong></small>
+                <div class="my-0 text-muted small">Fusce dapibus, tellus ac cursus commodo</div>
+                <small class="badge badge-pill badge-light text-muted">30m ago</small>
+              </div>
+            </div> <!-- / .row -->
+          </div>
+          <div class="list-group-item bg-transparent">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <span class="fe fe-link fe-24"></span>
+              </div>
+              <div class="col">
+                <small><strong>Link was attached to menu</strong></small>
+                <div class="my-0 text-muted small">New layout has been attached to the menu</div>
+                <small class="badge badge-pill badge-light text-muted">1h ago</small>
+              </div>
+            </div>
+          </div> <!-- / .row -->
+        </div> <!-- / .list-group -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="defaultModalLabel">Shortcuts</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body px-5">
+        <div class="row align-items-center">
+          <div class="col-6 text-center">
+            <div class="squircle bg-success justify-content-center">
+              <i class="fe fe-cpu fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Control area</p>
+          </div>
+          <div class="col-6 text-center">
+            <div class="squircle bg-primary justify-content-center">
+              <i class="fe fe-activity fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Activity</p>
+          </div>
         </div>
-      </div> <!-- / fin de card de registros -->
-    </main> <!-- main -->
-  </div> <!-- .wrapper -->
-<!-- jQuery (necesario para DataTables) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <div class="row align-items-center">
+          <div class="col-6 text-center">
+            <div class="squircle bg-primary justify-content-center">
+              <i class="fe fe-droplet fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Droplet</p>
+          </div>
+          <div class="col-6 text-center">
+            <div class="squircle bg-primary justify-content-center">
+              <i class="fe fe-upload-cloud fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Upload</p>
+          </div>
+        </div>
+        <div class="row align-items-center">
+          <div class="col-6 text-center">
+            <div class="squircle bg-primary justify-content-center">
+              <i class="fe fe-users fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Users</p>
+          </div>
+          <div class="col-6 text-center">
+            <div class="squircle bg-primary justify-content-center">
+              <i class="fe fe-settings fe-32 align-self-center text-white"></i>
+            </div>
+            <p>Settings</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</main> <!-- main -->
+</div> <!-- .wrapper -->
 
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-<!-- DataTables Bootstrap4 JS -->
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-
-
-<!-- Otros scripts -->
-<script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/popper.min.js"></script>
-<script src="js/moment.min.js"></script>
-<script src="js/simplebar.min.js"></script>
-<script src='js/daterangepicker.js'></script>
-<script src='js/jquery.stickOnScroll.js'></script>
-<script src="js/tinycolor-min.js"></script>
-<script src="js/config.js"></script>
-<script src='js/jquery.mask.min.js'></script>
-<script src='js/select2.min.js'></script>
-<script src='js/jquery.steps.min.js'></script>
-<script src='js/jquery.validate.min.js'></script>
-<script src='js/jquery.timepicker.js'></script>
-<script src='js/dropzone.min.js'></script>
-<script src='js/uppy.min.js'></script>
-<script src='js/quill.min.js'></script>
-<script src='js/apps.js'></script>
-<script src='js/form_usua-carrera.js'></script>
-  <!-- Incluir SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Código de inicialización de DataTable -->
-<script>
-$(function() {
-   $('#dataTable-1').DataTable({
-       "responsive": true,
-       "autoWidth": false,
-       "pageLength": 10,
-       "language": {
-           "decimal": "",
-           "emptyTable": "No hay informacion",
-           "info": "Mostrando _START_ a _END_ de _TOTAL_ grupos",
-           "infoEmpty": "Mostrando 0 a 0 de 0 Saldos",
-           "thousands": ",",
-           "lengthMenu": "Mostrar _MENU_ Grupos",
-           "loadingRecords": "Cargando...",
-           "processing": "Procesando...",
-           "search": "Buscador de grupos",
-           "zeroRecords": "Sin resultados encontrados",
-           "paginate": {
-               "first": "Primero",
-               "last": "Último",
-               "next": "Siguiente",
-               "previous": "Anterior"
-           }
-       },
-       // Define la opción lengthMenu
-       "lengthMenu": [
-           [16, 32, 64, -1],
-           [16, 32, 64, "Todos"]
-       ]
-   });
-});
-</script>
-
-
-<!-- Google Analytics -->
-<script>
-  window.dataLayer = window.dataLayer || [];
-
-  function gtag() {
-    dataLayer.push(arguments);
-  }
-  gtag('js', new Date());
-  gtag('config', 'UA-56159088-1');
-</script>
-
-</body>
-
-</html>
+<script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/simplebar.min.js"></script>
+    <script src='js/daterangepicker.js'></script>
+    <script src='js/jquery.stickOnScroll.js'></script>
+    <script src="js/tinycolor-min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/topojson.min.js"></script>
+    <script src="js/datamaps.all.min.js"></script>
+    <script src="js/datamaps-zoomto.js"></script>
+    <script src="js/datamaps.custom.js"></script>
+    <script src="js/Chart.min.js"></script>
+    <!-- Incluir SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/form_carrera.js"></script>
+  
+    <script>
+      /* defind global options */
+      Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
+      Chart.defaults.global.defaultFontColor = colors.mutedColor;
+    </script>
+    <script src="js/gauge.min.js"></script>
+    <script src="js/jquery.sparkline.min.js"></script>
+    <script src="js/apexcharts.min.js"></script>
+    <script src="js/apexcharts.custom.js"></script>
+    <script src='js/jquery.mask.min.js'></script>
+    <script src='js/select2.min.js'></script>
+    <script src='js/jquery.steps.min.js'></script>
+    <script src='js/jquery.validate.min.js'></script>
+    <script src='js/jquery.timepicker.js'></script>
+    <script src='js/dropzone.min.js'></script>
+    <script src='js/uppy.min.js'></script>
+    <script src='js/quill.min.js'></script>
+    <script>
+      $('.select2').select2({
+        theme: 'bootstrap4',
+      });
+      $('.select2-multi').select2({
+        multiple: true,
+        theme: 'bootstrap4',
+      });
+      $('.drgpicker').daterangepicker({
+        singleDatePicker: true,
+        timePicker: false,
+        showDropdowns: true,
+        locale: {
+          format: 'MM/DD/YYYY'
+        }
+      });
+      $('.time-input').timepicker({
+        'scrollDefault': 'now',
+        'zindex': '9999' /* fix modal open */
+      });
+      /** date range picker */
+      if ($('.datetimes').length) {
+        $('.datetimes').daterangepicker({
+          timePicker: true,
+          startDate: moment().startOf('hour'),
+          endDate: moment().startOf('hour').add(32, 'hour'),
+          locale: {
+            format: 'M/DD hh:mm A'
+          }
+        });
+      }
+      var start = moment().subtract(29, 'days');
+      var end = moment();
+  
+      function cb(start, end) {
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+      }
+      $('#reportrange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+          'Today': [moment(), moment()],
+          'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+          'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+          'This Month': [moment().startOf('month'), moment().endOf('month')],
+          'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+      }, cb);
+      cb(start, end);
+      $('.input-placeholder').mask("00/00/0000", {
+        placeholder: "__/__/____"
+      });
+      $('.input-zip').mask('00000-000', {
+        placeholder: "____-___"
+      });
+      $('.input-money').mask("#.##0,00", {
+        reverse: true
+      });
+      $('.input-phoneus').mask('(000) 000-0000');
+      $('.input-mixed').mask('AAA 000-S0S');
+      $('.input-ip').mask('0ZZ.0ZZ.0ZZ.0ZZ', {
+        translation: {
+          'Z': {
+            pattern: /[0-9]/,
+            optional: true
+          }
+        },
+        placeholder: "___.___.___.___"
+      });
+      // editor
+      var editor = document.getElementById('editor');
+      if (editor) {
+        var toolbarOptions = [
+          [{
+            'font': []
+          }],
+          [{
+            'header': [1, 2, 3, 4, 5, 6, false]
+          }],
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{
+              'header': 1
+            },
+            {
+              'header': 2
+            }
+          ],
+          [{
+              'list': 'ordered'
+            },
+            {
+              'list': 'bullet'
+            }
+          ],
+          [{
+              'script': 'sub'
+            },
+            {
+              'script': 'super'
+            }
+          ],
+          [{
+              'indent': '-1'
+            },
+            {
+              'indent': '+1'
+            }
+          ], // outdent/indent
+          [{
+            'direction': 'rtl'
+          }], // text direction
+          [{
+              'color': []
+            },
+            {
+              'background': []
+            }
+          ], // dropdown with defaults from theme
+          [{
+            'align': []
+          }],
+          ['clean'] // remove formatting button
+        ];
+        var quill = new Quill(editor, {
+          modules: {
+            toolbar: toolbarOptions
+          },
+          theme: 'snow'
+        });
+      }
+      // Example starter JavaScript for disabling form submissions if there are invalid fields
+      (function() {
+        'use strict';
+        window.addEventListener('load', function() {
+          // Fetch all the forms we want to apply custom Bootstrap validation styles to
+          var forms = document.getElementsByClassName('needs-validation');
+          // Loop over them and prevent submission
+          var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+              if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+              form.classList.add('was-validated');
+            }, false);
+          });
+        }, false);
+      })();
+    </script>
+    <script>
+      var uptarg = document.getElementById('drag-drop-area');
+      if (uptarg) {
+        var uppy = Uppy.Core().use(Uppy.Dashboard, {
+          inline: true,
+          target: uptarg,
+          proudlyDisplayPoweredByUppy: false,
+          theme: 'dark',
+          width: 770,
+          height: 210,
+          plugins: ['Webcam']
+        }).use(Uppy.Tus, {
+          endpoint: 'https://master.tus.io/files/'
+        });
+        uppy.on('complete', (result) => {
+          console.log('Upload complete! We’ve uploaded these files:', result.successful)
+        });
+      }
+    </script>
+    <script src="js/apps.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-56159088-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+  
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-56159088-1');
+    </script>
+  </body>
+  
+  </html>
+  

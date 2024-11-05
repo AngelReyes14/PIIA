@@ -2226,6 +2226,7 @@ pre code {
   border: 0;
 }
 
+/* Estilo general para el select */
 .form-control {
   display: block;
   width: 100%;
@@ -2234,66 +2235,49 @@ pre code {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
-  color: #070707;
-  background-color: #ffffff;
-  background-clip: padding-box;
-  border: 2px solid #4BA722;
-  border-radius: 0.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .form-control {
-    transition: none;
-  }
-}
-
-.form-control::-ms-expand {
-  background-color: transparent;
-  border: 0;
-}
-
-.form-control:-moz-focusring {
-  color: transparent;
-  text-shadow: 0 0 0 #495057;
-}
-
-.form-control:focus {
   color: #000000;
   background-color: #ffffff;
-  border-color: #4BA722;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(75, 167, 34, 1);
-}
-
-.form-control::placeholder {
-  color: #6c757d;
-  opacity: 1;
-}
-
-.form-control:disabled,
-.form-control[readonly] {
-  background-color: #e9ecef;
-  opacity: 1;
-}
+  background-clip: padding-box;
+  border: 1px solid #4BA722;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .form-control {
+      transition: none; } }
+  .form-control::-ms-expand {
+    background-color: transparent;
+    border: 0; }
+  .form-control:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #ffffff; }
+  .form-control:focus {
+    color: #1a1717;
+    background-color: #ffffff;
+    border-color: #4BA722;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(42, 150, 9, 0.731); }
+  .form-control::placeholder {
+    color: #4BA722;
+    opacity: 1; }
+  .form-control:disabled, .form-control[readonly] {
+    background-color: #4BA722;
+    opacity: 1; }
 
 input[type="date"].form-control,
 input[type="time"].form-control,
 input[type="datetime-local"].form-control,
 input[type="month"].form-control {
-  appearance: none;
-}
+  appearance: none; }
 
 select.form-control:focus::-ms-value {
-  color: #4ba722;
-  background-color: #ffffff;
-}
+  color: #ced4da;
+  background-color: #4BA722; }
 
 .form-control-file,
 .form-control-range {
   display: block;
-  width: 100%;
-}
+  width: 100%; }
+
 
 .col-form-label {
   padding-top: calc(0.375rem + 1px);
@@ -19463,5 +19447,22 @@ a.uppy-Dashboard-poweredBy {
 .tamanoImg{
   width: 200px; 
   height: 300px;
+}
+
+input.form-control {
+  border: 2px solid green; /* Aplica el borde verde siempre */
+  box-shadow: 0 0 5px green; /* Añade un efecto de sombra verde suave */
+}
+
+/* Estilo general para el option */
+.form-select option {
+  background-color: white; /* Fondo blanco */
+  color: green; /* Letras verdes */
+}
+
+/* Estilo para hover en option (esto puede no funcionar en todos los navegadores) */
+.form-select option:hover {
+  background-color: green; /* Fondo verde en hover */
+  color: white; /* Letras blancas en hover */
 }
 

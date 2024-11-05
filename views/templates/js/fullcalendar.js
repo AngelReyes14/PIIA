@@ -23,7 +23,31 @@ let currentYear = date.getFullYear();
 // Array to store economic days
 let economicDays = [];
 
-// Function to render days
+// Function to calculate the date range considering 3 business days
+function calculateDateRange() {
+  const today = new Date();
+  const range = { minDate: new Date(today), maxDate: new Date(today) };
+  let forwardDays = 0, backwardDays = 0;
+
+  // Move forward 3 business days
+  while (forwardDays < 3) {
+    range.maxDate.setDate(range.maxDate.getDate() + 1);
+    if (range.maxDate.getDay() !== 0 && range.maxDate.getDay() !== 6) forwardDays++;
+  }
+
+  // Move backward 3 business days
+  while (backwardDays < 3) {
+    range.minDate.setDate(range.minDate.getDate() - 1);
+    if (range.minDate.getDay() !== 0 && range.minDate.getDay() !== 6) backwardDays++;
+  }
+
+  return {
+    minDate: range.minDate,
+    maxDate: range.maxDate
+  };
+}
+
+// Function to render days with validation for the 3-day business range
 function renderCalendar() {
   date.setDate(1);
   const firstDay = new Date(currentYear, currentMonth, 1);
@@ -37,6 +61,7 @@ function renderCalendar() {
   month.innerHTML = `${months[currentMonth]} ${currentYear}`;
 
   let daysHtml = "";
+  const { minDate, maxDate } = calculateDateRange();
 
   // Prev days HTML
   for (let x = firstDay.getDay(); x > 0; x--) {
@@ -45,6 +70,7 @@ function renderCalendar() {
 
   // Current month days
   for (let i = 1; i <= lastDayDate; i++) {
+    const currentDay = new Date(currentYear, currentMonth, i);
     const isToday = 
       i === new Date().getDate() &&
       currentMonth === new Date().getMonth() &&
@@ -56,7 +82,12 @@ function renderCalendar() {
       day.date.getFullYear() === currentYear
     );
 
-    daysHtml += `<div class="day${isToday ? ' today' : ''}${isEconomicDay ? ' economic-day' : ''}" data-day="${i}" data-month="${currentMonth}" data-year="${currentYear}">
+    // Check if the day is within the valid range
+    const isWithinRange = currentDay >= minDate && currentDay <= maxDate && 
+                          currentDay.getDay() !== 0 && currentDay.getDay() !== 6;
+    const disabledClass = isWithinRange ? "" : " disabled-day";
+
+    daysHtml += `<div class="day${isToday ? ' today' : ''}${isEconomicDay ? ' economic-day' : ''}${disabledClass}" data-day="${i}" data-month="${currentMonth}" data-year="${currentYear}">
       ${i}
       ${isEconomicDay ? '<img src="assets/icon/DiaEconomico.png" class="economic-icon" alt="Día Económico">' : ''}
     </div>`;
@@ -73,6 +104,7 @@ function renderCalendar() {
 
 renderCalendar();
 
+// Event Listeners
 nextBtn.addEventListener("click", () => {
   currentMonth++;
   if (currentMonth > 11) {
@@ -105,91 +137,39 @@ function hideTodayBtn() {
   }
 }
 
-function setCalendarMonthYear(monthIndex, year) {
-  currentMonth = monthIndex;
-  currentYear = year;
-  renderCalendar();
-}
-
 // Toggle economic day by clicking on a day
 function toggleEconomicDay(event) {
-  if (event.target.classList.contains('day') && !event.target.classList.contains('prev') && !event.target.classList.contains('next')) {
+  if (event.target.classList.contains('day') && !event.target.classList.contains('prev') && !event.target.classList.contains('next') && !event.target.classList.contains('disabled-day')) {
     const day = parseInt(event.target.getAttribute('data-day'));
     const month = parseInt(event.target.getAttribute('data-month'));
     const year = parseInt(event.target.getAttribute('data-year'));
 
-    const isEconomicDay = economicDays.some(dayObj =>
-      dayObj.date.getDate() === day &&
-      dayObj.date.getMonth() === month &&
-      dayObj.date.getFullYear() === year
-    );
+    const currentDay = new Date(year, month, day);
 
-    if (isEconomicDay) {
-      // Remove the economic day
-      economicDays = economicDays.filter(dayObj =>
-        !(dayObj.date.getDate() === day && dayObj.date.getMonth() === month && dayObj.date.getFullYear() === year)
-      );
-    } else {
-      // Add a new economic day
-      economicDays.push({ date: new Date(year, month, day), type: 'DiaEconomico' });
+    // Verificar si el día es hábil antes de abrir el modal
+    const { minDate, maxDate } = calculateDateRange();
+    if (currentDay >= minDate && currentDay <= maxDate) {
+      // Cargar el contenido del modal usando AJAX
+      fetch('modal_incidencias.php')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(data => {
+          document.getElementById('modalContent').innerHTML = data;
+          // Mostrar el modal
+          const modal = new bootstrap.Modal(document.getElementById('incidenciasModal'));
+          modal.show();
+        })
+        .catch(error => {
+          console.error('Error al cargar el contenido del modal:', error);
+        });
     }
-
-    renderCalendar(); // Re-render calendar to reflect changes
   }
 }
 
+
 // Add event listener for clicking on days
 daysContainer.addEventListener('click', toggleEconomicDay);
-
-// Handle filter option clicks
-document.querySelectorAll('.filter-options a').forEach(link => {
-  link.addEventListener('click', function(event) {
-    event.preventDefault();
-    const button = this.closest('.filter-options').previousElementSibling;
-    const filterType = button.querySelector('.filter-label').dataset.placeholder;
-
-    // Update button text and hide options
-    button.querySelector('.filter-label').textContent = this.textContent;
-    this.closest('.filter-options').classList.add('d-none');
-
-    // Update calendar only if the selected filter is 'Periodo'
-    if (filterType === 'Periodo') {
-      const monthIndex = parseInt(this.getAttribute('data-month'));
-      const year = parseInt(this.getAttribute('data-year'));
-      if (!isNaN(monthIndex) && !isNaN(year)) {
-        setCalendarMonthYear(monthIndex, year);
-      }
-    }
-    // If the filter is 'División', just update the button text
-  });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-  const filterButtons = document.querySelectorAll('.btn-filter');
-  
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const filterOptions = this.nextElementSibling;
-      const isVisible = filterOptions.classList.contains('d-block');
-      
-      // Hide all filter options
-      document.querySelectorAll('.filter-options').forEach(option => {
-        option.classList.add('d-none');
-      });
-
-      // Show the current filter options if it was hidden
-      if (!isVisible) {
-        filterOptions.classList.remove('d-none');
-      }
-    });
-  });
-
-  // Hide filter options if clicked outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.container-filter')) {
-      document.querySelectorAll('.filter-options').forEach(option => {
-        option.classList.add('d-none');
-      });
-    }
-  });
-});

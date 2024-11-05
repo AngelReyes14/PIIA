@@ -12574,6 +12574,13 @@ a.uppy-Dashboard-poweredBy {
   background-color: transparent; /* Fondo oscuro */
   text-align: left;
 }
+.mt-200 {
+  margin-top: 200px;
+}
+.tamanoImg{
+  width: 200px; 
+  height: 300px;
+}
 .sw-theme-arrows .sw-toolbar {
   padding: 10px;
   margin-bottom: 0 !important;
@@ -12707,4 +12714,15 @@ a.uppy-Dashboard-poweredBy {
     min-height: 70px; /* Asegurar una altura mínima uniforme */
     line-height: 1.5; /* Asegurar que el espacio entre líneas sea constante */
   }
+}
+/* Estilo general para el option */
+.form-select option {
+  background-color: white; /* Fondo blanco */
+  color: green; /* Letras verdes */
+}
+
+/* Estilo para hover en option (esto puede no funcionar en todos los navegadores) */
+.form-select option:hover {
+  background-color: green; /* Fondo verde en hover */
+  color: white; /* Letras blancas en hover */
 }

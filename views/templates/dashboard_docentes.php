@@ -2,6 +2,23 @@
 include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
+include('aside.php');
+
+// Crear instancia de Consultas y obtener tipo de usuario
+$consultas = new Consultas($conn);
+$idusuario = (int) $sessionManager->getUserId();
+$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Validar si el tipo de usuario fue correctamente obtenido
+if (!$tipoUsuarioId) {
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+}
+
+// Si el tipo de usuario es 1, forzar que solo se muestre su propio perfil
+if ($tipoUsuarioId === 1) {
+  // Sobrescribir el idusuario para mostrar solo la información del usuario autenticado
+  $_GET['idusuario'] = $idusuario;
+}
 
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
@@ -40,6 +57,11 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
 
 
@@ -69,11 +91,13 @@ $usuario['antiguedad'] = $antiguedad;
   <link rel="stylesheet" href="css/jquery.steps.css">
   <link rel="stylesheet" href="css/jquery.timepicker.css">
   <link rel="stylesheet" href="css/quill.snow.css">
+  <link rel="stylesheet" href="css/dataTables.bootstrap4.css">
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css" />
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
-  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
+  <link rel="stylesheet" href="css/app-dark.css" id="darkTheme">
   </link>
 
 <!-- Bootstrap JS -->
@@ -117,7 +141,7 @@ $usuario['antiguedad'] = $antiguedad;
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
             <form method="POST" action="" id="logoutForm">
@@ -128,84 +152,8 @@ $usuario['antiguedad'] = $antiguedad;
       </ul>
     </nav>
   </div>
-    <aside class="sidebar-left border-right bg-white shadow" id="leftSidebar" data-simplebar>
-          <a href="#" class="btn collapseSidebar toggle-btn d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
-            <i class="fe fe-x"><span class="sr-only"></span></i>
-          </a>
-          <nav class="vertnav navbar navbar-light">
-            <!-- nav bar -->
-            <div class="w-100 mb-4 d-flex">
-              <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.php">
-                <img src="../templates/assets/icon/icon_piia.png" class="imgIcon">
-              </a>
-            </div>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="index.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Inicio</span>
-                </a>
-              </li>
-              <li class="nav-item dropdown">
-                <a href="#dashboard" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-                  <i class="fe fe-home fe-16"></i>
-                  <span class="ml-3 item-text">Dashboard</span><span class="sr-only">(current)</span>
-                </a>
-                <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-                  <li class="nav-item">
-                    <a class="nav-link pl-3" href="./dashboard_docentes.php"><span
-                        class="ml-1 item-text">Docentes</span></a>
-                  </li>
-                  <li class="nav-item active">
-                    <a class="nav-link pl-3" href="./dashboard_carreras.php"><span class="ml-1 item-text">Carrera</span></a>
-                  </li>
-                  
-                </ul>
-              </li>
-            </ul>
-            <p class="text-muted nav-heading mt-4 mb-1">
-              <span>Recursos humanos</span>
-            </p>
-            <ul class="navbar-nav flex-fill w-100 mb-2">
-              <li class="nav-item w-100">
-                <a class="nav-link" href="recursos_humanos_empleados.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Empleados</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Desarrollo Académico</span>
-              </p>
-              <li class="nav-item w-100">
-                <a class="nav-link" href="desarrollo_academico_docentes.php">
-                  <i class="fe fe-calendar fe-16"></i>
-                  <span class="ml-3 item-text">Docentes</span>
-                </a>
-              </li>
-              <p class ="text-muted nav-heading mt-4 mb-1">
-                <span>Registros</span>
-              </p>
-              <ul class="navbar-nav flex-fill w-100 mb-2">
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_materia.php"><span
-                        class="ml-1 item-text">Materias</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="formulario_grupo.php"><span class="ml-1 item-text">Grupos</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class="nav-link pl-3" href="form_carrera.php"><span class="ml-1 item-text">Carreras</span></a>
-                  </li>
-                  <li class="nav-item w-100">
-                    <a class ="nav-link pl-3" href="formulario_usuario.php"><span class="ml-1 item-text">Usuarios</span></a>
-                  </li>
-                </ul>
-              </ul>
-          </nav>
-        </aside>
-
-
-    <!-- Código HTML del carrusel -->
+  
+  <!-- Código HTML del carrusel -->
 <main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="container-fluid mb-3">
@@ -224,31 +172,31 @@ $usuario['antiguedad'] = $antiguedad;
                       </button>
 
                       <div class="col-10">
-  <div class="carousel-inner" id="carouselContent">
-    <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
-      <div class="row">
-        <div class="col-12 col-md-5 col-xl-3 text-center">
-          <strong class="name-line">Foto del Docente:</strong> <br>
-          <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
-          </div>
-        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-          <p class="teacher-info h4" id="teacherInfo">
-            <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
-            <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
-            <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
-            <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
-            <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
-            <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
-            <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
-            <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
-            <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
-          </p>
-        </div>
-      </div>
-    </div>
-    <!-- Más elementos del carrusel se generarán dinámicamente -->
-  </div>
-</div>
+                          <div class="carousel-inner" id="carouselContent">
+                            <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+                              <div class="row">
+                                <div class="col-12 col-md-5 col-xl-3 text-center">
+                                  <strong class="name-line">Foto del Docente:</strong> <br>
+                                  <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
+                                  </div>
+                                <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                                  <p class="teacher-info h4" id="teacherInfo">
+                                    <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+                                    <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+                                    <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+                                    <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+                                    <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                                    <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+                                    <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+                                    <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <!-- Más elementos del carrusel se generarán dinámicamente -->
+                          </div>
+                        </div>
 
 
                       <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
@@ -263,35 +211,49 @@ $usuario['antiguedad'] = $antiguedad;
           </div>
         </div>
       </div>
-<script>
-  // Obtener el idusuario actual desde la URL
+      <script>
+  // Pasar el tipo de usuario desde PHP a JavaScript
+  const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
+
+  // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
   const urlParams = new URLSearchParams(window.location.search);
-  let idusuario = parseInt(urlParams.get("idusuario")) || 1; // Si no hay idusuario en la URL, empezamos en 1
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1; 
 
   // Seleccionar los botones de navegación
   const anterior = document.getElementById("anterior");
   const siguiente = document.getElementById("siguiente");
-  const carouselContent = document.getElementById("carouselContent");
 
-  // Función para actualizar la URL con el nuevo idusuario
-  function updateUrl(newIdusuario) {
-    window.location.href = `?idusuario=${newIdusuario}`;
-  }
+  // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
+  if (tipoUsuarioId === 1) {
+    anterior.disabled = true;
+    siguiente.disabled = true;
+    
+    // Sobrescribir el idusuario con el id del usuario autenticado
+    idusuario = <?= json_encode($idusuario) ?>;
+  } else if (tipoUsuarioId === 2) {
 
-  // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
-  siguiente.addEventListener("click", () => {
-    idusuario++; // Incrementa el ID del usuario
-    updateUrl(idusuario); // Actualiza la URL
-  });
-
-  // Lógica para ir al usuario anterior (si es necesario)
-  anterior.addEventListener("click", () => {
-    if (idusuario > 1) { // Asegúrate de que no baje de 1
-      idusuario--; // Decrementa el ID del usuario
-      updateUrl(idusuario); // Actualiza la URL
+    // Función para actualizar la URL con el nuevo idusuario
+    function updateUrl(newIdusuario) {
+      window.location.href = `?idusuario=${newIdusuario}`;
     }
-  });
+
+    // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+    siguiente.addEventListener("click", () => {
+      idusuario++; 
+      updateUrl(idusuario); 
+    });
+
+    // Lógica para ir al usuario anterior 
+    anterior.addEventListener("click", () => {
+      if (idusuario > 1) { 
+        idusuario--; 
+        updateUrl(idusuario); 
+      }
+    });
+  }
 </script>
+
+
 
       <!---Parte de recursos humanos --->
       <div class="container-fluid mt-0">
@@ -309,39 +271,77 @@ $usuario['antiguedad'] = $antiguedad;
                   </div>
                   <!-- Filtros -->
                   <div class="container-filter mb-3 d-flex flex-wrap ">
-                    <!-- Filtro de Periodo -->
-                    <div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
-                      <button class="btn-filter d-flex align-items-center">
-                        <span class="fe fe-24 fe-filter me-2"></span>
-                        <span class="filter-label" data-placeholder="Periodo">Periodo</span>
-                      </button>
-                      <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                        <ul class="list-unstyled m-0 p-2">
-                          <li><a href="#" data-month="8" data-year="2024" class="d-block py-1">2024-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2024" class="d-block py-1">2024-1</a></li>
-                          <li><a href="#" data-month="8" data-year="2023" class="d-block py-1">2023-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2023" class="d-block py-1">2023-1</a></li>
-                          <li><a href="#" data-month="8" data-year="2022" class="d-block py-1">2022-2</a></li>
-                          <li><a href="#" data-month="2" data-year="2022" class="d-block py-1">2022-1</a></li>
-                        </ul>
-                      </div>
-                    </div>
+<!-- Filtro de Periodo -->
+<div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
+    <!-- Título del Filtro de Periodo -->
+    <span class="fe fe-24 fe-filter me-2"></span>
+    <label class="filter-label">Periodo:</label>
+    
+    <!-- Desplegable de Selección de Periodo -->
+    <div class="filter-options position-relative">
+        <select class="form-select" id="periodoSelect">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>">
+                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</div>
 
-                    <!-- Filtro de División -->
-                    <div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
-                      <button class="btn-filter d-flex align-items-center">
-                        <span class="fe fe-24 fe-filter me-2"></span>
-                        <span class="filter-label" data-placeholder="División">División</span>
-                      </button>
-                      <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-                        <ul class="list-unstyled m-0 p-2">
-                          <li><a href="#" class="d-block py-1">ISC</a></li>
-                          <li><a href="#" class="d-block py-1">Administracion</a></li>
-                          <li><a href="#" class="d-block py-1">Quimica</a></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
+<script>
+document.getElementById('periodoSelect').addEventListener('change', function() {
+    const selectedPeriodId = this.value;
+    console.log("Periodo seleccionado:", selectedPeriodId);
+    
+    if (selectedPeriodId) {
+        // Realiza una solicitud AJAX para obtener las fechas del periodo seleccionado
+        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.fecha_inicio && data.fecha_termino) {
+                    // Usa las fechas obtenidas para actualizar el calendario
+                    const fechaInicio = new Date(data.fecha_inicio);
+                    const fechaTermino = new Date(data.fecha_termino);
+                    
+                    // Llama a una función para actualizar el calendario con las nuevas fechas
+                    actualizarCalendario(fechaInicio, fechaTermino);
+                }
+            })
+            .catch(error => console.error("Error al obtener las fechas del periodo:", error));
+    }
+});
+
+// Función para actualizar el calendario con las fechas seleccionadas
+function actualizarCalendario(fechaInicio, fechaTermino) {
+    // Actualiza el mes y año inicial del calendario
+    currentMonth = fechaInicio.getMonth();
+    currentYear = fechaInicio.getFullYear();
+    
+    // Renderiza el calendario con el nuevo rango de fechas
+    renderCalendar();
+
+    // Lógica opcional para deshabilitar días fuera del rango
+    // Puedes implementar esta lógica en renderCalendar() o aquí
+}
+</script>
+
+
+                   <!-- Filtro de División -->
+<div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
+    <button class="btn-filter d-flex align-items-center">
+        <span class="fe fe-24 fe-filter me-2"></span>
+        <span class="filter-label" data-placeholder="División">
+            <?php echo $nombreCarrera; ?>
+        </span>
+    </button>
+    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+        <ul class="list-unstyled m-0 p-2">
+            <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+        </ul>
+    </div>
+</div>
                   <!-- Sección de Incidencias -->
                   <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
                   <div class="row">
@@ -390,6 +390,24 @@ $usuario['antiguedad'] = $antiguedad;
                       </div>
                     </div>
                     <!-- Avisos -->
+                     <!-- Modal -->
+<div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalContent">
+        <!-- Contenido cargado dinámicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
                     <div
                       class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
                       <div class="card-body-calendar box-shadow-div mb-3">
@@ -1469,12 +1487,24 @@ $usuario['antiguedad'] = $antiguedad;
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
 
-
-    
   </script>
   <script>
-   
+  
         </script>
+        <script>
+    // Mostrar las opciones al hacer clic en el botón
+    document.getElementById('periodoDropdown').addEventListener('click', function() {
+        const filterOptions = document.getElementById('filterOptions');
+        filterOptions.classList.toggle('d-none'); // Alternar la visibilidad de las opciones
+    });
+
+    // Manejar el evento de cambio en el combo box
+    document.getElementById('periodoSelect').addEventListener('change', function() {
+        const selectedPeriod = this.value;
+        console.log("Periodo seleccionado:", selectedPeriod);
+        // Aquí puedes realizar más acciones si lo deseas
+    });
+</script>
 </body>
 
 </html>

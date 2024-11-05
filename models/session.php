@@ -16,7 +16,8 @@ class SessionManager
     // Método para verificar si la sesión está activa
     public function isSessionActive()
     {
-        return isset($_SESSION['email']);
+        // Asegurarse de que haya un ID de usuario en la sesión
+        return isset($_SESSION['user_id']);
     }
 
     // Método para verificar si la sesión ha caducado
@@ -35,11 +36,12 @@ class SessionManager
         $_SESSION['last_activity'] = time();
     }
 
+
     // Método para destruir la sesión
     public function destroySession()
     {
         session_unset();  // Eliminar todas las variables de sesión
-        session_destroy(); // Destruir la sesión
+        session_destroy(); // Destruir la sesión completamente
     }
 
     // Redirigir al login si no hay sesión o ha caducado
@@ -69,21 +71,24 @@ class SessionManager
         header("Location: $redirectPath"); // Redirigir a la página deseada
         exit;
     }
+
+    // Método para obtener el ID del usuario
+    public function getUserId()
+    {
+        return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+    }
 }
 
-// Uso de la clase
-$sessionLifetime = 18000; // Ajusta el tiempo de vida de la sesión
+// Crear una instancia de la clase SessionManager
+$sessionLifetime = 18000; // Ajusta el tiempo de vida de la sesión (mejor si se usa un archivo de configuración)
 $sessionManager = new SessionManager($sessionLifetime);
 
-// Verificar si la sesión ha caducado o no está activa y redirigir al login
-$sessionManager->checkSessionAndRedirect('../templates/auth-login.php');
+// Obtenemos el ID del usuario a través del SessionManager
+$idusuario = $sessionManager->getUserId();
 
-// Cargar el archivo JavaScript
-echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
-echo "<script src='sessionAlert.js'></script>";
-
-// Ejemplo de uso del método logoutAndRedirect (puedes llamarlo cuando se haga clic en "Cerrar sesión")
-if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+if ($idusuario === null) {
+    // Si no hay un usuario logueado, redirigir al login
+    header("Location: ../templates/auth-login.php");
+    exit;
 }
 ?>
