@@ -218,7 +218,7 @@ if (isset($_POST['logout'])) {
 
   // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
   const urlParams = new URLSearchParams(window.location.search);
-  let idusuario = parseInt(urlParams.get("idusuario")) || 1; // Si no hay idusuario en la URL, empezamos en 1
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1; 
 
   // Seleccionar los botones de navegación
   const anterior = document.getElementById("anterior");
@@ -226,15 +226,12 @@ if (isset($_POST['logout'])) {
 
   // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
   if (tipoUsuarioId === 1) {
-    // Deshabilitar los botones para mover el carrusel
     anterior.disabled = true;
     siguiente.disabled = true;
     
     // Sobrescribir el idusuario con el id del usuario autenticado
-    // Esto es para asegurarse de que solo se muestre su propio perfil
     idusuario = <?= json_encode($idusuario) ?>;
   } else if (tipoUsuarioId === 2) {
-    // Tipo de usuario 2: el carrusel puede moverse
 
     // Función para actualizar la URL con el nuevo idusuario
     function updateUrl(newIdusuario) {
@@ -243,24 +240,19 @@ if (isset($_POST['logout'])) {
 
     // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
     siguiente.addEventListener("click", () => {
-      idusuario++; // Incrementa el ID del usuario
-      updateUrl(idusuario); // Actualiza la URL
+      idusuario++; 
+      updateUrl(idusuario); 
     });
 
-    // Lógica para ir al usuario anterior (si es necesario)
+    // Lógica para ir al usuario anterior 
     anterior.addEventListener("click", () => {
-      if (idusuario > 1) { // Asegúrate de que no baje de 1
-        idusuario--; // Decrementa el ID del usuario
-        updateUrl(idusuario); // Actualiza la URL
+      if (idusuario > 1) { 
+        idusuario--; 
+        updateUrl(idusuario); 
       }
     });
   }
 </script>
-
-
-
-
-
 
 
 
