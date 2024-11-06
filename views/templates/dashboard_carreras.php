@@ -10,6 +10,7 @@ if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
+
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
 $imgUser  = $consultas->obtenerImagen($idusuario);
@@ -202,8 +203,6 @@ if ($carreraId) {
                     </p>
                   </div>
                 </div>
-
-
 
 
 
@@ -608,6 +607,9 @@ if ($carreraId) {
                   </div>
                 </div> <!-- /.col -->
 
+
+              </div>
+            </div>
 
               </div>
             </div>

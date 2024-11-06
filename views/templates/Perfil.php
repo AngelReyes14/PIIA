@@ -132,7 +132,6 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
             </span>
         </a>
 
-
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="#">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
@@ -326,6 +325,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                     <label class="form-label">Correo Electrónico:</label>
                     <input type="text" class="form-control" id="correo" value="" readonly>
                   </div>
+
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">
