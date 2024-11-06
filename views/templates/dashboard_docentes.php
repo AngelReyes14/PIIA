@@ -67,6 +67,19 @@ $usuario['antiguedad'] = $antiguedad;
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
 ?>
 
 
@@ -261,40 +274,135 @@ if (isset($_POST['logout'])) {
 </script>
 
 
-
-      <!---Parte de recursos humanos --->
-      <div class="container-fluid mt-0">
-        <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-          RECURSOS HUMANOS
-        </div>
-        <!-- Tarjeta principal -->
-        <div class="card shadow-lg p-4 mb-3">
-          <div class="wrapper">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-12">
-                  <!-- Título principal -->
-                  <div class="row align-items-center my-3">
-                  </div>
-                  <!-- Filtros -->
-                  <div class="container-filter mb-3 d-flex flex-wrap ">
-<!-- Filtro de Periodo -->
-<div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
-    <!-- Título del Filtro de Periodo -->
-    <span class="fe fe-24 fe-filter me-2"></span>
-    <label class="filter-label">Periodo:</label>
-    
-    <!-- Desplegable de Selección de Periodo -->
-    <div class="filter-options position-relative">
-        <select class="form-select" id="periodoSelect">
-            <option value="">Selecciona un periodo</option>
-            <?php foreach ($periodos as $periodo): ?>
-                <option value="<?php echo $periodo['periodo_id']; ?>">
+      <!-- Parte de recursos humanos -->
+<div class="container-fluid mt-0">
+  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+    RECURSOS HUMANOS
+  </div>
+  
+  <!-- Tarjeta principal -->
+  <div class="card shadow-lg p-4 mb-3">
+    <div class="wrapper">
+      <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
+          <!-- Filtro de Periodo -->
+          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
+            <span class="fe fe-24 fe-filter me-2"></span>
+            <label class="filter-label">Periodo:</label>
+            <div class="filter-options position-relative">
+              <select class="form-select" id="periodoSelect">
+                <option value="">Selecciona un periodo</option>
+                <?php foreach ($periodos as $periodo): ?>
+                  <option value="<?php echo $periodo['periodo_id']; ?>">
                     <?php echo htmlspecialchars($periodo['descripcion']); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtro de División -->
+          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
+            <button class="btn-filter d-flex align-items-center">
+              <span class="fe fe-24 fe-filter me-2"></span>
+              <span class="filter-label" data-placeholder="División">
+                <?php echo $nombreCarrera; ?>
+              </span>
+            </button>
+            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+              <ul class="list-unstyled m-0 p-2">
+                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sección de Incidencias -->
+        <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
+        <div class="row d-flex justify-content-center">
+          <!-- Bloque de Días Económicos -->
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="card-body-calendar box-shadow-div mb-3">
+              <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
+              <div class="text-verde">4</div>
+            </div>
+            <div class="card-body-calendar box-shadow-div">
+              <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
+              <div class="text-verde">1</div>
+            </div>
+          </div>
+
+          <!-- Calendario -->
+          <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
+            <div class="calendar-new box-shadow-div">
+              <div class="header d-flex align-items-center">
+                <div class="month"></div>
+                <div class="btns d-flex justify-content-center">
+                  <div class="btn today-btn mx-1">
+                    <i class="fe fe-24 fe-calendar"></i>
+                  </div>
+                  <div class="btn prev-btn mx-1">
+                    <i class="fe fe-24 fe-arrow-left"></i>
+                  </div>
+                  <div class="btn next-btn mx-1">
+                    <i class="fe fe-24 fe-arrow-right"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="weekdays d-flex">
+                <div class="day">Dom</div>
+                <div class="day">Lun</div>
+                <div class="day">Mar</div>
+                <div class="day">Mie</div>
+                <div class="day">Jue</div>
+                <div class="day">Vie</div>
+                <div class="day">Sab</div>
+              </div>
+              <div class="days">
+                <!-- días agregados dinámicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque de Avisos -->
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="card-body-calendar box-shadow-div mb-3">
+              <h3 class="h5">AVISOS</h3>
+              <div class="text-verde"><?php echo count($avisos); ?></div>
+            </div>
+            <div class="card-body-calendar">
+              <?php foreach ($avisos as $aviso): ?>
+                <div class="card-avisos mb-2">
+                  <strong>Motivo:</strong> <?php echo htmlspecialchars($aviso['motivo']); ?><br>
+                  <strong>Fecha de incidencia:</strong> <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal de Incidencias -->
+        <div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body" id="modalContent">
+                <!-- Contenido cargado dinámicamente -->
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
@@ -303,16 +411,12 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     console.log("Periodo seleccionado:", selectedPeriodId);
     
     if (selectedPeriodId) {
-        // Realiza una solicitud AJAX para obtener las fechas del periodo seleccionado
         fetch(`get_period_dates.php?id=${selectedPeriodId}`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.fecha_inicio && data.fecha_termino) {
-                    // Usa las fechas obtenidas para actualizar el calendario
                     const fechaInicio = new Date(data.fecha_inicio);
                     const fechaTermino = new Date(data.fecha_termino);
-                    
-                    // Llama a una función para actualizar el calendario con las nuevas fechas
                     actualizarCalendario(fechaInicio, fechaTermino);
                 }
             })
@@ -320,113 +424,14 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     }
 });
 
-// Función para actualizar el calendario con las fechas seleccionadas
 function actualizarCalendario(fechaInicio, fechaTermino) {
-    // Actualiza el mes y año inicial del calendario
     currentMonth = fechaInicio.getMonth();
     currentYear = fechaInicio.getFullYear();
-    
-    // Renderiza el calendario con el nuevo rango de fechas
     renderCalendar();
-
-    // Lógica opcional para deshabilitar días fuera del rango
-    // Puedes implementar esta lógica en renderCalendar() o aquí
 }
 </script>
 
 
-                   <!-- Filtro de División -->
-<div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
-    <button class="btn-filter d-flex align-items-center">
-        <span class="fe fe-24 fe-filter me-2"></span>
-        <span class="filter-label" data-placeholder="División">
-            <?php echo $nombreCarrera; ?>
-        </span>
-    </button>
-    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-        <ul class="list-unstyled m-0 p-2">
-            <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
-        </ul>
-    </div>
-</div>
-                  <!-- Sección de Incidencias -->
-                  <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
-                  <div class="row">
-                    <!-- Bloque de Días Económicos -->
-                    <div
-                      class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-1 order-lg-2 order-md-2 order-sm-2 order-2">
-                      <div class="card-body-calendar box-shadow-div mb-3">
-                        <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-                        <div class="text-verde">4</div>
-                      </div>
-                      <div class="card-body-calendar box-shadow-div">
-                        <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
-                        <div class="text-verde">1</div>
-                      </div>
-                    </div>
-                    <!-- Calendario -->
-                    <div
-                      class="col-xl-6 col-lg-12 col-md-12 col-sm-12 order-xl-2 order-lg-1 order-md-1 order-sm-1 order-1">
-                      <div class="calendar-new box-shadow-div">
-                        <div class="header d-flex  align-items-center">
-                          <div class="month"></div>
-                          <div class="btns d-flex justify-content-center">
-                            <div class="btn today-btn mx-1">
-                              <i class="fe fe-24 fe-calendar"></i>
-                            </div>
-                            <div class="btn prev-btn mx-1">
-                              <i class="fe fe-24 fe-arrow-left"></i>
-                            </div>
-                            <div class="btn next-btn mx-1">
-                              <i class="fe fe-24 fe-arrow-right"></i>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="weekdays d-flex">
-                          <div class="day">Dom</div>
-                          <div class="day">Lun</div>
-                          <div class="day">Mar</div>
-                          <div class="day">Mie</div>
-                          <div class="day">Jue</div>
-                          <div class="day">Vie</div>
-                          <div class="day">Sab</div>
-                        </div>
-                        <div class="days">
-                          <!-- días agregados dinámicamente -->
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Avisos -->
-                     <!-- Modal -->
-<div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalContent">
-        <!-- Contenido cargado dinámicamente -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-                    <div
-                      class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
-                      <div class="card-body-calendar box-shadow-div mb-3">
-                        <h3 class="h5">AVISOS</h3>
-                        <div class="text-verde">3</div>
-                      </div>
-                      <div class="card-body-calendar ">
-                        <div class="card-avisos">Faltó el día 14/02/24</div>
-                        <div class="card-avisos">Faltó el día 14/03/24</div>
-                        <div class="card-avisos">No dio 2 horas de clase al grupo 8ISC22</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
