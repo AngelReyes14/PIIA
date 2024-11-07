@@ -12726,3 +12726,26 @@ a.uppy-Dashboard-poweredBy {
   background-color: green; /* Fondo verde en hover */
   color: white; /* Letras blancas en hover */
 }
+
+.status-color {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.status-color-green {
+  background-color: green; /* Para ID 1 */
+}
+
+.status-color-red {
+  background-color: red; /* Para ID 2 */
+}
+
+.status-color-yellow {
+  background-color: yellow; /* Para ID 3 */
+}
+
+.status-color-gray {
+  background-color: gray; /* Para ID desconocidos */
+}
