@@ -307,9 +307,9 @@ if ($carreraId) {
                               <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_inicio']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_termino']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_incidencia']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
                             </tr>                  
                           <?php endforeach; ?>
@@ -563,34 +563,30 @@ if ($carreraId) {
                     <table class="table datatables" id="tabla-materias-2">
                       <thead class="thead-dark">
                         <tr>
-                          <th>Numero de incidencia</th>
-                          <th>Usuario</th>
-                          <th>Fecha solicitada</th>
-                          <th>Motivo</th>
-                          <th>Hora de inicio</th>
-                          <th>Hora de termino</th>
-                          <th>Horario de incidencias</th>
-                          <th>Dia de las incidencias</th>
+                          <th>Nombre</th>
+                          <th>Edad</th>
+                          <th>Fecha de contratacion</th>
+                          <th>Numero de empleado</th>
+                          <th>cedula</th>
+                          <th>correo</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <?php if ($incidencia): ?>
-                          <?php foreach ($incidencia as $incidencias): ?>
+                        <?php if ($maestros): ?>
+                          <?php foreach ($maestros as $maestroscarrera): ?>
                             <tr>
                             <tr>
-                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
                             </tr>                  
                           <?php endforeach; ?>
                         <?php else: ?>
                           <tr>
-                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
+                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
                           </tr>
                         <?php endif; ?>
                       </tbody>
