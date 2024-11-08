@@ -217,7 +217,7 @@ if (isset($_POST['logout'])) {
 
   // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
   const urlParams = new URLSearchParams(window.location.search);
-  let idusuario = parseInt(urlParams.get("idusuario")) || 1; 
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1;
 
   // Seleccionar los botones de navegación
   const anterior = document.getElementById("anterior");
@@ -225,13 +225,13 @@ if (isset($_POST['logout'])) {
 
   // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
   if (tipoUsuarioId === 1) {
+    // Deshabilitar los botones para tipoUsuarioId 1
     anterior.disabled = true;
     siguiente.disabled = true;
     
     // Sobrescribir el idusuario con el id del usuario autenticado
     idusuario = <?= json_encode($idusuario) ?>;
-  } else if (tipoUsuarioId === 2) {
-
+  } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
     // Función para actualizar la URL con el nuevo idusuario
     function updateUrl(newIdusuario) {
       window.location.href = `?idusuario=${newIdusuario}`;
@@ -250,13 +250,18 @@ if (isset($_POST['logout'])) {
         updateUrl(idusuario); 
       }
     });
+  } else {
+    // Deshabilitar los botones si el tipo de usuario no es permitido
+    anterior.disabled = true;
+    siguiente.disabled = true;
   }
 </script>
 
 
 
-      <!---Parte de recursos humanos --->
-      <div class="container-fluid mt-0">
+
+<!---Parte de recursos humanos --->
+<div class="container-fluid mt-0">
         <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
           RECURSOS HUMANOS
         </div>
@@ -297,7 +302,7 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     
     if (selectedPeriodId) {
         // Realiza una solicitud AJAX para obtener las fechas del periodo seleccionado
-        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
+        fetch(get_period_dates.php?id=${selectedPeriodId})
             .then(response => response.json())
             .then(data => {
                 if (data && data.fecha_inicio && data.fecha_termino) {
@@ -407,9 +412,7 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
     </div>
   </div>
 </div>
-
-                    <div
-                      class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
+<div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
                       <div class="card-body-calendar box-shadow-div mb-3">
                         <h3 class="h5">AVISOS</h3>
                         <div class="text-verde">3</div>

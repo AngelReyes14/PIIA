@@ -22,6 +22,12 @@ if ($carrera) {
   $usuario = array_merge($usuario, $carrera);
 }
 
+// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
+if (!$usuario) {
+  header("Location: ?idusuario=1");
+  exit;
+}
+
 // Supongamos que la fecha de contratación viene del array $usuario
 $fechaContratacion = $usuario["fecha_contratacion"];
 
@@ -36,6 +42,10 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
+
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 
 ?>
 

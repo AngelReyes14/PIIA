@@ -240,6 +240,29 @@ class Consultas {
     
      //************************************************************************************* */    
 
+
+    // Método en la clase Consultas para obtener los usuarios de una carrera
+    public function obtenerUsuariosPorCarreraId($idCarrera)
+    {
+        $sql = "SELECT id_usuario FROM usuarios WHERE id_carrera = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $idCarrera);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $usuarios = [];
+        while ($row = $result->fetch_assoc()) {
+            $usuarios[] = $row['id_usuario'];
+        }
+
+        return $usuarios; // Devuelve un array de ids de usuarios
+    }
+
+
+
+
+    //************************************************************************************* */    
+
     
     // Método para obtener los semestres
     public function obtenerSemestres() {
@@ -295,6 +318,8 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+
 
     // Método para obtener semestres basados en la carrera seleccionada
     public function obtenerSemestresPorCarrera($carrera_id) {
