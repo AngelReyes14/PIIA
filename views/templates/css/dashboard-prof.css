@@ -1,0 +1,178 @@
+.img-perfil {
+    width: 200px !important;
+    border-radius: 50px;
+    padding: 15px;
+    /* Añade un espacio alrededor de la imagen */
+
+}
+
+.data-teacher {
+    margin-left: 0;
+}
+
+.img-certificado {
+    width: auto;
+
+}
+
+.name-line {
+    color: #00861d;
+    font-style: normal;
+}
+
+.teacher-info {
+    line-height: 1.5;
+    /* Ajusta el espacio entre líneas */
+    white-space: normal;
+    /* Asegura que el texto se distribuya en varias líneas */
+    word-wrap: break-word;
+    /* Evita que las palabras largas salgan del contenedor */
+    margin: 0;
+    /* Elimina márgenes adicionales si es necesario */
+    padding-top: 2%;
+    padding-bottom: 2%;
+    padding-left: 5%;
+    padding-right: 5%;
+    text-align: left;
+}
+
+.data-teacher {
+    height: 100%;
+    /* Asegura que el contenedor ocupe todo el espacio disponible */
+}
+
+.img-perfil {
+    width: 80%;
+    /* Ajusta la imagen al ancho del contenedor */
+    /* Mantiene la relación de aspecto de la imagen */
+}
+
+.card-bd {
+    border-radius: 45px;
+    background-color: white;
+
+}
+
+.line-div {
+    border: none;
+    border-top: 2px solid black;
+    width: 100%;
+}
+
+.calendar-iframe {
+    width: 100%;
+    height: 895px;
+    border: none;
+}
+
+.carousel-control-prev {
+    background-color: #00861d !important;
+    border: white;
+    height: auto;
+    width: 20px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0px;
+    clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
+}
+
+.carousel-control-prev:hover {
+    background-color: #14aa34 !important;
+    color: #ffffff !important;
+}
+
+.carousel-control-next {
+    background-color: #00861d !important;
+    border: white;
+    height: auto;
+    width: 20px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0px;
+    clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%, 0 50%);
+}
+
+.carousel-control-next:hover {
+    background-color: #14aa34 !important;
+    color: #ffffff !important;
+}
+
+.table thead th {
+    text-align: center;
+    font-weight: bold;
+}
+
+.table tbody td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.schedule-container {
+    margin-top: 20px;
+}
+
+@media (min-width: 1200px) {
+    .img-perfil {
+        width: 100% !important;
+        padding: 20px;
+        /* Añade un poco más de espacio entre 1200px y 1400px */
+
+    }
+}
+
+.flag-div {
+    margin-left: 0px;
+    max-width: 300px;
+}
+
+.img-button {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
+
+@media (min-width: 500px) {
+    .img-perfil {
+        width: 100% !important;
+        margin-bottom: 10px;
+        margin-left: 10% !important;
+    }
+
+    .data-teacher {
+        text-align: center;
+        margin-right: 0;
+    }
+}
+
+/* app-light.css */
+
+/* Define la animación */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        filter: blur(10px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+  
+  /* Clase para aplicar la animación */
+  .animate {
+    animation: fadeIn 0.5s ease; /* Duración y tipo de animación */
+  }
+  
+  /* Estilo del carrusel activo */
+  .carousel-item.active {
+    opacity: 1; /* Elemento visible */
+    transition: opacity 0.5s ease; /* Transición de opacidad */
+  }
+  
+  .carousel-item {
+    opacity: 0; /* Elementos ocultos por defecto */
+    transition: opacity 0.5s ease; /* Transición de opacidad */
+  }
+  
