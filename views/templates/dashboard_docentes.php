@@ -247,41 +247,31 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
-    // Pasar el tipo de usuario desde PHP a JavaScript
-    const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
-    let idusuario = <?= json_encode($idusuario) ?>;
 
-    // Obtener los elementos de navegación y filtro
-    const anterior = document.getElementById("anterior");
-    const siguiente = document.getElementById("siguiente");
-    const carreraSelect = document.getElementById('carreraSelect');
+  // Pasar el tipo de usuario desde PHP a JavaScript
+  const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
 
-    // Deshabilitar botones si el tipo de usuario no permite mover el carrusel
-    if (tipoUsuarioId === 1) {
-        anterior.disabled = true;
-        siguiente.disabled = true;
-    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        // Función para actualizar la URL con el nuevo idusuario
-        function updateUrl(newIdusuario) {
-            window.location.href = `?idusuario=${newIdusuario}`;
-        }
+  // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
+  const urlParams = new URLSearchParams(window.location.search);
+  let idusuario = parseInt(urlParams.get("idusuario")) || 1;
 
-        // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
-        siguiente.addEventListener("click", () => {
-            idusuario++;
-            updateUrl(idusuario);
-        });
+  // Seleccionar los botones de navegación
+  const anterior = document.getElementById("anterior");
+  const siguiente = document.getElementById("siguiente");
 
-        // Lógica para ir al usuario anterior
-        anterior.addEventListener("click", () => {
-            if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
-            }
-        });
-    } else {
-        anterior.disabled = true;
-        siguiente.disabled = true;
+  // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
+  if (tipoUsuarioId === 1) {
+    // Deshabilitar los botones para tipoUsuarioId 1
+    anterior.disabled = true;
+    siguiente.disabled = true;
+    
+    // Sobrescribir el idusuario con el id del usuario autenticado
+    idusuario = <?= json_encode($idusuario) ?>;
+  } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
+    // Función para actualizar la URL con el nuevo idusuario
+    function updateUrl(newIdusuario) {
+      window.location.href = `?idusuario=${newIdusuario}`;
+
     }
 
     // Función de filtrado de carreras
@@ -307,6 +297,20 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             }
         });
     });
+
+
+    // Lógica para ir al usuario anterior 
+    anterior.addEventListener("click", () => {
+      if (idusuario > 1) { 
+        idusuario--; 
+        updateUrl(idusuario); 
+      }
+    });
+  } else {
+    // Deshabilitar los botones si el tipo de usuario no es permitido
+    anterior.disabled = true;
+    siguiente.disabled = true;
+  }
 
     // Función para actualizar el contenido del carrusel con los usuarios recibidos
     function actualizarCarrusel(usuarios) {
@@ -357,9 +361,8 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             carouselContent.innerHTML += carouselItem;
         });
     }
+
 </script>
-
-
 
 
 
@@ -407,7 +410,6 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
               </ul>
             </div>
           </div>
-
         </div>
 
         <!-- Sección de Incidencias -->
@@ -502,6 +504,7 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     console.log("Periodo seleccionado:", selectedPeriodId);
     
     if (selectedPeriodId) {
+=======
         fetch(`get_period_dates.php?id=${selectedPeriodId}`)
             .then(response => response.json())
             .then(data => {
@@ -521,7 +524,6 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
     renderCalendar();
 }
 </script>
-
 
                   </div>
                 </div>
@@ -791,225 +793,6 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
               <!-- Columna para las tarjetas -->
             </div>
           </div>
-
-          <!-- <div class="row">
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="chart-widget">
-                <div id="gradientRadial"></div>
-              </div>
-              <div class="row">
-                <div class="col-6 text-center">
-                  <p class="text-muted mb-0">Yesterday</p>
-                  <h4 class="mb-1">126</h4>
-                  <p class="text-muted mb-2">+5.5%</p>
-                </div>
-                <div class="col-6 text-center">
-                  <p class="text-muted mb-0">Today</p>
-                  <h4 class="mb-1">86</h4>
-                  <p class="text-muted mb-2">-5.5%</p>
-                </div>
-              </div>
-            </div>
-          </div> 
-        </div> 
-
-
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="chart-widget mb-2">
-                <div id="radialbar"></div>
-              </div>
-              <div class="row items-align-center">
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Cost</p>
-                  <h6 class="mb-1">$1,823</h6>
-                  <p class="text-muted mb-0">+12%</p>
-                </div>
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Revenue</p>
-                  <h6 class="mb-1">$6,830</h6>
-                  <p class="text-muted mb-0">+8%</p>
-                </div>
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Earning</p>
-                  <h6 class="mb-1">$4,830</h6>
-                  <p class="text-muted mb-0">+8%</p>
-                </div>
-              </div>
-            </div> 
-          </div> 
-        </div> 
-
-
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <p class="mb-0"><strong class="mb-0 text-uppercase text-muted">Today</strong></p>
-              <h3 class="mb-0">$2,562.30</h3>
-              <p class="text-muted">+18.9% Last week</p>
-              <div class="chart-box mt-n5">
-                <div id="lineChartWidget"></div>
-              </div>
-              <div class="row">
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Completions</p>
-                  <h6 class="mb-0">26</h6>
-                  <span class="small text-muted">+20%</span>
-                  <span class="fe fe-arrow-up text-success fe-12"></span>
-                </div>
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Goal Value</p>
-                  <h6 class="mb-0">$260</h6>
-                  <span class="small text-muted">+6%</span>
-                  <span class="fe fe-arrow-up text-success fe-12"></span>
-                </div>
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Conversion</p>
-                  <h6 class="mb-0">6%</h6>
-                  <span class="small text-muted">-2%</span>
-                  <span class="fe fe-arrow-down text-danger fe-12"></span>
-                </div>
-              </div>
-            </div> 
-          </div> 
-        </div> 
-
-
-        <div class="col-md-6">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="card-title">
-                <strong>Products</strong>
-                <a class="float-right small text-muted" href="#!">View all</a>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div id="chart-box">
-                    <div id="donutChartWidget"></div>
-                  </div>
-                </div>
-                <div class="col-md-12">
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>Cloud Server</strong>
-                      <div class="my-0 text-muted small">Global, Services</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+85%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>CDN</strong>
-                      <div class="my-0 text-muted small">Global, Services</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+75%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>Databases</strong>
-                      <div class="my-0 text-muted small">Local, DC</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+62%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 62%" aria-valuenow="62"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div> 
-              </div> 
-            </div>
-          </div> 
-        </div> 
-
-
-        <div class="col-md-6">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="card-title">
-                <strong>Region</strong>
-                <a class="float-right small text-muted" href="#!">View all</a>
-              </div>
-              <div class="map-box" style="position: relative; width: 350px; min-height: 130px; margin:0 auto;">
-                <div id="dataMapUSA"></div>
-              </div>
-              <div class="row align-items-center h-100 my-2">
-                <div class="col">
-                  <p class="mb-0">France</p>
-                  <span class="my-0 text-muted small">+10%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>118</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Netherlands</p>
-                  <span class="my-0 text-muted small">+0.6%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>1008</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Italy</p>
-                  <span class="my-0 text-muted small">+1.6%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>67</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Spain</p>
-                  <span class="my-0 text-muted small">+118%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>186</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> 
-      </div>  -->
         </div> <!-- .container-fluid -->
       </div> <!---- fin de la card principál------>
 
