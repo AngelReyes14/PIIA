@@ -1,7 +1,8 @@
 <?php
 class Consultas {
     private $conn;
-
+    
+    
 
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
@@ -1139,5 +1140,66 @@ class IncidenciaUsuario {
             echo "Ocurrió un error al procesar la solicitud.";
             exit();
         }
+    }
+}
+
+class CarreraManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener la carrera asociada a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos de la carrera o null si no se encuentra.
+     */
+    public function obtenerCarreraPorUsuario($userId)
+    {
+        $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
+                  FROM carrera
+                  JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
+                  WHERE usuario.usuario_id = :user_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+class UsuarioManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener el servidor público asociado a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos del servidor público o null si no se encuentra.
+     */
+    public function obtenerServidorPublicoPorUsuario($userId)
+    {
+        $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                  FROM usuario 
+                  WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
     }
 }
