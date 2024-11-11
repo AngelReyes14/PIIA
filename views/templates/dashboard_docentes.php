@@ -169,7 +169,7 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
       </ul>
     </nav>
   </div>
-  <?php if ($tipoUsuarioId === 5): ?>
+<?php if ($tipoUsuarioId === 5 || $tipoUsuarioId == 3 || $tipoUsuarioId == 4): ?>
     <!-- Filtro de carreras -->
     <div class="card text-center">
         <div class="card-body">
@@ -186,154 +186,180 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             </div>
         </div>
     </div>
+<?php endif; ?>
 
-    <!-- JavaScript para el filtro de carreras -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const carreraSelect = document.getElementById('carreraSelect');
-        let profesores = []; // Array para almacenar los profesores de la carrera seleccionada
-        let currentIndex = 0; // Índice del profesor actualmente visible en el carrusel
+ <!-- Código HTML del carrusel -->
+ <main role="main" class="main-content">
+<div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="container-fluid mb-3">
+          <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+            PERFIL DOCENTE
+          </div>
+          <div class="row justify-content-center mb-0">
+            <div class="col-12">
+              <div class="row">
+                <div class="col-md-12 col-xl-12 mb-0">
+                  <div class="card box-shadow-div text-red rounded-lg">
+                    <div class="row align-items-center">
+                      <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
 
-        // Cargar profesores inicialmente
-        cargarProfesoresIniciales();
-
-        carreraSelect.addEventListener('change', function() {
-            const carreraId = carreraSelect.value;
-
-            // Realiza una solicitud AJAX para filtrar por carrera
-            $.ajax({
-                url: '../templates/filtrarPorCarrera.php',
-                type: 'POST',
-                data: { carrera_id: carreraId },
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.length > 0) {
-                        profesores = response; // Guardar los profesores obtenidos
-                        currentIndex = 0; // Reiniciar el índice
-                        actualizarCarrusel(); // Actualizar el carrusel con el primer profesor
-                    } else {
-                        console.error("No se recibieron usuarios.");
-                        actualizarCarrusel([]); // Limpiar el carrusel si no hay resultados
-                    }
-                },
-                error: function() {
-                    console.error('Error al obtener los usuarios por carrera.');
-                }
-            });
-        });
-
-        // Función para cargar profesores iniciales
-        function cargarProfesoresIniciales() {
-            $.ajax({
-                url: '../templates/filtrarPorCarrera.php',
-                type: 'POST',
-                data: { carrera_id: 'todos' }, // Puedes configurar el servidor para que "todos" devuelva todos los profesores
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.length > 0) {
-                        profesores = response;
-                        actualizarCarrusel();
-                    } else {
-                        console.error("No se recibieron usuarios.");
-                    }
-                },
-                error: function() {
-                    console.error('Error al cargar los profesores iniciales.');
-                }
-            });
-        }
-
-        // Función para actualizar el contenido del carrusel
-        function actualizarCarrusel() {
-            const carouselContent = document.getElementById("carouselContent");
-            carouselContent.innerHTML = ""; // Limpiar el contenido actual del carrusel
-
-            if (profesores.length > 0) {
-                const profesor = profesores[currentIndex]; // Obtener el profesor actual
-
-                const item = `
-                    <div class="carousel-item active animate" data-id="${profesor.usuario_id}">
-                        <div class="row">
-                            <div class="col-12 col-md-5 col-xl-3 text-center">
-                                <strong class="name-line">Foto del Docente:</strong> <br>
-                                <img src="../${profesor.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg">
-                            </div>
-                            <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                                <p class="teacher-info h4" id="teacherInfo">
-                                    <strong class="name-line">Docente:</strong> ${profesor.nombre_usuario} ${profesor.apellido_p} ${profesor.apellido_m}<br>
-                                    <strong class="name-line">Edad:</strong> ${profesor.edad} años <br>
-                                    <strong class="name-line">Fecha de contratación:</strong> ${profesor.fecha_contratacion} <br>
+                      <div class="col-10">
+                          <div class="carousel-inner" id="carouselContent">
+                            <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+                              <div class="row">
+                                <div class="col-12 col-md-5 col-xl-3 text-center">
+                                  <strong class="name-line">Foto del Docente:</strong> <br>
+                                  <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
+                                  </div>
+                                <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                                  <p class="teacher-info h4" id="teacherInfo">
+                                    <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+                                    <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+                                    <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
                                     <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
-                                    <strong class="name-line">División Adscrita:</strong> ${profesor.nombre_carrera}<br>
-                                    <strong class="name-line">Número de Empleado:</strong> ${profesor.numero_empleado} <br>
-                                    <strong class="name-line">Grado académico:</strong> ${profesor.grado_academico} <br>
-                                    <strong class="name-line">Cédula:</strong> ${profesor.cedula} <br>
-                                    <strong class="name-line">Correo:</strong> ${profesor.correo} <br>
-                                </p>
+                                    <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                                    <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+                                    <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+                                    <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+                                  </p>
+                                </div>
+                              </div>
                             </div>
+                            <!-- Más elementos del carrusel se generarán dinámicamente -->
+                          </div>
                         </div>
-                    </div>
-                `;
 
-                carouselContent.innerHTML = item;
-            }
+
+                      <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+    // Pasar el tipo de usuario desde PHP a JavaScript
+    const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
+    let idusuario = <?= json_encode($idusuario) ?>;
+
+    // Obtener los elementos de navegación y filtro
+    const anterior = document.getElementById("anterior");
+    const siguiente = document.getElementById("siguiente");
+    const carreraSelect = document.getElementById('carreraSelect');
+
+    // Deshabilitar botones si el tipo de usuario no permite mover el carrusel
+    if (tipoUsuarioId === 1) {
+        anterior.disabled = true;
+        siguiente.disabled = true;
+    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
+        // Función para actualizar la URL con el nuevo idusuario
+        function updateUrl(newIdusuario) {
+            window.location.href = `?idusuario=${newIdusuario}`;
         }
 
-        // Manejar la navegación manual
-        document.getElementById("siguiente").addEventListener("click", function() {
-            if (profesores.length > 0) {
-                currentIndex = (currentIndex + 1) % profesores.length;
-                actualizarCarrusel();
-            }
+        // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+        siguiente.addEventListener("click", () => {
+            idusuario++;
+            updateUrl(idusuario);
         });
 
-        document.getElementById("anterior").addEventListener("click", function() {
-            if (profesores.length > 0) {
-                currentIndex = (currentIndex - 1 + profesores.length) % profesores.length;
-                actualizarCarrusel();
+        // Lógica para ir al usuario anterior
+        anterior.addEventListener("click", () => {
+            if (idusuario > 1) {
+                idusuario--;
+                updateUrl(idusuario);
+            }
+        });
+    } else {
+        anterior.disabled = true;
+        siguiente.disabled = true;
+    }
+
+    // Función de filtrado de carreras
+    carreraSelect.addEventListener('change', function() {
+        const carreraId = carreraSelect.value;
+
+        // Enviar el carrera_id seleccionado al servidor mediante AJAX
+        $.ajax({
+            url: '../templates/filtrarPorCarrera.php',
+            type: 'POST',
+            data: { carrera_id: carreraId },
+            dataType: 'json',
+            success: function(response) {
+                if (response && response.length > 0) {
+                    actualizarCarrusel(response);
+                } else {
+                    console.error("No se recibieron usuarios.");
+                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                }
+            },
+            error: function() {
+                console.error('Error al obtener los usuarios por carrera.');
             }
         });
     });
-    </script>
-<?php endif; ?>
 
+    // Función para actualizar el contenido del carrusel con los usuarios recibidos
+    function actualizarCarrusel(usuarios) {
+        const carouselContent = document.getElementById('carouselContent');
 
-<!-- Código HTML del carrusel -->
-<main role="main" class="main-content">
-<div id="teacherCarousel" class="carousel slide">
-    <div class="container-fluid mb-3">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-            PERFIL DOCENTE
-        </div>
-        <div class="row justify-content-center mb-0">
-            <div class="col-12">
-                <div class="row">
-                    <div class="col-md-12 col-xl-12 mb-0">
-                        <div class="card box-shadow-div text-red rounded-lg">
-                            <div class="row align-items-center">
-                                <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden"></span>
-                                </button>
+        // Limpiar el contenido anterior
+        carouselContent.innerHTML = '';
 
-                                <div class="col-10">
-                                    <div class="carousel-inner" id="carouselContent">
-                                        <!-- Los elementos del carrusel se generarán dinámicamente -->
-                                    </div>
-                                </div>
+        // Iterar sobre los usuarios y generar nuevas entradas del carrusel
+        usuarios.forEach((usuario, index) => {
+            const activeClass = index === 0 ? 'active' : '';
 
-                                <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden"></span>
-                                </button>
-                            </div>
+            // Calcular la antigüedad del docente
+            const fechaContratacion = new Date(usuario.fecha_contratacion);
+            const fechaActual = new Date();
+            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+            const mesActual = fechaActual.getMonth();
+            const mesContratacion = fechaContratacion.getMonth();
+            if (mesActual < mesContratacion || (mesActual === mesContratacion && fechaActual.getDate() < fechaContratacion.getDate())) {
+                antiguedad--;
+            }
+
+            const carouselItem = `
+                <div class="carousel-item ${activeClass}">
+                    <div class="row">
+                        <div class="col-12 col-md-5 col-xl-3 text-center">
+                            <strong class="name-line">Foto del Docente:</strong> <br>
+                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                        </div>
+                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                            <p class="teacher-info h4">
+                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+            `;
+
+            // Insertar el nuevo elemento en el carrusel
+            carouselContent.innerHTML += carouselItem;
+        });
+    }
+</script>
+
+
 
 
 
