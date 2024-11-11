@@ -17,10 +17,6 @@ $sessionManager = new SessionManager(7); // Ajusta el tiempo de vida de la sesi�
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
-
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
-
-$imgUser  = $consultas->obtenerImagen($idusuario);
 ?>
 
 
@@ -87,13 +83,11 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+            </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
