@@ -1,8 +1,7 @@
 <?php
 class Consultas {
     private $conn;
-    
-    
+
 
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
@@ -181,7 +180,12 @@ class Consultas {
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     }
+
+    
+
+    
 
 
 
