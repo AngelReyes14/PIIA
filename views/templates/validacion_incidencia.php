@@ -12,25 +12,9 @@ $consultas = new Consultas($conn);
 
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
-$incidencias = $consultas->obtenerIncidencias();
-?>
-<?php
-// Crear instancia de CarreraManager y obtener el ID de usuario
-$carreraManager = new CarreraManager($conn);
-$idusuario = $sessionManager->getUserId();
+$incidencias = $consultas->obtenerDatosincidencias();
 
-// Obtener carrera para el usuario autenticado
-$carrera = $carreraManager->obtenerCarreraPorUsuario($idusuario);
-?>
-          <?php
-// Crear instancia de la clase UsuarioManager
-$usuarioManager = new UsuarioManager($conn);
 
-// Obtener el ID del usuario a través del SessionManager
-$idusuario = $sessionManager->getUserId();
-
-// Obtener el servidor público del usuario autenticado
-$servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario);
 ?>
 
 <!-- Aquí sigue tu código HTML para el formulario -->
@@ -127,111 +111,90 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
               <img class="form-logo-left" src="assets/images/logo-teschi.png" alt="Logo Izquierda">
               <img class="form-logo-right" src="assets/icon/icon_piia.png" alt="Logo Derecha">
             </div>
-            <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</strong></p>
-            </div>
-            <div class="container p-4 mb-4 box-shadow-div">
               <div class="row mb-3">
                 <!-- Caja contenedora para los campos de "Área" y "Fecha" en la misma fila -->
                 <div class="col-md-12">
-                  <div class="form-group p-3 border rounded" style="background-color: #f8f9fa;">
-                    <div class="row">
-                      <!-- Campo de Área alineado a la izquierda -->
-
-             <div class="col-md-6">
-                <label for="area" class="form-label">Área:</label>
-                <select class="form-control" id="area" name="area" required>
-                    <option value="" disabled>Selecciona una carrera</option>
-                    <?php if ($carrera): ?>
-                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>" selected>
-                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
-                        </option>
-                    <?php else: ?>
-                        <option value="">No hay carreras disponibles para este usuario</option>
-                    <?php endif; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+                <div class="container-fluid ">
+          <div class="row justify-content-center">
+            <div class="col-12 ">
+              <div class="row my-4">
+                <!-- Small table -->
+                <div class="col-md-12 ">
+                    
+                  <div class="card shadow p-5">
+                    <div class="table-responsive">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+              <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-
-
-                      <!-- Campo de Fecha alineado a la derecha -->
-                      <div class="col-md-6">
-                        <label for="fecha" class="form-label">Fecha:</label>
-                        <input class="form-control" id="fecha" type="date" name="fecha" required>
-                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
-          <div class="form-group mb-3">
-            <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
-            <select class="form-control" id="incidencias" name="incidencias" required>
-              <option value="" disabled selected>Selecciona una incidencia</option>
-              <?php foreach ($incidencias as $incidencia): ?>
-                <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
-                  <?php echo htmlspecialchars($incidencia['descripcion']); // Solo la descripción 
-                  ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <div class="invalid-feedback">Este campo es obligatorio.</div>
-          </div>
-
-        </div>
-
-        <div class="conteiner p-3 box-shadow-div">
-          <div class="form-group mb-3">
-            <label for="motivo">Motivo</label>
-            <input class="form-control" id="motivo" name="motivo" type="text" required>
-            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-          </div>
-
-          <div class="d-flex flex-wrap mb-3">
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label class="horario-label me-2">Horario:</label>
-              <div class="d-flex">
-                <input type="time" id="start-time" name="start-time" required class="me-1 form-control">
-                <span class="me-1">a</span>
-                <input type="time" id="end-time" name="end-time" required class="form-control">
-              </div>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="hora-incidencia" class="me-2">Hora de Incidencia:</label>
-              <input class="form-control" id="example-time" type="time" name="time" required>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="dia-incidencia" class="me-2">Día de la incidencia:</label>
-              <input class="form-control" id="dia-incidencia" type="date" name="dia-incidencia" required>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-          </div>
-
-
-<div class="d-flex flex-column mb-3">
-    <div class="mb-2">
-        <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
-        <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
-            <option value="">Seleccione un servidor público</option>
-            <?php
-            if ($servidorPublico) {
-                echo '<option value="' . htmlspecialchars($servidorPublico['usuario_id']) . '">' . htmlspecialchars($servidorPublico['nombre_completo']) . '</option>';
-            } else {
-                echo '<option value="">No hay servidores públicos disponibles</option>';
+            <table class="table datatables" id="dataTable-1">
+  <thead>
+    <tr>
+      <th>Tipo Incidencia</th>
+      <th>Usuario</th>
+      <th>Fecha Solicitada</th>
+      <th>Motivo</th>
+      <th>Horario Inicio</th>
+      <th>Horario Término</th>
+      <th>Horario Incidencia</th>
+      <th>Día Incidencia</th>
+      <th>Carrera</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($incidencias as $incidencia): ?>
+      <tr>
+        <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
+        <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
+        <td><?php echo $incidencia['fecha_solicitada']; ?></td>
+        <td><?php echo $incidencia['motivo']; ?></td>
+        <td><?php echo $incidencia['horario_inicio']; ?></td>
+        <td><?php echo $incidencia['horario_termino']; ?></td>
+        <td><?php echo $incidencia['horario_incidencia']; ?></td>
+        <td><?php echo $incidencia['dia_incidencia']; ?></td>
+        <td><?php echo $incidencia['nombre_carrera']; ?></td>
+        <td>
+          <?php
+            // Determinar la clase CSS según el status_incidencia_id
+            $statusClass = '';
+            switch ($incidencia['status_incidencia_id']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
             }
-            ?>
-        </select>
-        <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
-    </div>
-</div>
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color <?php echo $statusClass; ?>"></span>
+        </td>
+      </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+
+                  </div>
+                </div> <!-- simple table -->
+              </div> <!-- end section -->
+            </div> <!-- .col-12 -->
+          </div> <!-- .row -->
+        </div> <!-- .container-fluid -->
+                </div>
+      </div>
+    </main>
+  </div>
+                </div>
+
+            </div>
+          </div>
+        </div>
 
           <!-- Botón para enviar el formulario -->
           <div class="text-center mt-4">

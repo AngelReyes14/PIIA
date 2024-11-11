@@ -1361,6 +1361,56 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   <script src="js/datamaps.custom.js"></script>
   <script src="js/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  $(document).ready(function() {
+    // Abrir la modal y cargar el contenido
+    $('#openModalButton').on('click', function() {
+      $('#modalContent').load('form_incidencias.php', function() {
+        $('#incidenciasModal').modal('show');
+      });
+    });
+
+    // Interceptar el envío del formulario
+    $(document).on('submit', '#formincidencias', function(e) {
+      e.preventDefault(); // Prevenir el envío normal
+
+      // Crear el objeto FormData para enviar los datos del formulario
+      let formData = new FormData(this);
+
+      // Enviar los datos del formulario mediante AJAX
+      $.ajax({
+        url: '../../models/insert.php', // Cambia la ruta si es necesario
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          // Mostrar el SweetAlert si el envío fue exitoso
+          Swal.fire({
+            title: '¡Formulario enviado!',
+            text: 'Los datos se han enviado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+          }).then(() => {
+            // Cerrar la modal y recargar la página
+            $('#incidenciasModal').modal('hide');
+            location.reload(); // Recarga la página
+          });
+        },
+        error: function() {
+          // Mostrar SweetAlert en caso de error
+          Swal.fire({
+            title: 'Error',
+            text: 'Hubo un problema al enviar el formulario.',
+            icon: 'error',
+            confirmButtonText: 'Intentar de nuevo'
+          });
+        }
+      });
+    });
+  });
+</script>
   <script>
     /* defind global options */
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;

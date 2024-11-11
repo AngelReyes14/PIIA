@@ -2,6 +2,7 @@
 class Consultas {
     private $conn;
 
+
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
@@ -51,7 +52,6 @@ class Consultas {
             return false;  // Devuelve false si ocurre algún error
         }
     }
-    
 
     public function obtenerImagen($iduser) {
         $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
@@ -341,6 +341,13 @@ $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate 
 $stmt = $this->conn->prepare($query);
 $stmt->execute();
 return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerDatosincidencias(){
+    $query = "SELECT * FROM datos_incidencia";        
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener los cuerpos colegiados
@@ -1094,5 +1101,115 @@ class IncidenciaUsuario {
             echo "Ocurrió un error al procesar la solicitud.";
             exit();
         }
+    }
+
+    public function handleRequest1() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener los datos del formulario
+            $incidenciaId = $_POST['incidencias'];
+            $usuarioId = $_POST['usuario-servidor-publico']; 
+            $fechaSolicitada = $_POST['fecha'];
+            $motivo = $_POST['motivo'];
+            $horarioInicio = $_POST['start-time'];
+            $horarioTermino = $_POST['end-time'];
+            $horario_incidencia = $_POST['time'];
+            $diaIncidencia = $_POST['dia-incidencia']; 
+            $carreraId = $_POST['area'];
+
+            // Validar los datos (ejemplo básico, se puede expandir)
+            if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
+                echo "Por favor, completa todos los campos requeridos.";
+                return;
+            }
+
+            // Insertar los datos en la base de datos
+            $this->insertIncidenciaUsuarioM($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
+        }
+    }
+
+    private function insertIncidenciaUsuarioM($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
+        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
+                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidencia_id', $incidenciaId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':horario_inicio', $horarioInicio);
+        $stmt->bindParam(':horario_termino', $horarioTermino);
+        $stmt->bindParam(':horario_incidencia', $horario_incidencia);
+        $stmt->bindParam(':dia_incidencia', $diaIncidencia);
+        $stmt->bindParam(':carrera_id', $carreraId);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/dashboard_docentes.php?success=true");
+            exit(); // Asegúrate de detener el script después de la redirección
+        } catch (PDOException $e) {
+            error_log("Error: " . $e->getMessage()); // Registra el error en el log
+            echo "Ocurrió un error al procesar la solicitud.";
+            exit();
+        }
+    }
+}
+
+class CarreraManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener la carrera asociada a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos de la carrera o null si no se encuentra.
+     */
+    public function obtenerCarreraPorUsuario($userId)
+    {
+        $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
+                  FROM carrera
+                  JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
+                  WHERE usuario.usuario_id = :user_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+class UsuarioManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener el servidor público asociado a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos del servidor público o null si no se encuentra.
+     */
+    public function obtenerServidorPublicoPorUsuario($userId)
+    {
+        $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                  FROM usuario 
+                  WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
     }
 }
