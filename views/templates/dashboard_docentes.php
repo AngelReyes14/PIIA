@@ -4,7 +4,13 @@ include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Crear instancia de Consultas
+
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
+
+// Crear instancia de Consultas y obtener tipo de usuario
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
@@ -74,6 +80,25 @@ $stmt = $conn->prepare($query);
 $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
 
 ?>
 

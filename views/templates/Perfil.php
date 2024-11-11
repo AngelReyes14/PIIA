@@ -123,11 +123,14 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="avatar avatar-sm mt-2">
-              <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" alt="Avatar del usuario" class="avatar-img rounded-circle">
+                <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                    alt="Avatar del usuario" 
+                    class="avatar-img rounded-circle" 
+                    style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
             </span>
-          </a>
+        </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="#">Profile</a>
@@ -322,6 +325,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                     <label class="form-label">Correo Electrónico:</label>
                     <input type="text" class="form-control" id="correo" value="" readonly>
                   </div>
+
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">

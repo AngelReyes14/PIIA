@@ -37,6 +37,12 @@ if (isset($_POST['form_type'])) {
     }elseif ($form_type ===  'usuario-carrera'){
         $usuarioCarrera = new UsuarioHasCarrera($conn);
         $usuarioCarrera-> UsuarioCarrera();  // Método para procesar el formulario de usuario-carrera
+
+    } elseif ($form_type === 'incidencia-usuario') {
+        // Crear una instancia de la clase IncidenciaUsuario
+        $incidenciaUsuario = new IncidenciaUsuario($conn);
+        $incidenciaUsuario->handleRequest();  // Método para procesar el formulario de incidencia-usuario
+    
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
