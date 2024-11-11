@@ -52,7 +52,6 @@ class Consultas {
             return false;  // Devuelve false si ocurre algún error
         }
     }
-    
 
     public function obtenerImagen($iduser) {
         $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
@@ -342,6 +341,13 @@ $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate 
 $stmt = $this->conn->prepare($query);
 $stmt->execute();
 return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerDatosincidencias(){
+    $query = "SELECT * FROM datos_incidencia";        
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener los cuerpos colegiados
