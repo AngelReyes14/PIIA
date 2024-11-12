@@ -1,68 +1,83 @@
 <?php
 include('../../models/session.php');
-include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Crear instancia de Consultas y obtener tipo de usuario
+// Crear instancia de Consultas
 $consultas = new Consultas($conn);
-$idusuario = (int) $sessionManager->getUserId();
-$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 
-// Validar si el tipo de usuario fue correctamente obtenido
+// Obtener el ID del usuario actual y el tipo de usuario desde la sesión
+$idusuario = (int) $_SESSION['user_id'];
+$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
+// Validar tipo de usuario
 if (!$tipoUsuarioId) {
     die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
-// Si el tipo de usuario es 1, forzar que solo se muestre su propio perfil
+// Si el tipo de usuario es 1, forzar visualización solo de su perfil
 if ($tipoUsuarioId === 1) {
-  // Sobrescribir el idusuario para mostrar solo la información del usuario autenticado
-  $_GET['idusuario'] = $idusuario;
+    $_GET['idusuario'] = $idusuario;
 }
 
-// Crear una instancia de la clase Consultas
-$consultas = new Consultas($conn);
-
-// Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
+// Obtener usuario y carrera
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
-
-// Llamamos al método para obtener el usuario actual
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
-
-// Llamamos al método para obtener la carrera del usuario
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
-// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
+// Redirigir si no se encuentra el usuario
 if (!$usuario) {
     header("Location: ?idusuario=1");
     exit;
 }
 
-// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
+// Fusionar datos de usuario y carrera
 if ($carrera) {
     $usuario = array_merge($usuario, $carrera);
 }
 
-// Supongamos que la fecha de contratación viene del array $usuario
-$fechaContratacion = $usuario["fecha_contratacion"];
-
-// Convertimos la fecha de contratación en un objeto DateTime
-$fechaContratacionDate = new DateTime($fechaContratacion);
-
-// Obtenemos la fecha actual
+// Calcular antigüedad del usuario
+$fechaContratacionDate = new DateTime($usuario["fecha_contratacion"]);
 $fechaActual = new DateTime();
+$usuario['antiguedad'] = $fechaContratacionDate->diff($fechaActual)->y;
 
-// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
-$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
-
-// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
-$usuario['antiguedad'] = $antiguedad;
-
-// Verificar si se ha enviado el formulario de cerrar sesión
+// Cerrar sesión si se envió el formulario
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
+
+// Nombre de carrera
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+
+// Obtener listas de carreras y períodos
+$carreras = $consultas->obtenerCarreras();
+$periodos = $consultas->obtenerPeriodos();
+
+// Consultar incidencias del usuario
+$query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
 ?>
+
+
 
 
 <!doctype html>
@@ -134,11 +149,13 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
-            </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar avatar-sm mt-2">
+                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                      alt="Avatar del usuario" 
+                      class="avatar-img rounded-circle" 
+                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+              </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -152,9 +169,27 @@ if (isset($_POST['logout'])) {
       </ul>
     </nav>
   </div>
-  
-  <!-- Código HTML del carrusel -->
-<main role="main" class="main-content">
+<?php if ($tipoUsuarioId === 5 || $tipoUsuarioId == 3 || $tipoUsuarioId == 4): ?>
+    <!-- Filtro de carreras -->
+    <div class="card text-center">
+        <div class="card-body">
+            <h5 class="card-title">Filtrado por carrera</h5>
+            <div class="filter-container">
+                <select id="carreraSelect" class="form-control" style="max-width: 300px; margin: auto;">
+                    <option selected disabled>Seleccionar carrera</option>
+                    <?php foreach ($carreras as $carrera): ?>
+                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+ <!-- Código HTML del carrusel -->
+ <main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="container-fluid mb-3">
           <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
@@ -214,8 +249,6 @@ if (isset($_POST['logout'])) {
 
       
       <script>
-        // Script segun los casos 
-        //usuario 1 al 5
   // Pasar el tipo de usuario desde PHP a JavaScript
   const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
 
@@ -239,13 +272,33 @@ if (isset($_POST['logout'])) {
     // Función para actualizar la URL con el nuevo idusuario
     function updateUrl(newIdusuario) {
       window.location.href = `?idusuario=${newIdusuario}`;
+
     }
 
-    // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
-    siguiente.addEventListener("click", () => {
-      idusuario++; 
-      updateUrl(idusuario); 
+    // Función de filtrado de carreras
+    carreraSelect.addEventListener('change', function() {
+        const carreraId = carreraSelect.value;
+
+        // Enviar el carrera_id seleccionado al servidor mediante AJAX
+        $.ajax({
+            url: '../templates/filtrarPorCarrera.php',
+            type: 'POST',
+            data: { carrera_id: carreraId },
+            dataType: 'json',
+            success: function(response) {
+                if (response && response.length > 0) {
+                    actualizarCarrusel(response);
+                } else {
+                    console.error("No se recibieron usuarios.");
+                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                }
+            },
+            error: function() {
+                console.error('Error al obtener los usuarios por carrera.');
+            }
+        });
     });
+
 
     // Lógica para ir al usuario anterior 
     anterior.addEventListener("click", () => {
@@ -259,44 +312,191 @@ if (isset($_POST['logout'])) {
     anterior.disabled = true;
     siguiente.disabled = true;
   }
+
+    // Función para actualizar el contenido del carrusel con los usuarios recibidos
+    function actualizarCarrusel(usuarios) {
+        const carouselContent = document.getElementById('carouselContent');
+
+        // Limpiar el contenido anterior
+        carouselContent.innerHTML = '';
+
+        // Iterar sobre los usuarios y generar nuevas entradas del carrusel
+        usuarios.forEach((usuario, index) => {
+            const activeClass = index === 0 ? 'active' : '';
+
+            // Calcular la antigüedad del docente
+            const fechaContratacion = new Date(usuario.fecha_contratacion);
+            const fechaActual = new Date();
+            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+            const mesActual = fechaActual.getMonth();
+            const mesContratacion = fechaContratacion.getMonth();
+            if (mesActual < mesContratacion || (mesActual === mesContratacion && fechaActual.getDate() < fechaContratacion.getDate())) {
+                antiguedad--;
+            }
+
+            const carouselItem = `
+                <div class="carousel-item ${activeClass}">
+                    <div class="row">
+                        <div class="col-12 col-md-5 col-xl-3 text-center">
+                            <strong class="name-line">Foto del Docente:</strong> <br>
+                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                        </div>
+                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                            <p class="teacher-info h4">
+                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insertar el nuevo elemento en el carrusel
+            carouselContent.innerHTML += carouselItem;
+        });
+    }
+
 </script>
 
 
 
 
-<!---Parte de recursos humanos --->
+
+      <!-- Parte de recursos humanos -->
 <div class="container-fluid mt-0">
-        <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-          RECURSOS HUMANOS
-        </div>
-        <!-- Tarjeta principal -->
-        <div class="card shadow-lg p-4 mb-3">
-          <div class="wrapper">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-12">
-                  <!-- Título principal -->
-                  <div class="row align-items-center my-3">
-                  </div>
-                  <!-- Filtros -->
-                  <div class="container-filter mb-3 d-flex flex-wrap ">
-<!-- Filtro de Periodo -->
-<div class="card-body-filter period-filter box-shadow-div mx-1 mb-0 mt-0 position-relative">
-    <!-- Título del Filtro de Periodo -->
-    <span class="fe fe-24 fe-filter me-2"></span>
-    <label class="filter-label">Periodo:</label>
-    
-    <!-- Desplegable de Selección de Periodo -->
-    <div class="filter-options position-relative">
-        <select class="form-select" id="periodoSelect">
-            <option value="">Selecciona un periodo</option>
-            <?php foreach ($periodos as $periodo): ?>
-                <option value="<?php echo $periodo['periodo_id']; ?>">
+  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+    RECURSOS HUMANOS
+  </div>
+  
+  <!-- Tarjeta principal -->
+  <div class="card shadow-lg p-4 mb-3">
+    <div class="wrapper">
+      <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
+          <!-- Filtro de Periodo -->
+          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
+            <span class="fe fe-24 fe-filter me-2"></span>
+            <label class="filter-label">Periodo:</label>
+            <div class="filter-options position-relative">
+              <select class="form-select" id="periodoSelect">
+                <option value="">Selecciona un periodo</option>
+                <?php foreach ($periodos as $periodo): ?>
+                  <option value="<?php echo $periodo['periodo_id']; ?>">
                     <?php echo htmlspecialchars($periodo['descripcion']); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtro de División -->
+          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
+            <button class="btn-filter d-flex align-items-center">
+              <span class="fe fe-24 fe-filter me-2"></span>
+              <span class="filter-label" data-placeholder="División">
+                <?php echo $nombreCarrera; ?>
+              </span>
+            </button>
+            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+              <ul class="list-unstyled m-0 p-2">
+                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Incidencias -->
+        <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
+        <div class="row d-flex justify-content-center">
+          <!-- Bloque de Días Económicos -->
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="card-body-calendar box-shadow-div mb-3">
+              <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
+              <div class="text-verde">4</div>
+            </div>
+            <div class="card-body-calendar box-shadow-div">
+              <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
+              <div class="text-verde">1</div>
+            </div>
+          </div>
+
+          <!-- Calendario -->
+          <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
+            <div class="calendar-new box-shadow-div">
+              <div class="header d-flex align-items-center">
+                <div class="month"></div>
+                <div class="btns d-flex justify-content-center">
+                  <div class="btn today-btn mx-1">
+                    <i class="fe fe-24 fe-calendar"></i>
+                  </div>
+                  <div class="btn prev-btn mx-1">
+                    <i class="fe fe-24 fe-arrow-left"></i>
+                  </div>
+                  <div class="btn next-btn mx-1">
+                    <i class="fe fe-24 fe-arrow-right"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="weekdays d-flex">
+                <div class="day">Dom</div>
+                <div class="day">Lun</div>
+                <div class="day">Mar</div>
+                <div class="day">Mie</div>
+                <div class="day">Jue</div>
+                <div class="day">Vie</div>
+                <div class="day">Sab</div>
+              </div>
+              <div class="days">
+                <!-- días agregados dinámicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque de Avisos -->
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="card-body-calendar box-shadow-div mb-3">
+              <h3 class="h5">AVISOS</h3>
+              <div class="text-verde"><?php echo count($avisos); ?></div>
+            </div>
+            <div class="card-body-calendar">
+              <?php foreach ($avisos as $aviso): ?>
+                <div class="card-avisos mb-2">
+                  <strong>Motivo:</strong> <?php echo htmlspecialchars($aviso['motivo']); ?><br>
+                  <strong>Fecha de incidencia:</strong> <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal de Incidencias -->
+        <div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body" id="modalContent">
+                <!-- Contenido cargado dinámicamente -->
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
@@ -305,16 +505,13 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     console.log("Periodo seleccionado:", selectedPeriodId);
     
     if (selectedPeriodId) {
-        // Realiza una solicitud AJAX para obtener las fechas del periodo seleccionado
-        fetch(get_period_dates.php?id=${selectedPeriodId})
+=======
+        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.fecha_inicio && data.fecha_termino) {
-                    // Usa las fechas obtenidas para actualizar el calendario
                     const fechaInicio = new Date(data.fecha_inicio);
                     const fechaTermino = new Date(data.fecha_termino);
-                    
-                    // Llama a una función para actualizar el calendario con las nuevas fechas
                     actualizarCalendario(fechaInicio, fechaTermino);
                 }
             })
@@ -322,111 +519,13 @@ document.getElementById('periodoSelect').addEventListener('change', function() {
     }
 });
 
-// Función para actualizar el calendario con las fechas seleccionadas
 function actualizarCalendario(fechaInicio, fechaTermino) {
-    // Actualiza el mes y año inicial del calendario
     currentMonth = fechaInicio.getMonth();
     currentYear = fechaInicio.getFullYear();
-    
-    // Renderiza el calendario con el nuevo rango de fechas
     renderCalendar();
-
-    // Lógica opcional para deshabilitar días fuera del rango
-    // Puedes implementar esta lógica en renderCalendar() o aquí
 }
 </script>
 
-
-                   <!-- Filtro de División -->
-<div class="card-body-filter division-filter box-shadow-div mx-1 mb-2 position-relative">
-    <button class="btn-filter d-flex align-items-center">
-        <span class="fe fe-24 fe-filter me-2"></span>
-        <span class="filter-label" data-placeholder="División">
-            <?php echo $nombreCarrera; ?>
-        </span>
-    </button>
-    <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-        <ul class="list-unstyled m-0 p-2">
-            <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
-        </ul>
-    </div>
-</div>
-                  <!-- Sección de Incidencias -->
-                  <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
-                  <div class="row">
-                    <!-- Bloque de Días Económicos -->
-                    <div
-                      class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-1 order-lg-2 order-md-2 order-sm-2 order-2">
-                      <div class="card-body-calendar box-shadow-div mb-3">
-                        <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-                        <div class="text-verde">4</div>
-                      </div>
-                      <div class="card-body-calendar box-shadow-div">
-                        <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
-                        <div class="text-verde">1</div>
-                      </div>
-                    </div>
-                    <!-- Calendario -->
-                    <div
-                      class="col-xl-6 col-lg-12 col-md-12 col-sm-12 order-xl-2 order-lg-1 order-md-1 order-sm-1 order-1">
-                      <div class="calendar-new box-shadow-div">
-                        <div class="header d-flex  align-items-center">
-                          <div class="month"></div>
-                          <div class="btns d-flex justify-content-center">
-                            <div class="btn today-btn mx-1">
-                              <i class="fe fe-24 fe-calendar"></i>
-                            </div>
-                            <div class="btn prev-btn mx-1">
-                              <i class="fe fe-24 fe-arrow-left"></i>
-                            </div>
-                            <div class="btn next-btn mx-1">
-                              <i class="fe fe-24 fe-arrow-right"></i>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="weekdays d-flex">
-                          <div class="day">Dom</div>
-                          <div class="day">Lun</div>
-                          <div class="day">Mar</div>
-                          <div class="day">Mie</div>
-                          <div class="day">Jue</div>
-                          <div class="day">Vie</div>
-                          <div class="day">Sab</div>
-                        </div>
-                        <div class="days">
-                          <!-- días agregados dinámicamente -->
-                        </div>
-                      </div>
-                    </div>
-                    <!-- Avisos -->
-                     <!-- Modal -->
-<div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalContent">
-        <!-- Contenido cargado dinámicamente -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 order-xl-3 order-lg-3 order-md-3 order-sm-3 order-3">
-                      <div class="card-body-calendar box-shadow-div mb-3">
-                        <h3 class="h5">AVISOS</h3>
-                        <div class="text-verde">3</div>
-                      </div>
-                      <div class="card-body-calendar ">
-                        <div class="card-avisos">Faltó el día 14/02/24</div>
-                        <div class="card-avisos">Faltó el día 14/03/24</div>
-                        <div class="card-avisos">No dio 2 horas de clase al grupo 8ISC22</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -695,225 +794,6 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
               <!-- Columna para las tarjetas -->
             </div>
           </div>
-
-          <!-- <div class="row">
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="chart-widget">
-                <div id="gradientRadial"></div>
-              </div>
-              <div class="row">
-                <div class="col-6 text-center">
-                  <p class="text-muted mb-0">Yesterday</p>
-                  <h4 class="mb-1">126</h4>
-                  <p class="text-muted mb-2">+5.5%</p>
-                </div>
-                <div class="col-6 text-center">
-                  <p class="text-muted mb-0">Today</p>
-                  <h4 class="mb-1">86</h4>
-                  <p class="text-muted mb-2">-5.5%</p>
-                </div>
-              </div>
-            </div>
-          </div> 
-        </div> 
-
-
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="chart-widget mb-2">
-                <div id="radialbar"></div>
-              </div>
-              <div class="row items-align-center">
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Cost</p>
-                  <h6 class="mb-1">$1,823</h6>
-                  <p class="text-muted mb-0">+12%</p>
-                </div>
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Revenue</p>
-                  <h6 class="mb-1">$6,830</h6>
-                  <p class="text-muted mb-0">+8%</p>
-                </div>
-                <div class="col-4 text-center">
-                  <p class="text-muted mb-1">Earning</p>
-                  <h6 class="mb-1">$4,830</h6>
-                  <p class="text-muted mb-0">+8%</p>
-                </div>
-              </div>
-            </div> 
-          </div> 
-        </div> 
-
-
-        <div class="col-md-4">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <p class="mb-0"><strong class="mb-0 text-uppercase text-muted">Today</strong></p>
-              <h3 class="mb-0">$2,562.30</h3>
-              <p class="text-muted">+18.9% Last week</p>
-              <div class="chart-box mt-n5">
-                <div id="lineChartWidget"></div>
-              </div>
-              <div class="row">
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Completions</p>
-                  <h6 class="mb-0">26</h6>
-                  <span class="small text-muted">+20%</span>
-                  <span class="fe fe-arrow-up text-success fe-12"></span>
-                </div>
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Goal Value</p>
-                  <h6 class="mb-0">$260</h6>
-                  <span class="small text-muted">+6%</span>
-                  <span class="fe fe-arrow-up text-success fe-12"></span>
-                </div>
-                <div class="col-4 text-center mt-3">
-                  <p class="mb-1 text-muted">Conversion</p>
-                  <h6 class="mb-0">6%</h6>
-                  <span class="small text-muted">-2%</span>
-                  <span class="fe fe-arrow-down text-danger fe-12"></span>
-                </div>
-              </div>
-            </div> 
-          </div> 
-        </div> 
-
-
-        <div class="col-md-6">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="card-title">
-                <strong>Products</strong>
-                <a class="float-right small text-muted" href="#!">View all</a>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div id="chart-box">
-                    <div id="donutChartWidget"></div>
-                  </div>
-                </div>
-                <div class="col-md-12">
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>Cloud Server</strong>
-                      <div class="my-0 text-muted small">Global, Services</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+85%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>CDN</strong>
-                      <div class="my-0 text-muted small">Global, Services</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+75%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row align-items-center my-3">
-                    <div class="col">
-                      <strong>Databases</strong>
-                      <div class="my-0 text-muted small">Local, DC</div>
-                    </div>
-                    <div class="col-auto">
-                      <strong>+62%</strong>
-                    </div>
-                    <div class="col-3">
-                      <div class="progress" style="height: 4px;">
-                        <div class="progress-bar" role="progressbar" style="width: 62%" aria-valuenow="62"
-                          aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div> 
-              </div> 
-            </div>
-          </div> 
-        </div> 
-
-
-        <div class="col-md-6">
-          <div class="card shadow mb-4">
-            <div class="card-body">
-              <div class="card-title">
-                <strong>Region</strong>
-                <a class="float-right small text-muted" href="#!">View all</a>
-              </div>
-              <div class="map-box" style="position: relative; width: 350px; min-height: 130px; margin:0 auto;">
-                <div id="dataMapUSA"></div>
-              </div>
-              <div class="row align-items-center h-100 my-2">
-                <div class="col">
-                  <p class="mb-0">France</p>
-                  <span class="my-0 text-muted small">+10%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>118</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Netherlands</p>
-                  <span class="my-0 text-muted small">+0.6%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>1008</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Italy</p>
-                  <span class="my-0 text-muted small">+1.6%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>67</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="row align-items-center my-2">
-                <div class="col">
-                  <p class="mb-0">Spain</p>
-                  <span class="my-0 text-muted small">+118%</span>
-                </div>
-                <div class="col-auto text-right">
-                  <span>186</span><br />
-                  <div class="progress mt-2" style="height: 4px;">
-                    <div class="progress-bar" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0"
-                      aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> 
-      </div>  -->
         </div> <!-- .container-fluid -->
       </div> <!---- fin de la card principál------>
 
@@ -1265,6 +1145,56 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   <script src="js/datamaps.custom.js"></script>
   <script src="js/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  $(document).ready(function() {
+    // Abrir la modal y cargar el contenido
+    $('#openModalButton').on('click', function() {
+      $('#modalContent').load('form_incidencias.php', function() {
+        $('#incidenciasModal').modal('show');
+      });
+    });
+
+    // Interceptar el envío del formulario
+    $(document).on('submit', '#formincidencias', function(e) {
+      e.preventDefault(); // Prevenir el envío normal
+
+      // Crear el objeto FormData para enviar los datos del formulario
+      let formData = new FormData(this);
+
+      // Enviar los datos del formulario mediante AJAX
+      $.ajax({
+        url: '../../models/insert.php', // Cambia la ruta si es necesario
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          // Mostrar el SweetAlert si el envío fue exitoso
+          Swal.fire({
+            title: '¡Formulario enviado!',
+            text: 'Los datos se han enviado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+          }).then(() => {
+            // Cerrar la modal y recargar la página
+            $('#incidenciasModal').modal('hide');
+            location.reload(); // Recarga la página
+          });
+        },
+        error: function() {
+          // Mostrar SweetAlert en caso de error
+          Swal.fire({
+            title: 'Error',
+            text: 'Hubo un problema al enviar el formulario.',
+            icon: 'error',
+            confirmButtonText: 'Intentar de nuevo'
+          });
+        }
+      });
+    });
+  });
+</script>
   <script>
     /* defind global options */
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;

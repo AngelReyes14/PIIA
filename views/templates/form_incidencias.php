@@ -14,6 +14,24 @@ $consultas = new Consultas($conn);
 $carreras = $consultas->obtenerCarreras();
 $incidencias = $consultas->obtenerIncidencias();
 ?>
+<?php
+// Crear instancia de CarreraManager y obtener el ID de usuario
+$carreraManager = new CarreraManager($conn);
+$idusuario = $sessionManager->getUserId();
+
+// Obtener carrera para el usuario autenticado
+$carrera = $carreraManager->obtenerCarreraPorUsuario($idusuario);
+?>
+          <?php
+// Crear instancia de la clase UsuarioManager
+$usuarioManager = new UsuarioManager($conn);
+
+// Obtener el ID del usuario a través del SessionManager
+$idusuario = $sessionManager->getUserId();
+
+// Obtener el servidor público del usuario autenticado
+$servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario);
+?>
 
 <!-- Aquí sigue tu código HTML para el formulario -->
 
@@ -119,40 +137,22 @@ $incidencias = $consultas->obtenerIncidencias();
                   <div class="form-group p-3 border rounded" style="background-color: #f8f9fa;">
                     <div class="row">
                       <!-- Campo de Área alineado a la izquierda -->
-                      <div class="col-md-6">
-                        <label for="area" class="form-label">Área:</label>
-                        <select class="form-control" id="area" name="area" required>
-                          <option value="" disabled>Selecciona una carrera</option>
-                          <?php
-                          // Incluir archivo de conexión a la base de datos y sesión
-                          include('../controllers/db.php');
-                          include('../models/session.php');
 
-                          // Obtener el ID del usuario a través del SessionManager
-                          $idusuario = $sessionManager->getUserId();
+             <div class="col-md-6">
+                <label for="area" class="form-label">Área:</label>
+                <select class="form-control" id="area" name="area" required>
+                    <option value="" disabled>Selecciona una carrera</option>
+                    <?php if ($carrera): ?>
+                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>" selected>
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </option>
+                    <?php else: ?>
+                        <option value="">No hay carreras disponibles para este usuario</option>
+                    <?php endif; ?>
+                </select>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
 
-                          // Consulta para obtener la carrera asociada al usuario autenticado
-                          $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
-                                      FROM carrera
-                                      JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
-                                      WHERE usuario.usuario_id = :user_id";
-
-                          $stmt = $conn->prepare($query);
-                          $stmt->bindParam(':user_id', $idusuario);
-                          $stmt->execute();
-
-                          // Verificar si se obtuvo un resultado
-                          if ($stmt->rowCount() > 0) {
-                            // Recoger el resultado
-                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                            echo '<option value="' . htmlspecialchars($row['carrera_id']) . '" selected>' . htmlspecialchars($row['nombre_carrera']) . '</option>';
-                          } else {
-                            echo '<option value="">No hay carreras disponibles para este usuario</option>';
-                          }
-                          ?>
-                        </select>
-                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                      </div>
 
                       <!-- Campo de Fecha alineado a la derecha -->
                       <div class="col-md-6">
@@ -215,40 +215,24 @@ $incidencias = $consultas->obtenerIncidencias();
             </div>
           </div>
 
-          <div class="d-flex flex-column mb-3">
-            <div class="mb-2">
-              <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
-              <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
-                <option value="">Seleccione un servidor público</option>
-                <?php
-                // Incluir archivo de conexión a la base de datos
-                include('../controllers/db.php');
-                include('../models/session.php'); // Incluir el archivo de sesión para acceder a las variables de sesión
 
-                // Obtener el ID del usuario a través del SessionManager
-                $idusuario = $sessionManager->getUserId();
+<div class="d-flex flex-column mb-3">
+    <div class="mb-2">
+        <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
+        <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
+            <option value="">Seleccione un servidor público</option>
+            <?php
+            if ($servidorPublico) {
+                echo '<option value="' . htmlspecialchars($servidorPublico['usuario_id']) . '">' . htmlspecialchars($servidorPublico['nombre_completo']) . '</option>';
+            } else {
+                echo '<option value="">No hay servidores públicos disponibles</option>';
+            }
+            ?>
+        </select>
+        <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
+    </div>
+</div>
 
-                // Consulta SQL para obtener el servidor público del usuario autenticado
-                $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
-                      FROM usuario 
-                      WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
-                $stmt = $conn->prepare($query);
-                $stmt->bindParam(':user_id', $idusuario); // Vincular el ID del usuario a la consulta
-                $stmt->execute();
-
-                // Verificar si se obtuvieron resultados
-                if ($stmt->rowCount() > 0) {
-                  // Recoger el resultado
-                  $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                  echo '<option value="' . htmlspecialchars($row['usuario_id']) . '">' . htmlspecialchars($row['nombre_completo']) . '</option>';
-                } else {
-                  echo '<option value="">No hay servidores públicos disponibles</option>';
-                }
-                ?>
-              </select>
-              <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
-            </div>
-          </div>
           <!-- Botón para enviar el formulario -->
           <div class="text-center mt-4">
             <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
