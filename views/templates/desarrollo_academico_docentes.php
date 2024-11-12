@@ -3,6 +3,12 @@ include('../../models/session.php');
 include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
+
+
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
@@ -22,12 +28,6 @@ if ($carrera) {
   $usuario = array_merge($usuario, $carrera);
 }
 
-// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
-if (!$usuario) {
-  header("Location: ?idusuario=1");
-  exit;
-}
-
 // Supongamos que la fecha de contratación viene del array $usuario
 $fechaContratacion = $usuario["fecha_contratacion"];
 
@@ -42,10 +42,6 @@ $antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo l
 
 // Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
 $usuario['antiguedad'] = $antiguedad;
-
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
 
 ?>
 
@@ -115,11 +111,13 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
-            </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar avatar-sm mt-2">
+                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                      alt="Avatar del usuario" 
+                      class="avatar-img rounded-circle" 
+                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+              </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
