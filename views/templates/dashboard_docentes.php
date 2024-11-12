@@ -211,7 +211,11 @@ if (isset($_POST['logout'])) {
           </div>
         </div>
       </div>
+
+      
       <script>
+        // Script segun los casos 
+        //usuario 1 al 5
   // Pasar el tipo de usuario desde PHP a JavaScript
   const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
 
