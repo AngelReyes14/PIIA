@@ -4,10 +4,6 @@ include('../../controllers/db.php'); // Asegúrate de que este archivo incluya l
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
-
-$imgUser  = $consultas->obtenerImagen($idusuario);
-
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
@@ -26,6 +22,14 @@ $carreras = $consultas->obtenerCarreras();
 if ($carrera) {
   $usuario = array_merge($usuario, $carrera);
 }
+
+
+// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
+if (!$usuario) {
+  header("Location: ?idusuario=1");
+  exit;
+}
+
 
 // Supongamos que la fecha de contratación viene del array $usuario
 $fechaContratacion = $usuario["fecha_contratacion"];
@@ -115,13 +119,11 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+            </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -135,85 +137,76 @@ if (isset($_POST['logout'])) {
       </ul>
     </nav>
   </div>
-<!---Div de imagen de perfil (con espacio debajo del botón para separarlo)----------------------->
-<div class="card text-center">
-    <div class="card-body">
-        <h5 class="card-title">Filtrado por División</h5>
-        <div class="filter-container" style="position: relative; display: inline-block;">
-            <button id="filterBtn" class="btn btn-primary" style="margin-bottom: 10px;">Seleccionar División</button>
-            <div id="filterOptions" class="filter-options d-none">
-                <select class="form-control">
-                    <?php foreach ($carreras as $carrera): ?>
-                        <option class="dropdown-item" data-value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
-                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-    </div>
-</div>
-  
 
+  
+  <div class="card text-center">
+    <div class="card-body">
+      <h5 class="card-title">Filtrado por División</h5>
+      <div class="filter-container" style="position: relative; display: inline-block;">
+        <button id="filterBtn" class="btn btn-primary">Seleccionar División</button>
+        <div id="filterOptions" class="filter-options d-none">
+          <?php foreach ($carreras as $carrera): ?>
+            <div class="dropdown-item" data-value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
+              <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+           
+      </div>
+    </div>
+  </div>
+
+  </div>
 
   <div role="main" class="main-content">
     <!---Div de imagen de perfil (falta darle estilos a las letras)----------------------->
-    <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
-      <div class="container-fluid mb-3">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-          PERFIL DOCENTE
-        </div>
-        <div class="row justify-content-center mb-0">
-          <div class="col-12">
-            <div class="row">
-              <div class="col-md-12 col-xl-12 mb-0">
-                <div class="card box-shadow-div text-red rounded-lg">
-                  <div class="row align-items-center">
-                    <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
-                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                      <span class="visually-hidden"></span>
-                    </button>
+    <div class="row justify-content-center mb-0">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-md-12 col-xl-12 mb-0">
+            <div class="card box-shadow-div text-red rounded-lg">
+              <div class="row align-items-center">
+                <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden"></span>
+                </button>
 
-                    <div id="miCarrusel" class="carousel slide col-10">
-                      <div class="carousel-inner" id="carouselContent">
-                        <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
-                          <div class="row">
-                            <div class="col-12 col-md-5 col-xl-3 text-center">
-                              <strong class="name-line">Foto del Docente:</strong> <br>
-                              <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
-                            </div>
-                            <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                              <p class="teacher-info h4" id="teacherInfo">
-                                <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
-                                <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
-                                <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
-                                <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
-                                <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
-                                <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
-                                <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
-                                <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
-                                <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
-                              </p>
-                            </div>
-                          </div>
+                <div id="miCarrusel" class="carousel slide col-10">
+                  <div class="carousel-inner" id="carouselContent">
+                    <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+                      <div class="row">
+                        <div class="col-12 col-md-5 col-xl-3 text-center">
+                          <strong class="name-line">Foto del Docente:</strong> <br>
+                          <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
                         </div>
-                        <!-- Más elementos del carrusel se generarán dinámicamente -->
+                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                          <p class="teacher-info h4" id="teacherInfo">
+                            <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+                            <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
+                            <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+                            <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+                            <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+                            <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                            <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+                            <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
+                            <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
+                          </p>
+                        </div>
                       </div>
                     </div>
-
-                    <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
-                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                      <span class="visually-hidden"></span>
-                    </button>
+                    <!-- Más elementos del carrusel se generarán dinámicamente -->
                   </div>
                 </div>
+                <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden"></span>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-
+      <!------>
       <script>
         document.addEventListener("DOMContentLoaded", function() {
           // Inicializar el carrusel con interval en false para desactivar el auto avance

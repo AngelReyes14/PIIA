@@ -1,24 +1,23 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php');
+include('../../models/consultas.php');
 include('aside.php');
-
-// Verificar si hay un mensaje de error en la sesión
-if (isset($_SESSION['error'])) {
-  $errorMessage = $_SESSION['error']; // Obtener el mensaje de error
-  unset($_SESSION['error']); // Eliminar el mensaje de error de la sesión
-} else {
-  $errorMessage = null; // No hay error
-}
-
-// Crear una instancia del manejador de sesión
-$sessionManager = new SessionManager(7); // Ajusta el tiempo de vida de la sesión según sea necesario
-
-// Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
+
+$conn = $database->getConnection();
+$consultas = new Consultas($conn);
+
+// Obtener las carreras
+$carreras = $consultas->obtenerCarreras();
+$incidencias = $consultas->obtenerDatosincidencias();
+
+
 ?>
 
+<!-- Aquí sigue tu código HTML para el formulario -->
 
 <!doctype html>
 <html lang="en">
@@ -29,7 +28,7 @@ if (isset($_POST['logout'])) {
   <meta name="description" content="">
   <meta name="author" content="">
   <link rel="icon" href="assets/images/PIIA_oscuro 1.png">
-  <title>PIIA</title>
+  <title>Reporte de Incidencias</title>
   <!-- Simple bar CSS -->
   <link rel="stylesheet" href="css/simplebar.css">
   <!-- Fonts CSS -->
@@ -38,8 +37,6 @@ if (isset($_POST['logout'])) {
     rel="stylesheet">
   <!-- Icons CSS -->
   <link rel="stylesheet" href="css/feather.css">
-  <!-- FullCalendar CSS -->
-  <link rel="stylesheet" href="css/fullcalendar.css">
   <link rel="stylesheet" href="css/select2.css">
   <link rel="stylesheet" href="css/dropzone.css">
   <link rel="stylesheet" href="css/uppy.min.css">
@@ -51,11 +48,16 @@ if (isset($_POST['logout'])) {
   <!-- App CSS -->
   <link rel="stylesheet" href="css/app-light.css" id="lightTheme">
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme" disabled>
-  <link rel="stylesheet" href="css/landingPage.css">
-  <!-- CSS adicional para ajustar el tamaño del texto en pantallas pequeñas -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Include DataTables CSS and JS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css">
+  <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+
+  <script src="js/form_carrera.js"></script>
 </head>
 
-<body class="vertical  light " data-error2="<?php echo htmlspecialchars($errorMessage); ?>">
+<body class="vertical  light  ">
   <div class="wrapper">
     <nav class="topnav navbar navbar-light">
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
@@ -93,57 +95,133 @@ if (isset($_POST['logout'])) {
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="#">Activities</a>
-            <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
-
         </li>
       </ul>
     </nav>
-
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <main role="main" class="main-content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <div class="card my-1 cardPrincipal">
-              <div class="card-body carta p-2">
-                <div class="row no-gutters contenido">
+      <div class="col-md-12">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="logo-container mb-3">
+              <img class="form-logo-left" src="assets/images/logo-teschi.png" alt="Logo Izquierda">
+              <img class="form-logo-right" src="assets/icon/icon_piia.png" alt="Logo Derecha">
+            </div>
+              <div class="row mb-3">
+                <!-- Caja contenedora para los campos de "Área" y "Fecha" en la misma fila -->
+                <div class="col-md-12">
+                <div class="container-fluid ">
+          <div class="row justify-content-center">
+            <div class="col-12 ">
+              <div class="row my-4">
+                <!-- Small table -->
+                <div class="col-md-12 ">
+                    
+                  <div class="card shadow p-5">
+                    <div class="table-responsive">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+              <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
+            </div>
+            <table class="table datatables" id="dataTable-1">
+  <thead>
+    <tr>
+      <th>Tipo Incidencia</th>
+      <th>Usuario</th>
+      <th>Fecha Solicitada</th>
+      <th>Motivo</th>
+      <th>Horario Inicio</th>
+      <th>Horario Término</th>
+      <th>Horario Incidencia</th>
+      <th>Día Incidencia</th>
+      <th>Carrera</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($incidencias as $incidencia): ?>
+      <tr>
+        <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
+        <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
+        <td><?php echo $incidencia['fecha_solicitada']; ?></td>
+        <td><?php echo $incidencia['motivo']; ?></td>
+        <td><?php echo $incidencia['horario_inicio']; ?></td>
+        <td><?php echo $incidencia['horario_termino']; ?></td>
+        <td><?php echo $incidencia['horario_incidencia']; ?></td>
+        <td><?php echo $incidencia['dia_incidencia']; ?></td>
+        <td><?php echo $incidencia['nombre_carrera']; ?></td>
+        <td>
+          <?php
+            // Determinar la clase CSS según el status_incidencia_id
+            $statusClass = '';
+            switch ($incidencia['status_incidencia_id']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color <?php echo $statusClass; ?>"></span>
+        </td>
+      </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
 
-                  <!-- Columna del texto -->
-                  <div class="col-md-6 text-left d-flex flex-column justify-content-center">
-                    <h1 class="titulo">
-                      Bienvenido
-                    </h1>
-                    <h2 class="subtitulo">
-                      Plataforma Integradora de Información Académica
-                    </h2>
-                    <hr class="separador">
-                    <p class="texto text-justify">
-                      PIIA es una herramienta esencial para maestros, administradores y directivos, que centraliza y
-                      optimiza la gestión de datos académicos. Facilita el seguimiento del progreso académico, la
-                      coordinación de procesos y la toma de decisiones estratégicas, mejorando la calidad educativa y
-                      optimizando los recursos institucionales.
-                    </p>
+
                   </div>
+                </div> <!-- simple table -->
+              </div> <!-- end section -->
+            </div> <!-- .col-12 -->
+          </div> <!-- .row -->
+        </div> <!-- .container-fluid -->
+                </div>
+      </div>
+    </main>
+  </div>
+                </div>
 
-                  <!-- Columna de la imagen -->
-                  <div class="col-md-6 p-0 position-relative"> <!-- Imagen alineada a la izquierda -->
-                    <img src="assets/images/WhatsApp_Image_2024-09-10_at_1.46.17_PM-removebg.png" class="img-fluid logo"
-                      alt="Imagen">
-                  </div>
+            </div>
+          </div>
+        </div>
 
-
+          <!-- Botón para enviar el formulario -->
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
+          </div>
+          <!-- Modal -->
+          <!-- Modal -->
+          <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customModalLabel">AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</h5>
+                </div>
+                <div class="modal-body">
+                  DATOS ENVIADOS.
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="closeModal">Cerrar</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
   </div>
+  </main>
+
 
   <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
     aria-hidden="true">
@@ -213,6 +291,7 @@ if (isset($_POST['logout'])) {
       </div>
     </div>
   </div>
+
   <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -272,6 +351,7 @@ if (isset($_POST['logout'])) {
   </div>
   </main> <!-- main -->
   </div> <!-- .wrapper -->
+
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -281,36 +361,69 @@ if (isset($_POST['logout'])) {
   <script src='js/jquery.stickOnScroll.js'></script>
   <script src="js/tinycolor-min.js"></script>
   <script src="js/config.js"></script>
-  <script src='js/fullcalendar.js'></script>
-  <script src='js/fullcalendar.custom.js'></script>
+  <script src="js/d3.min.js"></script>
+  <script src="js/topojson.min.js"></script>
+  <script src="js/datamaps.all.min.js"></script>
+  <script src="js/datamaps-zoomto.js"></script>
+  <script src="js/datamaps.custom.js"></script>
+  <script src="js/Chart.min.js"></script>
+  <!-- Incluir SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/form_carrera.js"></script>
   <script>
-    /** full calendar */
-    var calendarEl = document.getElementById('calendar');
-    if (calendarEl) {
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          plugins: ['dayGrid', 'timeGrid', 'list', 'bootstrap'],
-          timeZone: 'UTC',
-          themeSystem: 'bootstrap',
-          header: {
-            left: 'today, prev, next',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-          },
-          buttonIcons: {
-            prev: 'fe-arrow-left',
-            next: 'fe-arrow-right',
-            prevYear: 'left-double-arrow',
-            nextYear: 'right-double-arrow'
-          },
-          weekNumbers: true,
-          eventLimit: true, // allow "more" link when too many events
-          events: 'https://fullcalendar.io/demo-events.json'
-        });
-        calendar.render();
-      });
+    function getNextBusinessDays(date, days) {
+      let result = new Date(date);
+      let addedDays = 0;
+
+      while (addedDays < days) {
+        result.setDate(result.getDate() + 1);
+        // Skip Saturdays (6) and Sundays (0)
+        if (result.getDay() !== 6 && result.getDay() !== 0) {
+          addedDays++;
+        }
+      }
+      return result;
     }
+
+    function getPreviousBusinessDays(date, days) {
+      let result = new Date(date);
+      let subtractedDays = 0;
+
+      while (subtractedDays < days) {
+        result.setDate(result.getDate() - 1);
+        // Skip Saturdays (6) and Sundays (0)
+        if (result.getDay() !== 6 && result.getDay() !== 0) {
+          subtractedDays++;
+        }
+      }
+      return result;
+    }
+
+    // Obtenemos la fecha actual
+    const today = new Date();
+
+    // Calculamos las fechas mínima y máxima excluyendo fines de semana
+    const minDate = getPreviousBusinessDays(today, 3); // 3 días hábiles antes
+    const maxDate = getNextBusinessDays(today, 3); // 3 días hábiles después
+
+    // Convertimos las fechas al formato YYYY-MM-DD
+    const minDateString = minDate.toISOString().split("T")[0];
+    const maxDateString = maxDate.toISOString().split("T")[0];
+
+    // Establecemos los atributos min y max en el input de fecha
+    const fechaInput = document.getElementById("fecha");
+    fechaInput.min = minDateString;
+    fechaInput.max = maxDateString;
   </script>
+  <script>
+    /* defind global options */
+    Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
+    Chart.defaults.global.defaultFontColor = colors.mutedColor;
+  </script>
+  <script src="js/gauge.min.js"></script>
+  <script src="js/jquery.sparkline.min.js"></script>
+  <script src="js/apexcharts.min.js"></script>
+  <script src="js/apexcharts.custom.js"></script>
   <script src='js/jquery.mask.min.js'></script>
   <script src='js/select2.min.js'></script>
   <script src='js/jquery.steps.min.js'></script>

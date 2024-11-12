@@ -52,7 +52,6 @@ class Consultas {
             return false;  // Devuelve false si ocurre algún error
         }
     }
-    
 
     public function obtenerImagen($iduser) {
         $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
@@ -245,6 +244,29 @@ class Consultas {
     
      //************************************************************************************* */    
 
+
+    // Método en la clase Consultas para obtener los usuarios de una carrera
+    public function obtenerUsuariosPorCarreraId($idCarrera)
+    {
+        $sql = "SELECT id_usuario FROM usuarios WHERE id_carrera = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $idCarrera);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $usuarios = [];
+        while ($row = $result->fetch_assoc()) {
+            $usuarios[] = $row['id_usuario'];
+        }
+
+        return $usuarios; // Devuelve un array de ids de usuarios
+    }
+
+
+
+
+    //************************************************************************************* */    
+
     
     // Método para obtener los semestres
     public function obtenerSemestres() {
@@ -301,6 +323,8 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+
+
     // Método para obtener semestres basados en la carrera seleccionada
     public function obtenerSemestresPorCarrera($carrera_id) {
         if (empty($carrera_id)) {
@@ -342,6 +366,13 @@ $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate 
 $stmt = $this->conn->prepare($query);
 $stmt->execute();
 return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerDatosincidencias(){
+    $query = "SELECT * FROM datos_incidencia";        
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener los cuerpos colegiados
