@@ -13,10 +13,24 @@ $consultas = new Consultas($conn);
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
 $incidencias = $consultas->obtenerIncidencias();
+?>
+<?php
+// Crear instancia de CarreraManager y obtener el ID de usuario
+$carreraManager = new CarreraManager($conn);
+$idusuario = $sessionManager->getUserId();
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+// Obtener carrera para el usuario autenticado
+$carrera = $carreraManager->obtenerCarreraPorUsuario($idusuario);
+?>
+          <?php
+// Crear instancia de la clase UsuarioManager
+$usuarioManager = new UsuarioManager($conn);
 
-$imgUser  = $consultas->obtenerImagen($idusuario);
+// Obtener el ID del usuario a través del SessionManager
+$idusuario = $sessionManager->getUserId();
+
+// Obtener el servidor público del usuario autenticado
+$servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario);
 ?>
 
 <!-- Aquí sigue tu código HTML para el formulario -->
@@ -87,13 +101,11 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+            </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -109,8 +121,6 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <main role="main" class="main-content">
       <div class="col-md-12">
-      <form id="formincidencias" method="POST" action="../../models/insert.php" enctype="multipart/form-data">
-      <input type="hidden" name="form_type" value="incidencia-usuario">
         <div class="card shadow mb-4">
           <div class="card-body">
             <div class="logo-container mb-3">
@@ -127,37 +137,22 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
                   <div class="form-group p-3 border rounded" style="background-color: #f8f9fa;">
                     <div class="row">
                       <!-- Campo de Área alineado a la izquierda -->
-                      <div class="col-md-6">
-                        <label for="area" class="form-label">Área:</label>
-                        <select class="form-control" id="area" name="area" required>
-                          <option value="" disabled>Selecciona una carrera</option>
-                          <?php
 
-                          // Obtener el ID del usuario a través del SessionManager
-                          $idusuario = $sessionManager->getUserId();
+             <div class="col-md-6">
+                <label for="area" class="form-label">Área:</label>
+                <select class="form-control" id="area" name="area" required>
+                    <option value="" disabled>Selecciona una carrera</option>
+                    <?php if ($carrera): ?>
+                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>" selected>
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </option>
+                    <?php else: ?>
+                        <option value="">No hay carreras disponibles para este usuario</option>
+                    <?php endif; ?>
+                </select>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
 
-                          // Consulta para obtener la carrera asociada al usuario autenticado
-                          $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
-                                      FROM carrera
-                                      JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
-                                      WHERE usuario.usuario_id = :user_id";
-
-                          $stmt = $conn->prepare($query);
-                          $stmt->bindParam(':user_id', $idusuario);
-                          $stmt->execute();
-
-                          // Verificar si se obtuvo un resultado
-                          if ($stmt->rowCount() > 0) {
-                            // Recoger el resultado
-                            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                            echo '<option value="' . htmlspecialchars($row['carrera_id']) . '" selected>' . htmlspecialchars($row['nombre_carrera']) . '</option>';
-                          } else {
-                            echo '<option value="">No hay carreras disponibles para este usuario</option>';
-                          }
-                          ?>
-                        </select>
-                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                      </div>
 
                       <!-- Campo de Fecha alineado a la derecha -->
                       <div class="col-md-6">
@@ -198,23 +193,17 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
 
           <div class="d-flex flex-wrap mb-3">
             <div class="form-group mr-3 flex-fill mb-3">
-              <label for="start-time" class="horario-label me-2">Horario entrada:</label>
+              <label class="horario-label me-2">Horario:</label>
               <div class="d-flex">
                 <input type="time" id="start-time" name="start-time" required class="me-1 form-control">
-              </div>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="end-time" class="horario-label me-2">Horario salida:</label>
-              <div class="d-flex">
+                <span class="me-1">a</span>
                 <input type="time" id="end-time" name="end-time" required class="form-control">
               </div>
               <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
 
             <div class="form-group mr-3 flex-fill mb-3">
-              <label for="time" class="me-2">Hora de Incidencia:</label>
+              <label for="hora-incidencia" class="me-2">Hora de Incidencia:</label>
               <input class="form-control" id="example-time" type="time" name="time" required>
               <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
@@ -226,37 +215,24 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
             </div>
           </div>
 
-          <div class="d-flex flex-column mb-3">
-            <div class="mb-2">
-              <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
-              <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
-                <option value="">Seleccione un servidor público</option>
-                <?php
 
-                // Obtener el ID del usuario a través del SessionManager
-                $idusuario = $sessionManager->getUserId();
+<div class="d-flex flex-column mb-3">
+    <div class="mb-2">
+        <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
+        <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
+            <option value="">Seleccione un servidor público</option>
+            <?php
+            if ($servidorPublico) {
+                echo '<option value="' . htmlspecialchars($servidorPublico['usuario_id']) . '">' . htmlspecialchars($servidorPublico['nombre_completo']) . '</option>';
+            } else {
+                echo '<option value="">No hay servidores públicos disponibles</option>';
+            }
+            ?>
+        </select>
+        <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
+    </div>
+</div>
 
-                // Consulta SQL para obtener el servidor público del usuario autenticado
-                $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
-                      FROM usuario 
-                      WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
-                $stmt = $conn->prepare($query);
-                $stmt->bindParam(':user_id', $idusuario); // Vincular el ID del usuario a la consulta
-                $stmt->execute();
-
-                // Verificar si se obtuvieron resultados
-                if ($stmt->rowCount() > 0) {
-                  // Recoger el resultado
-                  $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                  echo '<option value="' . htmlspecialchars($row['usuario_id']) . '">' . htmlspecialchars($row['nombre_completo']) . '</option>';
-                } else {
-                  echo '<option value="">No hay servidores públicos disponibles</option>';
-                }
-                ?>
-              </select>
-              <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
-            </div>
-          </div>
           <!-- Botón para enviar el formulario -->
           <div class="text-center mt-4">
             <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
@@ -279,7 +255,6 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
             </div>
           </div>
         </div>
-      </form>
       </div>
   </div>
   </main>
@@ -494,25 +469,6 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script>
-$(document).ready(function() {
-    $('#submit-button').on('click', function() {
-        // Aquí puedes realizar validaciones antes de enviar
-        if ($("#formincidencias")[0].checkValidity()) {
-            // Si el formulario es válido, envíalo
-            $('#formincidencias').submit(); // Esto enviará el formulario
-        } else {
-            // Si no es válido, muestra el mensaje de error
-            $("#formincidencias")[0].reportValidity();
-        }
-    });
-
-    $('#closeModal').on('click', function() {
-        $('#customModal').modal('hide');
-    });
-});
-
-</script>
   <script>
     $('.select2').select2({
       theme: 'bootstrap4',
