@@ -4,7 +4,9 @@ include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
+
 // Crear instancia de Consultas
+
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
@@ -62,6 +64,23 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 
 // Obtener el nombre de la carrera del usuario
 $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
@@ -247,7 +266,8 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
-    // Pasar el tipo de usuario desde PHP a JavaScript
+
+    // Pasar el tipo de usuario y el ID actual desde PHP a JavaScript
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
 
@@ -256,32 +276,40 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
     const siguiente = document.getElementById("siguiente");
     const carreraSelect = document.getElementById('carreraSelect');
 
+    // Variable para almacenar la lista de usuarios filtrados
+    let usuariosFiltrados = [];
+    let indiceUsuarioActual = 0; // Índice del usuario actual en la lista filtrada
+
     // Deshabilitar botones si el tipo de usuario no permite mover el carrusel
     if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
     } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        // Función para actualizar la URL con el nuevo idusuario
-        function updateUrl(newIdusuario) {
-            window.location.href = `?idusuario=${newIdusuario}`;
+        // Función para actualizar el contenido del carrusel al cambiar de usuario
+        function actualizarVistaUsuario(index) {
+            const usuario = usuariosFiltrados[index];
+            actualizarCarrusel([usuario]);  // Llama a la función de actualización del carrusel con el usuario actual
         }
 
-        // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
+        // Mover al siguiente usuario en la lista filtrada
         siguiente.addEventListener("click", () => {
-            idusuario++;
-            updateUrl(idusuario);
+            if (usuariosFiltrados.length > 0 && indiceUsuarioActual < usuariosFiltrados.length - 1) {
+                indiceUsuarioActual++;
+                actualizarVistaUsuario(indiceUsuarioActual);
+            }
         });
 
-        // Lógica para ir al usuario anterior
+        // Mover al usuario anterior en la lista filtrada
         anterior.addEventListener("click", () => {
-            if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
+            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
+                indiceUsuarioActual--;
+                actualizarVistaUsuario(indiceUsuarioActual);
             }
         });
     } else {
         anterior.disabled = true;
         siguiente.disabled = true;
+
     }
 
     // Función de filtrado de carreras
@@ -296,7 +324,9 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             dataType: 'json',
             success: function(response) {
                 if (response && response.length > 0) {
-                    actualizarCarrusel(response);
+                    usuariosFiltrados = response; // Guardar usuarios filtrados
+                    indiceUsuarioActual = 0; // Reiniciar el índice al primer usuario
+                    actualizarCarrusel(usuariosFiltrados); // Mostrar el primer usuario filtrado
                 } else {
                     console.error("No se recibieron usuarios.");
                     document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
@@ -357,10 +387,8 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             carouselContent.innerHTML += carouselItem;
         });
     }
+  
 </script>
-
-
-
 
 
 

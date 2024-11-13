@@ -2,6 +2,7 @@
 include('../../models/session.php');
 include('../../controllers/db.php');
 include('../../models/consultas.php');
+
 // Variables y consultas necesarias
 $consultas = new Consultas($database->getConnection());
 $carreras = $consultas->obtenerCarreras();
@@ -57,7 +58,6 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
                         <label for="fecha" class="form-label">Fecha:</label>
                         <input class="form-control" id="fecha" type="date" name="fecha" required>
                         <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-
                       </div>
                     </div>
                   </div>
@@ -65,7 +65,6 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
               </div>
             </div>
           </div>
-
         </div>
         <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
           <div class="form-group mb-3">
