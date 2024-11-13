@@ -391,52 +391,6 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 </script>
 
 
-      <!-- Parte de recursos humanos -->
-<div class="container-fluid mt-0">
-  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-    RECURSOS HUMANOS
-  </div>
-  
-  <!-- Tarjeta principal -->
-  <div class="card shadow-lg p-4 mb-3">
-    <div class="wrapper">
-      <div class="container-fluid">
-        <!-- Filtros -->
-        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
-          <!-- Filtro de Periodo -->
-          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
-            <span class="fe fe-24 fe-filter me-2"></span>
-            <label class="filter-label">Periodo:</label>
-            <div class="filter-options position-relative">
-              <select class="form-select" id="periodoSelect">
-                <option value="">Selecciona un periodo</option>
-                <?php foreach ($periodos as $periodo): ?>
-                  <option value="<?php echo $periodo['periodo_id']; ?>">
-                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-
-          <!-- Filtro de División -->
-          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
-            <button class="btn-filter d-flex align-items-center">
-              <span class="fe fe-24 fe-filter me-2"></span>
-              <span class="filter-label" data-placeholder="División">
-                <?php echo $nombreCarrera; ?>
-              </span>
-            </button>
-            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-              <ul class="list-unstyled m-0 p-2">
-                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
-              </ul>
-            </div>
-          </div>
-
-
-
-
 
 
       <!-- Parte de recursos humanos -->
