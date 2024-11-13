@@ -22,12 +22,6 @@ if ($carrera) {
   $usuario = array_merge($usuario, $carrera);
 }
 
-// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
-if (!$usuario) {
-  header("Location: ?idusuario=1");
-  exit;
-}
-
 // Supongamos que la fecha de contratación viene del array $usuario
 $fechaContratacion = $usuario["fecha_contratacion"];
 
