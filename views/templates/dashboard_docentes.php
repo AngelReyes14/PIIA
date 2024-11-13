@@ -4,7 +4,9 @@ include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
+
 // Crear instancia de Consultas
+
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
@@ -62,6 +64,23 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
+// Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 
 // Obtener el nombre de la carrera del usuario
 $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
@@ -247,6 +266,7 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
+
     // Pasar el tipo de usuario y el ID actual desde PHP a JavaScript
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
@@ -289,6 +309,7 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
     } else {
         anterior.disabled = true;
         siguiente.disabled = true;
+
     }
 
     // Función de filtrado de carreras
@@ -366,9 +387,52 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             carouselContent.innerHTML += carouselItem;
         });
     }
+  
 </script>
 
 
+      <!-- Parte de recursos humanos -->
+<div class="container-fluid mt-0">
+  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+    RECURSOS HUMANOS
+  </div>
+  
+  <!-- Tarjeta principal -->
+  <div class="card shadow-lg p-4 mb-3">
+    <div class="wrapper">
+      <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
+          <!-- Filtro de Periodo -->
+          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
+            <span class="fe fe-24 fe-filter me-2"></span>
+            <label class="filter-label">Periodo:</label>
+            <div class="filter-options position-relative">
+              <select class="form-select" id="periodoSelect">
+                <option value="">Selecciona un periodo</option>
+                <?php foreach ($periodos as $periodo): ?>
+                  <option value="<?php echo $periodo['periodo_id']; ?>">
+                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtro de División -->
+          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
+            <button class="btn-filter d-flex align-items-center">
+              <span class="fe fe-24 fe-filter me-2"></span>
+              <span class="filter-label" data-placeholder="División">
+                <?php echo $nombreCarrera; ?>
+              </span>
+            </button>
+            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+              <ul class="list-unstyled m-0 p-2">
+                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+              </ul>
+            </div>
+          </div>
 
 
 
