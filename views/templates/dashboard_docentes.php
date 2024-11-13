@@ -1,67 +1,81 @@
 <?php
 include('../../models/session.php');
-include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
+include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
+// Crear instancia de Consultas
+
+$consultas = new Consultas($conn);
+
+// Obtener el ID del usuario actual y el tipo de usuario desde la sesión
+$idusuario = (int) $_SESSION['user_id'];
+$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
-
-// Crear instancia de Consultas y obtener tipo de usuario
-$consultas = new Consultas($conn);
-$idusuario = (int) $sessionManager->getUserId();
-$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
-
-// Validar si el tipo de usuario fue correctamente obtenido
+// Validar tipo de usuario
 if (!$tipoUsuarioId) {
     die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
-// Si el tipo de usuario es 1, forzar que solo se muestre su propio perfil
+// Si el tipo de usuario es 1, forzar visualización solo de su perfil
 if ($tipoUsuarioId === 1) {
-  // Sobrescribir el idusuario para mostrar solo la información del usuario autenticado
-  $_GET['idusuario'] = $idusuario;
+    $_GET['idusuario'] = $idusuario;
 }
 
-// Crear una instancia de la clase Consultas
-$consultas = new Consultas($conn);
-
-// Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
+// Obtener usuario y carrera
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
-
-// Llamamos al método para obtener el usuario actual
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
-
-// Llamamos al método para obtener la carrera del usuario
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
-// Si no se encuentra el usuario, redirigimos al primer usuario (idusuario = 1)
+// Redirigir si no se encuentra el usuario
 if (!$usuario) {
     header("Location: ?idusuario=1");
     exit;
 }
 
-// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
+// Fusionar datos de usuario y carrera
 if ($carrera) {
     $usuario = array_merge($usuario, $carrera);
 }
 
-// Supongamos que la fecha de contratación viene del array $usuario
-$fechaContratacion = $usuario["fecha_contratacion"];
-
-// Convertimos la fecha de contratación en un objeto DateTime
-$fechaContratacionDate = new DateTime($fechaContratacion);
-
-// Obtenemos la fecha actual
+// Calcular antigüedad del usuario
+$fechaContratacionDate = new DateTime($usuario["fecha_contratacion"]);
 $fechaActual = new DateTime();
+$usuario['antiguedad'] = $fechaContratacionDate->diff($fechaActual)->y;
 
-// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
-$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
+// Cerrar sesión si se envió el formulario
+if (isset($_POST['logout'])) {
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 
-// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
-$usuario['antiguedad'] = $antiguedad;
+// Nombre de carrera
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+
+// Obtener listas de carreras y períodos
+$carreras = $consultas->obtenerCarreras();
+$periodos = $consultas->obtenerPeriodos();
+
+// Consultar incidencias del usuario
+$query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// Obtener el nombre de la carrera del usuario
+$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
+$periodos = $consultas->obtenerPeriodos();
+$query = "SELECT motivo, dia_incidencia 
+          FROM incidencia_has_usuario 
+          WHERE usuario_usuario_id = :user_id";
+
+$stmt = $conn->prepare($query);
+$stmt->bindParam(':user_id', $idusuario);
+$stmt->execute();
+$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
 // Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
@@ -81,6 +95,8 @@ $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
 ?>
+
+
 
 
 <!doctype html>
@@ -172,9 +188,27 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
       </ul>
     </nav>
   </div>
-  
-  <!-- Código HTML del carrusel -->
-<main role="main" class="main-content">
+<?php if ($tipoUsuarioId === 5 || $tipoUsuarioId == 3 || $tipoUsuarioId == 4): ?>
+    <!-- Filtro de carreras -->
+    <div class="card text-center">
+        <div class="card-body">
+            <h5 class="card-title">Filtrado por carrera</h5>
+            <div class="filter-container">
+                <select id="carreraSelect" class="form-control" style="max-width: 300px; margin: auto;">
+                    <option selected disabled>Seleccionar carrera</option>
+                    <?php foreach ($carreras as $carrera): ?>
+                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
+                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+ <!-- Código HTML del carrusel -->
+ <main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="container-fluid mb-3">
           <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
@@ -232,46 +266,177 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
-  // Pasar el tipo de usuario desde PHP a JavaScript
-  const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
 
-  // Obtener el idusuario actual desde la URL o forzar el usuario autenticado si el tipo es 1
-  const urlParams = new URLSearchParams(window.location.search);
-  let idusuario = parseInt(urlParams.get("idusuario")) || 1; 
+    // Pasar el tipo de usuario y el ID actual desde PHP a JavaScript
+    const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
+    let idusuario = <?= json_encode($idusuario) ?>;
 
-  // Seleccionar los botones de navegación
-  const anterior = document.getElementById("anterior");
-  const siguiente = document.getElementById("siguiente");
+    // Obtener los elementos de navegación y filtro
+    const anterior = document.getElementById("anterior");
+    const siguiente = document.getElementById("siguiente");
+    const carreraSelect = document.getElementById('carreraSelect');
 
-  // Deshabilitar botones y forzar la información del usuario actual si el tipo de usuario no permite mover el carrusel
-  if (tipoUsuarioId === 1) {
-    anterior.disabled = true;
-    siguiente.disabled = true;
-    
-    // Sobrescribir el idusuario con el id del usuario autenticado
-    idusuario = <?= json_encode($idusuario) ?>;
-  } else if (tipoUsuarioId === 2) {
+    // Variable para almacenar la lista de usuarios filtrados
+    let usuariosFiltrados = [];
+    let indiceUsuarioActual = 0; // Índice del usuario actual en la lista filtrada
 
-    // Función para actualizar la URL con el nuevo idusuario
-    function updateUrl(newIdusuario) {
-      window.location.href = `?idusuario=${newIdusuario}`;
+    // Deshabilitar botones si el tipo de usuario no permite mover el carrusel
+    if (tipoUsuarioId === 1) {
+        anterior.disabled = true;
+        siguiente.disabled = true;
+    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
+        // Función para actualizar el contenido del carrusel al cambiar de usuario
+        function actualizarVistaUsuario(index) {
+            const usuario = usuariosFiltrados[index];
+            actualizarCarrusel([usuario]);  // Llama a la función de actualización del carrusel con el usuario actual
+        }
+
+        // Mover al siguiente usuario en la lista filtrada
+        siguiente.addEventListener("click", () => {
+            if (usuariosFiltrados.length > 0 && indiceUsuarioActual < usuariosFiltrados.length - 1) {
+                indiceUsuarioActual++;
+                actualizarVistaUsuario(indiceUsuarioActual);
+            }
+        });
+
+        // Mover al usuario anterior en la lista filtrada
+        anterior.addEventListener("click", () => {
+            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
+                indiceUsuarioActual--;
+                actualizarVistaUsuario(indiceUsuarioActual);
+            }
+        });
+    } else {
+        anterior.disabled = true;
+        siguiente.disabled = true;
+
     }
 
-    // Cargar un nuevo usuario al hacer clic en el botón "Siguiente"
-    siguiente.addEventListener("click", () => {
-      idusuario++; 
-      updateUrl(idusuario); 
+    // Función de filtrado de carreras
+    carreraSelect.addEventListener('change', function() {
+        const carreraId = carreraSelect.value;
+
+        // Enviar el carrera_id seleccionado al servidor mediante AJAX
+        $.ajax({
+            url: '../templates/filtrarPorCarrera.php',
+            type: 'POST',
+            data: { carrera_id: carreraId },
+            dataType: 'json',
+            success: function(response) {
+                if (response && response.length > 0) {
+                    usuariosFiltrados = response; // Guardar usuarios filtrados
+                    indiceUsuarioActual = 0; // Reiniciar el índice al primer usuario
+                    actualizarCarrusel(usuariosFiltrados); // Mostrar el primer usuario filtrado
+                } else {
+                    console.error("No se recibieron usuarios.");
+                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                }
+            },
+            error: function() {
+                console.error('Error al obtener los usuarios por carrera.');
+            }
+        });
     });
 
-    // Lógica para ir al usuario anterior 
-    anterior.addEventListener("click", () => {
-      if (idusuario > 1) { 
-        idusuario--; 
-        updateUrl(idusuario); 
-      }
-    });
-  }
+    // Función para actualizar el contenido del carrusel con los usuarios recibidos
+    function actualizarCarrusel(usuarios) {
+        const carouselContent = document.getElementById('carouselContent');
+
+        // Limpiar el contenido anterior
+        carouselContent.innerHTML = '';
+
+        // Iterar sobre los usuarios y generar nuevas entradas del carrusel
+        usuarios.forEach((usuario, index) => {
+            const activeClass = index === 0 ? 'active' : '';
+
+            // Calcular la antigüedad del docente
+            const fechaContratacion = new Date(usuario.fecha_contratacion);
+            const fechaActual = new Date();
+            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+            const mesActual = fechaActual.getMonth();
+            const mesContratacion = fechaContratacion.getMonth();
+            if (mesActual < mesContratacion || (mesActual === mesContratacion && fechaActual.getDate() < fechaContratacion.getDate())) {
+                antiguedad--;
+            }
+
+            const carouselItem = `
+                <div class="carousel-item ${activeClass}">
+                    <div class="row">
+                        <div class="col-12 col-md-5 col-xl-3 text-center">
+                            <strong class="name-line">Foto del Docente:</strong> <br>
+                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                        </div>
+                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                            <p class="teacher-info h4">
+                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insertar el nuevo elemento en el carrusel
+            carouselContent.innerHTML += carouselItem;
+        });
+    }
+  
 </script>
+
+
+      <!-- Parte de recursos humanos -->
+<div class="container-fluid mt-0">
+  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+    RECURSOS HUMANOS
+  </div>
+  
+  <!-- Tarjeta principal -->
+  <div class="card shadow-lg p-4 mb-3">
+    <div class="wrapper">
+      <div class="container-fluid">
+        <!-- Filtros -->
+        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
+          <!-- Filtro de Periodo -->
+          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
+            <span class="fe fe-24 fe-filter me-2"></span>
+            <label class="filter-label">Periodo:</label>
+            <div class="filter-options position-relative">
+              <select class="form-select" id="periodoSelect">
+                <option value="">Selecciona un periodo</option>
+                <?php foreach ($periodos as $periodo): ?>
+                  <option value="<?php echo $periodo['periodo_id']; ?>">
+                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtro de División -->
+          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
+            <button class="btn-filter d-flex align-items-center">
+              <span class="fe fe-24 fe-filter me-2"></span>
+              <span class="filter-label" data-placeholder="División">
+                <?php echo $nombreCarrera; ?>
+              </span>
+            </button>
+            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+              <ul class="list-unstyled m-0 p-2">
+                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+              </ul>
+            </div>
+          </div>
+
+
+
+
 
 
       <!-- Parte de recursos humanos -->
