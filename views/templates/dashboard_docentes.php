@@ -266,57 +266,65 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
-
-    // Pasar el tipo de usuario y el ID actual desde PHP a JavaScript
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
 
-    // Obtener los elementos de navegación y filtro
+    const urlParams = new URLSearchParams(window.location.search);
+    idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+
     const anterior = document.getElementById("anterior");
     const siguiente = document.getElementById("siguiente");
     const carreraSelect = document.getElementById('carreraSelect');
 
-    // Variable para almacenar la lista de usuarios filtrados
     let usuariosFiltrados = [];
-    let indiceUsuarioActual = 0; // Índice del usuario actual en la lista filtrada
+    let indiceUsuarioActual = 0;
 
-    // Deshabilitar botones si el tipo de usuario no permite mover el carrusel
     if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
     } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        // Función para actualizar el contenido del carrusel al cambiar de usuario
         function actualizarVistaUsuario(index) {
             const usuario = usuariosFiltrados[index];
-            actualizarCarrusel([usuario]);  // Llama a la función de actualización del carrusel con el usuario actual
+            actualizarCarrusel([usuario]);
         }
 
-        // Mover al siguiente usuario en la lista filtrada
+        function updateUrl(newIdusuario) {
+            if (tipoUsuarioId !== 5) {
+                window.location.href = `?idusuario=${newIdusuario}`;
+            }
+        }
+
         siguiente.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0 && indiceUsuarioActual < usuariosFiltrados.length - 1) {
-                indiceUsuarioActual++;
+            if (usuariosFiltrados.length > 0) {
+                if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
+                    indiceUsuarioActual++;
+                } else {
+                    indiceUsuarioActual = 0;
+                }
                 actualizarVistaUsuario(indiceUsuarioActual);
+            } else {
+                idusuario++;
+                updateUrl(idusuario);
             }
         });
 
-        // Mover al usuario anterior en la lista filtrada
         anterior.addEventListener("click", () => {
             if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
                 indiceUsuarioActual--;
                 actualizarVistaUsuario(indiceUsuarioActual);
+            } else if (idusuario > 1) {
+                idusuario--;
+                updateUrl(idusuario);
             }
         });
     } else {
         anterior.disabled = true;
         siguiente.disabled = true;
-
     }
 
-    // Función de filtrado de carreras
     carreraSelect.addEventListener('change', function() {
         const carreraId = carreraSelect.value;
 
-        // Enviar el carrera_id seleccionado al servidor mediante AJAX
         $.ajax({
             url: '../templates/filtrarPorCarrera.php',
             type: 'POST',
@@ -324,11 +332,10 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
             dataType: 'json',
             success: function(response) {
                 if (response && response.length > 0) {
-                    usuariosFiltrados = response; // Guardar usuarios filtrados
-                    indiceUsuarioActual = 0; // Reiniciar el índice al primer usuario
-                    actualizarCarrusel(usuariosFiltrados); // Mostrar el primer usuario filtrado
+                    usuariosFiltrados = response;
+                    indiceUsuarioActual = 0;
+                    actualizarCarrusel(usuariosFiltrados);
                 } else {
-                    console.error("No se recibieron usuarios.");
                     document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
                 }
             },
@@ -338,24 +345,16 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         });
     });
 
-    // Función para actualizar el contenido del carrusel con los usuarios recibidos
     function actualizarCarrusel(usuarios) {
         const carouselContent = document.getElementById('carouselContent');
-
-        // Limpiar el contenido anterior
         carouselContent.innerHTML = '';
 
-        // Iterar sobre los usuarios y generar nuevas entradas del carrusel
         usuarios.forEach((usuario, index) => {
             const activeClass = index === 0 ? 'active' : '';
-
-            // Calcular la antigüedad del docente
             const fechaContratacion = new Date(usuario.fecha_contratacion);
             const fechaActual = new Date();
             let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-            const mesActual = fechaActual.getMonth();
-            const mesContratacion = fechaContratacion.getMonth();
-            if (mesActual < mesContratacion || (mesActual === mesContratacion && fechaActual.getDate() < fechaContratacion.getDate())) {
+            if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
                 antiguedad--;
             }
 
@@ -383,11 +382,9 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
                 </div>
             `;
 
-            // Insertar el nuevo elemento en el carrusel
             carouselContent.innerHTML += carouselItem;
         });
     }
-  
 </script>
 
 
