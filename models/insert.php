@@ -42,12 +42,6 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new IncidenciaUsuario($conn);
         $incidenciaUsuario->handleRequest();  // Método para procesar el formulario de incidencia-usuario
-
-    } elseif ($form_type === 'incidencia-usuario1') {
-        // Crear una instancia de la clase IncidenciaUsuario
-        $incidenciaUsuario = new IncidenciaUsuario($conn);
-        $incidenciaUsuario->handleRequest1();  // Método para procesar el formulario de incidencia-usuario
-    
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
