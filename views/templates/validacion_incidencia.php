@@ -138,6 +138,9 @@ $incidencias = $consultas->obtenerDatosincidencias();
       <th>Horario Incidencia</th>
       <th>Día Incidencia</th>
       <th>Carrera</th>
+      <th>Validación por División Académica</th>
+      <th>Validación por Subdirección</th>
+      <th>Validación por Recursos Humanos</th>
       <th>Status</th>
     </tr>
   </thead>
@@ -153,13 +156,72 @@ $incidencias = $consultas->obtenerDatosincidencias();
         <td><?php echo $incidencia['horario_incidencia']; ?></td>
         <td><?php echo $incidencia['dia_incidencia']; ?></td>
         <td><?php echo $incidencia['nombre_carrera']; ?></td>
-        <td>
+        <td class="text-center">
           <?php
-            // Determinar la clase CSS según el status_incidencia_id
+            $statusClass = '';
+            switch ($incidencia['validacion_division_academica']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color <?php echo $statusClass; ?>"></span>
+        </td>
+        <td class="text-center">
+          <?php
+            $statusClass = '';
+            switch ($incidencia['validacion_subdireccion']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color <?php echo $statusClass; ?>"></span>
+        </td>
+        <td class="text-center">
+          <?php
+            $statusClass = '';
+            switch ($incidencia['validacion_rh']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color  <?php echo $statusClass; ?>"></span>
+        </td>
+        <td class="text-center">
+          <?php
             $statusClass = '';
             switch ($incidencia['status_incidencia_id']) {
               case 1:
-                $statusClass = 'status-color-green';
+                $statusClass = 'status-color-greenw';
                 break;
               case 2:
                 $statusClass = 'status-color-red';
