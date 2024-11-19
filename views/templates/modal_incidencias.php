@@ -21,7 +21,7 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
 
 <!-- Tu formulario HTML aquí -->
 <form id="formincidencias" method="POST" action="../../models/insert.php" enctype="multipart/form-data">
-      <input type="hidden" name="form_type" value="incidencia-usuario1">
+      <input type="hidden" name="form_type" value="incidencia-usuario">
         <div class="card shadow mb-4">
           <div class="card-body">
             <div class="logo-container mb-3">
