@@ -13,7 +13,11 @@ $consultas = new Consultas($conn);
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
 $incidencias = $consultas->obtenerDatosincidencias();
-
+$idusuario = (int) $_SESSION['user_id'];
+$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario); // Usar $usuario_tipo directamente
+if (!$usuario_tipo) {
+  die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+}
 
 ?>
 
@@ -138,6 +142,9 @@ $incidencias = $consultas->obtenerDatosincidencias();
       <th>Horario Incidencia</th>
       <th>Día Incidencia</th>
       <th>Carrera</th>
+      <th>Validación por División Académica</th>
+      <th>Validación por Subdirección</th>
+      <th>Validación por Recursos Humanos</th>
       <th>Status</th>
     </tr>
   </thead>
@@ -153,13 +160,81 @@ $incidencias = $consultas->obtenerDatosincidencias();
         <td><?php echo $incidencia['horario_incidencia']; ?></td>
         <td><?php echo $incidencia['dia_incidencia']; ?></td>
         <td><?php echo $incidencia['nombre_carrera']; ?></td>
-        <td>
+        <td class="text-center">
+  <?php if ($usuario_tipo == 2): // Solo permitir interacción si el usuario es de tipo 2 ?>
+    <?php
+      $statusClass = '';
+      switch ($incidencia['validacion_division_academica']) {
+        case 1:
+          $statusClass = 'status-color-green';
+          break;
+        case 2:
+          $statusClass = 'status-color-red';
+          break;
+        case 3:
+          $statusClass = 'status-color-yellow';
+          break;
+        default:
+          $statusClass = 'status-color-gray';
+      }
+    ?>
+    <span 
+      class="status-color <?php echo $statusClass; ?>" 
+      data-incidencia-id="<?php echo $incidencia['id_incidencia']; ?>" 
+      data-validacion="division"
+      style="cursor: pointer;" 
+      onclick="validarIncidencia(this)">
+    </span>
+  <?php else: ?>
+    <span class="status-color <?php echo $statusClass; ?>"></span>
+  <?php endif; ?>
+</td>
+        <td class="text-center">
           <?php
-            // Determinar la clase CSS según el status_incidencia_id
+            $statusClass = '';
+            switch ($incidencia['validacion_subdireccion']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color <?php echo $statusClass; ?>"></span>
+        </td>
+        <td class="text-center">
+          <?php
+            $statusClass = '';
+            switch ($incidencia['validacion_rh']) {
+              case 1:
+                $statusClass = 'status-color-green';
+                break;
+              case 2:
+                $statusClass = 'status-color-red';
+                break;
+              case 3:
+                $statusClass = 'status-color-yellow';
+                break;
+              default:
+                $statusClass = 'status-color-gray';
+            }
+          ?>
+          <!-- Cuadro de color para el estado usando la clase CSS -->
+          <span class="status-color  <?php echo $statusClass; ?>"></span>
+        </td>
+        <td class="text-center">
+          <?php
             $statusClass = '';
             switch ($incidencia['status_incidencia_id']) {
               case 1:
-                $statusClass = 'status-color-green';
+                $statusClass = 'status-color-greenw';
                 break;
               case 2:
                 $statusClass = 'status-color-red';
@@ -191,15 +266,9 @@ $incidencias = $consultas->obtenerDatosincidencias();
     </main>
   </div>
                 </div>
-
             </div>
           </div>
         </div>
-
-          <!-- Botón para enviar el formulario -->
-          <div class="text-center mt-4">
-            <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
-          </div>
           <!-- Modal -->
           <!-- Modal -->
           <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
@@ -369,7 +438,76 @@ $incidencias = $consultas->obtenerDatosincidencias();
   <script src="js/Chart.min.js"></script>
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="js/form_carrera.js"></script>
+
+<script>
+function validarIncidencia(element) {
+    const incidenciaId = element.getAttribute("data-incidencia-id");
+    const usuarioId = element.getAttribute("data-usuario-id");
+
+    // Muestra el cuadro de diálogo de SweetAlert para confirmar la acción
+    Swal.fire({
+        title: '¿Aceptar o rechazar esta incidencia?',
+        showDenyButton: true,   // Muestra el botón de "Rechazar"
+        showCancelButton: true, // Muestra el botón de "Cancelar"
+        confirmButtonText: 'Aceptar',  // Botón para aceptar
+        denyButtonText: 'Rechazar',    // Botón para rechazar
+        cancelButtonText: 'Cancelar',  // Botón para cancelar
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si se confirma, actualiza la incidencia como aceptada (1)
+            actualizarIncidencia(incidenciaId, usuarioId, 1); // 1: Aceptar
+        } else if (result.isDenied) {
+            // Si se rechaza, actualiza la incidencia como rechazada (0)
+            actualizarIncidencia(incidenciaId, usuarioId, 0); // 0: Rechazar
+        }
+    });
+}
+
+function actualizarIncidencia(incidenciaId, usuarioId, validacion) {
+    const formData = new FormData();
+    formData.append("form_type", "validacion-incidencia"); // Agrega el tipo de formulario
+    formData.append("incidencias", incidenciaId);
+    formData.append("usuario-servidor-publico", usuarioId);
+    formData.append("validacion_divicion_academica", validacion);
+
+    // Realiza la petición al servidor usando fetch
+    fetch('../../models/insert.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log("Respuesta del servidor:", data); // Depuración
+        if (data.includes('success')) {
+            Swal.fire({
+                title: 'Actualizado',
+                text: 'La incidencia fue actualizada correctamente.',
+                icon: 'success'
+            }).then(() => {
+                location.reload(); // Refresca la página para mostrar los cambios
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: `No se pudo actualizar la incidencia. Respuesta del servidor: ${data}`,
+                icon: 'error'
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.',
+            icon: 'error'
+        });
+    });
+}
+</script>
+
+
+
+
   <script>
     function getNextBusinessDays(date, days) {
       let result = new Date(date);

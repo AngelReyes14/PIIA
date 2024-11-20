@@ -12726,3 +12726,25 @@ a.uppy-Dashboard-poweredBy {
   background-color: green; /* Fondo verde en hover */
   color: white; /* Letras blancas en hover */
 }
+
+.status-color {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+}
+
+.status-color-yellow {
+  background-color: yellow;
+}
+
+.status-color-green {
+  background-color: green;
+}
+
+.status-color-red {
+  background-color: red;
+}
+
+.status-color-gray {
+  background-color: gray;
+}
