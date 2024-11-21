@@ -389,7 +389,6 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
 
 
-
       <!-- Parte de recursos humanos -->
 <div class="container-fluid mt-0">
   <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
