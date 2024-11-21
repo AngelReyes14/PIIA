@@ -11,37 +11,46 @@ if (isset($_POST['form_type'])) {
     $form_type = $_POST['form_type'];
 
     // Manejar la recepción de los datos según el tipo de formulario
-    if ($form_type === 'materia') {
-        // Crear una instancia de la clase Materia
-        $materia = new Materia($conn);
-        $materia->handleFormSubmission();  // Método para procesar el formulario de materias
-    } elseif ($form_type === 'carrera') {
-        // Crear una instancia de la clase Carrera
-        $carrera = new Carrera($conn);
-        $carrera->handleFormSubmission();  // Método para procesar el formulario de carrera
+    if ($form_type === 'validacion-incidencia') {
+        // Validación de la incidencia
+        if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+            $incidenciaId = (int)$_POST['incidencia_id']; // ID de la incidencia
+            $validacion = $_POST['validacion']; // Tipo de validación (division, subdireccion, rh)
+            $estado = (int)$_POST['estado'];  // Estado (1: Aceptado, 2: Rechazado, 3: En espera)
 
-    } elseif ($form_type === 'usuario') {
-        // Crear una instancia de la clase Usuario
-        $usuario = new Usuario($conn);
-        $usuario->usuarios();  // Método para procesar el formulario de usuario
-        
-    } elseif ($form_type === 'grupo') {
-        // Crear una instancia de la clase Grupo
-        $grupo = new Grupo($conn);
-        $grupo->handleFormSubmission();  // Método para procesar el formulario de grupo
-    } elseif ($form_type === 'materia-grupo') {
-        // Crear una instancia de la clase Usuario
-        $materiagrupo = new MateriaGrupo($conn);
-        $materiagrupo->GrupoMateria();  // Método para procesar el formulario de usuario
+            // Determinar el campo a actualizar basado en la validación
+            $campoValidacion = '';
+            switch ($validacion) {
+                case 'division':
+                    $campoValidacion = 'validacion_divicion_academica';
+                    break;
+                case 'subdireccion':
+                    $campoValidacion = 'validacion_subdireccion';
+                    break;
+                case 'rh':
+                    $campoValidacion = 'validacion_rh';
+                    break;
+                default:
+                    echo "Campo de validación no válido.";
+                    exit;
+            }
 
-    }elseif ($form_type ===  'usuario-carrera'){
-        $usuarioCarrera = new UsuarioHasCarrera($conn);
-        $usuarioCarrera-> UsuarioCarrera();  // Método para procesar el formulario de usuario-carrera
+            // Actualizar solo la incidencia seleccionada
+            $query = "UPDATE incidencia_has_usuario 
+                      SET $campoValidacion = :estado 
+                      WHERE incidencia_incidenciaid = :incidenciaId";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+            $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
 
-    } elseif ($form_type === 'incidencia-usuario') {
-        // Crear una instancia de la clase IncidenciaUsuario
-        $incidenciaUsuario = new IncidenciaUsuario($conn);
-        $incidenciaUsuario->handleRequest();  // Método para procesar el formulario de incidencia-usuario
+            if ($stmt->execute()) {
+                echo "success";
+            } else {
+                echo "Error al actualizar la incidencia.";
+            }
+        } else {
+            echo "Datos incompletos para la actualización.";
+        }
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
