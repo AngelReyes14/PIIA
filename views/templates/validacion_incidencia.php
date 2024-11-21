@@ -189,6 +189,7 @@ if (!$usuario_tipo) {
     <span class="status-color <?php echo $statusClass; ?>"></span>
   <?php endif; ?>
 </td>
+
         <td class="text-center">
           <?php
             $statusClass = '';
@@ -441,68 +442,70 @@ if (!$usuario_tipo) {
 
 <script>
 function validarIncidencia(element) {
-    const incidenciaId = element.getAttribute("data-incidencia-id");
-    const usuarioId = element.getAttribute("data-usuario-id");
+    const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
+    const validacion = element.getAttribute("data-validacion"); // Tipo de validación (division, subdireccion, rh)
 
-    // Muestra el cuadro de diálogo de SweetAlert para confirmar la acción
     Swal.fire({
         title: '¿Aceptar o rechazar esta incidencia?',
-        showDenyButton: true,   // Muestra el botón de "Rechazar"
-        showCancelButton: true, // Muestra el botón de "Cancelar"
-        confirmButtonText: 'Aceptar',  // Botón para aceptar
-        denyButtonText: 'Rechazar',    // Botón para rechazar
-        cancelButtonText: 'Cancelar',  // Botón para cancelar
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        denyButtonText: 'Rechazar',
+        cancelButtonText: 'Cancelar',
     }).then((result) => {
         if (result.isConfirmed) {
-            // Si se confirma, actualiza la incidencia como aceptada (1)
-            actualizarIncidencia(incidenciaId, usuarioId, 1); // 1: Aceptar
+            actualizarIncidencia(incidenciaId, validacion, 1); // Estado 1: Aceptar
         } else if (result.isDenied) {
-            // Si se rechaza, actualiza la incidencia como rechazada (0)
-            actualizarIncidencia(incidenciaId, usuarioId, 0); // 0: Rechazar
+            actualizarIncidencia(incidenciaId, validacion, 2); // Estado 2: Rechazar
         }
     });
 }
 
-function actualizarIncidencia(incidenciaId, usuarioId, validacion) {
+function actualizarIncidencia(incidenciaId, validacion, estado) {
     const formData = new FormData();
-    formData.append("form_type", "validacion-incidencia"); // Agrega el tipo de formulario
-    formData.append("incidencias", incidenciaId);
-    formData.append("usuario-servidor-publico", usuarioId);
-    formData.append("validacion_divicion_academica", validacion);
+    formData.append("form_type", "validacion-incidencia"); // Tipo de formulario
+    formData.append("incidencia_id", incidenciaId); // Enviar solo el ID de la incidencia seleccionada
+    formData.append("validacion", validacion);
+    formData.append("estado", estado); // Estado (1, 2, o 3)
 
-    // Realiza la petición al servidor usando fetch
     fetch('../../models/insert.php', {
         method: 'POST',
-        body: formData
+        body: formData,
     })
-    .then(response => response.text())
-    .then(data => {
+    .then((response) => response.text())
+    .then((data) => {
         console.log("Respuesta del servidor:", data); // Depuración
         if (data.includes('success')) {
-            Swal.fire({
-                title: 'Actualizado',
-                text: 'La incidencia fue actualizada correctamente.',
-                icon: 'success'
-            }).then(() => {
-                location.reload(); // Refresca la página para mostrar los cambios
-            });
+            Swal.fire('Actualizado', 'La incidencia fue actualizada correctamente.', 'success')
+                .then(() => {
+                    // Actualiza solo la fila correspondiente con el ID de la incidencia
+                    let fila = document.querySelector(`[data-incidencia-id="${incidenciaId}"]`).closest('tr');
+                    if (fila) {
+                        // Cambiar la clase de estado en la fila
+                        let statusCell = fila.querySelector('.status-color');
+                        if (estado === 1) {
+                            statusCell.classList.add('status-color-green');
+                            statusCell.classList.remove('status-color-red', 'status-color-yellow');
+                        } else if (estado === 2) {
+                            statusCell.classList.add('status-color-red');
+                            statusCell.classList.remove('status-color-green', 'status-color-yellow');
+                        } else {
+                            statusCell.classList.add('status-color-yellow');
+                            statusCell.classList.remove('status-color-green', 'status-color-red');
+                        }
+                    }
+                });
         } else {
-            Swal.fire({
-                title: 'Error',
-                text: `No se pudo actualizar la incidencia. Respuesta del servidor: ${data}`,
-                icon: 'error'
-            });
+            Swal.fire('Error', `No se pudo actualizar la incidencia. Respuesta del servidor: ${data}`, 'error');
         }
     })
-    .catch(error => {
+    .catch((error) => {
         console.error("Error:", error);
-        Swal.fire({
-            title: 'Error',
-            text: 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.',
-            icon: 'error'
-        });
+        Swal.fire('Error', 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.', 'error');
     });
 }
+
+
 </script>
 
 
