@@ -45,7 +45,7 @@ if (isset($_POST['form_type'])) {
 
     } elseif ($form_type === 'validacion-incidencia') {
         // Crear una instancia de la clase IncidenciaUsuario
-        $incidenciaUsuario = new FormHandler($conn);
+        $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
     } else {
         // Manejar otros formularios o enviar un mensaje de error
