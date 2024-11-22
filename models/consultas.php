@@ -1199,67 +1199,73 @@ class UsuarioManager
     }
 }
 
-class FormHandler {
 
-    private $conn; // Conexion a la base de datos
+class ActualizarEstado {
+    private $conn;
 
-    // Constructor que recibe la conexión a la base de datos
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
 
-    // Método para manejar la validación de la incidencia
     public function handleForm() {
-        if (isset($_POST['form_type'])) {
-            $form_type = $_POST['form_type'];
+        if (isset($_POST['form_type']) && $_POST['form_type'] === 'validacion-incidencia') {
+            if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+                // Validar los datos recibidos
+                $incidenciaId = (int)$_POST['incidencia_id'];
+                $validacion = $_POST['validacion'];
+                $estado = (int)$_POST['estado'];
 
-            // Manejar la recepción de los datos según el tipo de formulario
-            if ($form_type === 'validacion-incidencia') {
-                // Validación de la incidencia
-                if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
-                    $incidenciaId = (int)$_POST['incidencia_id']; // ID de la incidencia
-                    $validacion = $_POST['validacion']; // Tipo de validación (division, subdireccion, rh)
-                    $estado = (int)$_POST['estado'];  // Estado (1: Aceptado, 2: Rechazado, 3: En espera)
+                if (empty($incidenciaId)) {
+                    echo "ID de incidencia no válido.";
+                    exit;
+                }
 
-                    // Determinar el campo a actualizar basado en la validación
-                    $campoValidacion = '';
-                    switch ($validacion) {
-                        case 'division':
-                            $campoValidacion = 'validacion_divicion_academica';
-                            break;
-                        case 'subdireccion':
-                            $campoValidacion = 'validacion_subdireccion';
-                            break;
-                        case 'rh':
-                            $campoValidacion = 'validacion_rh';
-                            break;
-                        default:
-                            echo "Campo de validación no válido.";
-                            exit;
-                    }
+                // Validar el campo de validación
+                $validaciones = [
+                    'division' => 'validacion_divicion_academica',
+                    'subdireccion' => 'validacion_subdireccion',
+                    'rh' => 'validacion_rh',
+                ];
+                $campoValidacion = $validaciones[$validacion] ?? null;
 
-                    // Actualizar solo la incidencia seleccionada
-                    $query = "UPDATE incidencia_has_usuario 
-                    SET $campoValidacion = :estado 
-                    WHERE incidencia_incidenciaid = :incidenciaId";
-                    $stmt = $this->conn->prepare($query);
-                    $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
-                    $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                if (!$campoValidacion) {
+                    echo "Campo de validación no válido.";
+                    exit;
+                }
 
-                    if ($stmt->execute()) {
+                // Verificar que el registro existe
+                $queryCheck = "SELECT COUNT(*) FROM incidencia_has_usuario WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmtCheck = $this->conn->prepare($queryCheck);
+                $stmtCheck->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                $stmtCheck->execute();
+
+                if ($stmtCheck->fetchColumn() === 0) {
+                    echo "No se encontró el registro con el ID proporcionado.";
+                    exit;
+                }
+
+                // Actualizar el registro específico
+                $query = "UPDATE incidencia_has_usuario 
+                          SET $campoValidacion = :estado 
+                          WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
                         echo "success";
                     } else {
-                        echo "Error al actualizar la incidencia.";
+                        echo "Advertencia: Se actualizaron más de un registro.";
                     }
                 } else {
-                    echo "Datos incompletos para la actualización.";
+                    echo "Error al actualizar la incidencia.";
                 }
             } else {
-                // Manejar otros formularios o enviar un mensaje de error
-                echo "Formulario no reconocido.";
+                echo "Datos incompletos para la actualización.";
             }
         } else {
-            echo "Tipo de formulario no especificado.";
+            echo "Formulario no reconocido.";
         }
     }
 }
