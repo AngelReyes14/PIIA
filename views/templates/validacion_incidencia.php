@@ -505,7 +505,6 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
 
 
 
-
   <script>
     function getNextBusinessDays(date, days) {
       let result = new Date(date);
