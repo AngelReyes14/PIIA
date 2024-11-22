@@ -11,7 +11,7 @@ if (isset($_POST['logout'])) {
 }
 
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión  
 
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
@@ -25,7 +25,7 @@ $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
-$maestros = $consultas->CarreraMaestros($carreraId);
+$maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
 
 // Get the count of women in the carrera
