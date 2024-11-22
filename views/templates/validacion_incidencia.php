@@ -130,131 +130,109 @@ if (!$usuario_tipo) {
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-            <table class="table datatables" id="dataTable-1">
-  <thead>
-    <tr>
-      <th>Tipo Incidencia</th>
-      <th>Usuario</th>
-      <th>Fecha Solicitada</th>
-      <th>Motivo</th>
-      <th>Horario Inicio</th>
-      <th>Horario Término</th>
-      <th>Horario Incidencia</th>
-      <th>Día Incidencia</th>
-      <th>Carrera</th>
-      <th>Validación por División Académica</th>
-      <th>Validación por Subdirección</th>
-      <th>Validación por Recursos Humanos</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php foreach ($incidencias as $incidencia): ?>
-      <tr>
-        <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
-        <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
-        <td><?php echo $incidencia['fecha_solicitada']; ?></td>
-        <td><?php echo $incidencia['motivo']; ?></td>
-        <td><?php echo $incidencia['horario_inicio']; ?></td>
-        <td><?php echo $incidencia['horario_termino']; ?></td>
-        <td><?php echo $incidencia['horario_incidencia']; ?></td>
-        <td><?php echo $incidencia['dia_incidencia']; ?></td>
-        <td><?php echo $incidencia['nombre_carrera']; ?></td>
-        <td class="text-center">
-  <?php if ($usuario_tipo == 2): // Solo permitir interacción si el usuario es de tipo 2 ?>
-    <?php
-      $statusClass = '';
-      switch ($incidencia['validacion_division_academica']) {
-        case 1:
-          $statusClass = 'status-color-green';
-          break;
+    <table class="table datatables" id="dataTable-1">
+        <thead>
+            <tr>
+                <th>Tipo Incidencia</th>
+                <th>Usuario</th>
+                <th>Fecha Solicitada</th>
+                <th>Motivo</th>
+                <th>Horario Inicio</th>
+                <th>Horario Término</th>
+                <th>Horario Incidencia</th>
+                <th>Día Incidencia</th>
+                <th>Carrera</th>
+                <th>Validación por División Académica</th>
+                <th>Validación por Subdirección</th>
+                <th>Validación por Recursos Humanos</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+          <?php // Función para obtener la clase de estado
+function getStatusClass($status) {
+    switch ($status) {
+        case 1: 
+            return 'status-color-green'; // Aceptado
         case 2:
-          $statusClass = 'status-color-red';
-          break;
+            return 'status-color-red'; // Rechazado
         case 3:
-          $statusClass = 'status-color-yellow';
-          break;
+            return 'status-color-yellow'; // En espera
         default:
-          $statusClass = 'status-color-gray';
-      }
-    ?>
-    <span 
-      class="status-color <?php echo $statusClass; ?>" 
-      data-incidencia-id="<?php echo $incidencia['id_incidencia']; ?>" 
-      data-validacion="division"
-      style="cursor: pointer;" 
-      onclick="validarIncidencia(this)">
-    </span>
-  <?php else: ?>
-    <span class="status-color <?php echo $statusClass; ?>"></span>
-  <?php endif; ?>
-</td>
+            return 'status-color-gray'; // Estado por defecto
+    }
+}?>
+        <?php foreach ($incidencias as $incidencia): ?>
+            <tr>
+                <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
+                <td><?php echo $incidencia['fecha_solicitada']; ?></td>
+                <td><?php echo $incidencia['motivo']; ?></td>
+                <td><?php echo $incidencia['horario_inicio']; ?></td>
+                <td><?php echo $incidencia['horario_termino']; ?></td>
+                <td><?php echo $incidencia['horario_incidencia']; ?></td>
+                <td><?php echo $incidencia['dia_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_carrera']; ?></td>
 
-        <td class="text-center">
-          <?php
-            $statusClass = '';
-            switch ($incidencia['validacion_subdireccion']) {
-              case 1:
-                $statusClass = 'status-color-green';
-                break;
-              case 2:
-                $statusClass = 'status-color-red';
-                break;
-              case 3:
-                $statusClass = 'status-color-yellow';
-                break;
-              default:
-                $statusClass = 'status-color-gray';
-            }
-          ?>
-          <!-- Cuadro de color para el estado usando la clase CSS -->
-          <span class="status-color <?php echo $statusClass; ?>"></span>
-        </td>
-        <td class="text-center">
-          <?php
-            $statusClass = '';
-            switch ($incidencia['validacion_rh']) {
-              case 1:
-                $statusClass = 'status-color-green';
-                break;
-              case 2:
-                $statusClass = 'status-color-red';
-                break;
-              case 3:
-                $statusClass = 'status-color-yellow';
-                break;
-              default:
-                $statusClass = 'status-color-gray';
-            }
-          ?>
-          <!-- Cuadro de color para el estado usando la clase CSS -->
-          <span class="status-color  <?php echo $statusClass; ?>"></span>
-        </td>
-        <td class="text-center">
-          <?php
-            $statusClass = '';
-            switch ($incidencia['status_incidencia_id']) {
-              case 1:
-                $statusClass = 'status-color-greenw';
-                break;
-              case 2:
-                $statusClass = 'status-color-red';
-                break;
-              case 3:
-                $statusClass = 'status-color-yellow';
-                break;
-              default:
-                $statusClass = 'status-color-gray';
-            }
-          ?>
-          <!-- Cuadro de color para el estado usando la clase CSS -->
-          <span class="status-color <?php echo $statusClass; ?>"></span>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-  </tbody>
+                <!-- Validación División Académica -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 2): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="division">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+                <!-- Validación Subdirección -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_subdireccion']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 7): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="subdireccion">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+                <!-- Validación Recursos Humanos -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_rh']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 3): ?>
+                            onclick="validarIncidencia(this)"
+                           data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="rh">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+                <!-- Estado -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['status_incidencia_id']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"></span>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
 </table>
-
 
                   </div>
                 </div> <!-- simple table -->
@@ -439,8 +417,7 @@ if (!$usuario_tipo) {
   <script src="js/Chart.min.js"></script>
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
+  <script>
 function validarIncidencia(element) {
     const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
     const validacion = element.getAttribute("data-validacion"); // Tipo de validación (division, subdireccion, rh)
@@ -481,8 +458,9 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
                     // Actualiza solo la fila correspondiente con el ID de la incidencia
                     let fila = document.querySelector(`[data-incidencia-id="${incidenciaId}"]`).closest('tr');
                     if (fila) {
-                        // Cambiar la clase de estado en la fila
-                        let statusCell = fila.querySelector('.status-color');
+                      let statusCell = fila.querySelector(`.status-color[data-validacion="${validacion}"]`);
+
+                        // Actualizar el color de la clase según el estado
                         if (estado === 1) {
                             statusCell.classList.add('status-color-green');
                             statusCell.classList.remove('status-color-red', 'status-color-yellow');
@@ -504,9 +482,7 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
         Swal.fire('Error', 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.', 'error');
     });
 }
-
-
-</script>
+  </script>
 
 
 
