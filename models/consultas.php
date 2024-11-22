@@ -1198,3 +1198,74 @@ class UsuarioManager
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
     }
 }
+
+
+class ActualizarEstado {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleForm() {
+        if (isset($_POST['form_type']) && $_POST['form_type'] === 'validacion-incidencia') {
+            if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+                // Validar los datos recibidos
+                $incidenciaId = (int)$_POST['incidencia_id'];
+                $validacion = $_POST['validacion'];
+                $estado = (int)$_POST['estado'];
+
+                if (empty($incidenciaId)) {
+                    echo "ID de incidencia no válido.";
+                    exit;
+                }
+
+                // Validar el campo de validación
+                $validaciones = [
+                    'division' => 'validacion_divicion_academica',
+                    'subdireccion' => 'validacion_subdireccion',
+                    'rh' => 'validacion_rh',
+                ];
+                $campoValidacion = $validaciones[$validacion] ?? null;
+
+                if (!$campoValidacion) {
+                    echo "Campo de validación no válido.";
+                    exit;
+                }
+
+                // Verificar que el registro existe
+                $queryCheck = "SELECT COUNT(*) FROM incidencia_has_usuario WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmtCheck = $this->conn->prepare($queryCheck);
+                $stmtCheck->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                $stmtCheck->execute();
+
+                if ($stmtCheck->fetchColumn() === 0) {
+                    echo "No se encontró el registro con el ID proporcionado.";
+                    exit;
+                }
+
+                // Actualizar el registro específico
+                $query = "UPDATE incidencia_has_usuario 
+                          SET $campoValidacion = :estado 
+                          WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
+                        echo "success";
+                    } else {
+                        echo "Advertencia: Se actualizaron más de un registro.";
+                    }
+                } else {
+                    echo "Error al actualizar la incidencia.";
+                }
+            } else {
+                echo "Datos incompletos para la actualización.";
+            }
+        } else {
+            echo "Formulario no reconocido.";
+        }
+    }
+}

@@ -130,8 +130,6 @@ if (!$usuario_tipo) {
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-<form id="formincidencias" method="POST" action="../../models/insert.php" enctype="multipart/form-data">
-    <input type="hidden" name="form_type" value="actualizar-incidencia">
     <table class="table datatables" id="dataTable-1">
         <thead>
             <tr>
@@ -151,90 +149,90 @@ if (!$usuario_tipo) {
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($incidencias as $incidencia): ?>
-                <tr>
-                    <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
-                    <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
-                    <td><?php echo $incidencia['fecha_solicitada']; ?></td>
-                    <td><?php echo $incidencia['motivo']; ?></td>
-                    <td><?php echo $incidencia['horario_inicio']; ?></td>
-                    <td><?php echo $incidencia['horario_termino']; ?></td>
-                    <td><?php echo $incidencia['horario_incidencia']; ?></td>
-                    <td><?php echo $incidencia['dia_incidencia']; ?></td>
-                    <td><?php echo $incidencia['nombre_carrera']; ?></td>
+          <?php // Función para obtener la clase de estado
+function getStatusClass($status) {
+    switch ($status) {
+        case 1: 
+            return 'status-color-green'; // Aceptado
+        case 2:
+            return 'status-color-red'; // Rechazado
+        case 3:
+            return 'status-color-yellow'; // En espera
+        default:
+            return 'status-color-gray'; // Estado por defecto
+    }
+}?>
+        <?php foreach ($incidencias as $incidencia): ?>
+            <tr>
+                <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
+                <td><?php echo $incidencia['fecha_solicitada']; ?></td>
+                <td><?php echo $incidencia['motivo']; ?></td>
+                <td><?php echo $incidencia['horario_inicio']; ?></td>
+                <td><?php echo $incidencia['horario_termino']; ?></td>
+                <td><?php echo $incidencia['horario_incidencia']; ?></td>
+                <td><?php echo $incidencia['dia_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_carrera']; ?></td>
 
-                    <!-- Validación División Académica -->
-                    <td class="text-center">
-                        <?php
-                        $statusClass = '';
-                        switch ($incidencia['validacion_division_academica']) {
-                            case 1: $statusClass = 'status-color-green'; break;
-                            case 2: $statusClass = 'status-color-red'; break;
-                            case 3: $statusClass = 'status-color-yellow'; break;
-                            default: $statusClass = 'status-color-gray';
-                        }
-                        ?>
-                        <span class="status-color <?php echo $statusClass; ?>"
-                            <?php if (in_array($usuario_tipo, [2])): ?>
-                                onclick="handleValidation('division_academica', <?php echo $incidencia['id_incidencia']; ?>)"
-                            <?php endif; ?>>
-                        </span>
-                    </td>
+                <!-- Validación División Académica -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 2): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="division">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
 
-                    <!-- Validación Subdirección -->
-                    <td class="text-center">
-                        <?php
-                        $statusClass = '';
-                        switch ($incidencia['validacion_subdireccion']) {
-                            case 1: $statusClass = 'status-color-green'; break;
-                            case 2: $statusClass = 'status-color-red'; break;
-                            case 3: $statusClass = 'status-color-yellow'; break;
-                            default: $statusClass = 'status-color-gray';
-                        }
-                        ?>
-                        <span class="status-color <?php echo $statusClass; ?>"
-                            <?php if ($usuario_tipo == 7): ?>
-                                onclick="handleValidation('subdireccion', <?php echo $incidencia['id_incidencia']; ?>)"
-                            <?php endif; ?>>
-                        </span>
-                    </td>
+                <!-- Validación Subdirección -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_subdireccion']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 7): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="subdireccion">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
 
-                    <!-- Validación Recursos Humanos -->
-                    <td class="text-center">
-                        <?php
-                        $statusClass = '';
-                        switch ($incidencia['validacion_rh']) {
-                            case 1: $statusClass = 'status-color-green'; break;
-                            case 2: $statusClass = 'status-color-red'; break;
-                            case 3: $statusClass = 'status-color-yellow'; break;
-                            default: $statusClass = 'status-color-gray';
-                        }
-                        ?>
-                        <span class="status-color <?php echo $statusClass; ?>"
-                            <?php if ($usuario_tipo == 3): ?>
-                                onclick="handleValidation('rh', <?php echo $incidencia['id_incidencia']; ?>)"
-                            <?php endif; ?>>
-                        </span>
-                    </td>
+                <!-- Validación Recursos Humanos -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_rh']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 3): ?>
+                            onclick="validarIncidencia(this)"
+                           data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="rh">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
 
-                    <!-- Estado -->
-                    <td class="text-center">
-                        <?php
-                        $statusClass = '';
-                        switch ($incidencia['status_incidencia_id']) {
-                            case 1: $statusClass = 'status-color-greenw'; break;
-                            case 2: $statusClass = 'status-color-red'; break;
-                            case 3: $statusClass = 'status-color-yellow'; break;
-                            default: $statusClass = 'status-color-gray';
-                        }
-                        ?>
-                        <span class="status-color <?php echo $statusClass; ?>"></span>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</form>
+                <!-- Estado -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['status_incidencia_id']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"></span>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
                   </div>
                 </div> <!-- simple table -->
@@ -420,75 +418,70 @@ if (!$usuario_tipo) {
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-function handleValidation(type, incidenciaId) {
-  // Determinar el campo a actualizar según el usuario
-  let validationField = '';
-  let statusValue = 0;
+function validarIncidencia(element) {
+    const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
+    const validacion = element.getAttribute("data-validacion"); // Tipo de validación (division, subdireccion, rh)
 
-  if (type === 'division_academica') {
-    validationField = 'Validacion_Divicion_Academica';
-  } else if (type === 'subdireccion') {
-    validationField = 'Validacion_Subdireccion';
-  } else if (type === 'rh') {
-    validationField = 'Validacion_RH';
-  }
-
-  // Mostrar el SweetAlert
-  Swal.fire({
-    title: '¿Estás seguro?',
-    text: 'Este cambio será permanente.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Aceptar',
-    cancelButtonText: 'Rechazar',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Aceptar: Actualizar con valor 1
-      statusValue = 1;
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      // Rechazar: Actualizar con valor 2
-      statusValue = 2;
-    }
-
-    if (statusValue !== 0) {
-      // Realizar la solicitud AJAX para actualizar la base de datos
-      $.ajax({
-        url: 'update_status.php', // Archivo que procesa la actualización
-        type: 'POST',
-        data: {
-          incidencia_id: incidenciaId,
-          validation_field: validationField,
-          status_value: statusValue
-        },
-        success: function(response) {
-          // Mostrar un mensaje de éxito o error
-          if (response.success) {
-            Swal.fire(
-              'Actualizado!',
-              'El estado ha sido actualizado.',
-              'success'
-            );
-            location.reload(); // Recargar la página para ver el cambio
-          } else {
-            Swal.fire(
-              'Error!',
-              'Hubo un problema al actualizar el estado.',
-              'error'
-            );
-          }
-        },
-        error: function() {
-          Swal.fire(
-            'Error!',
-            'No se pudo realizar la actualización.',
-            'error'
-          );
+    Swal.fire({
+        title: '¿Aceptar o rechazar esta incidencia?',
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        denyButtonText: 'Rechazar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            actualizarIncidencia(incidenciaId, validacion, 1); // Estado 1: Aceptar
+        } else if (result.isDenied) {
+            actualizarIncidencia(incidenciaId, validacion, 2); // Estado 2: Rechazar
         }
-      });
-    }
-  });
+    });
 }
 
+function actualizarIncidencia(incidenciaId, validacion, estado) {
+    const formData = new FormData();
+    formData.append("form_type", "validacion-incidencia"); // Tipo de formulario
+    formData.append("incidencia_id", incidenciaId); // Enviar solo el ID de la incidencia seleccionada
+    formData.append("validacion", validacion);
+    formData.append("estado", estado); // Estado (1, 2, o 3)
+
+    fetch('../../models/insert.php', {
+        method: 'POST',
+        body: formData,
+    })
+    .then((response) => response.text())
+    .then((data) => {
+        console.log("Respuesta del servidor:", data); // Depuración
+        if (data.includes('success')) {
+            Swal.fire('Actualizado', 'La incidencia fue actualizada correctamente.', 'success')
+                .then(() => {
+                    // Actualiza solo la fila correspondiente con el ID de la incidencia
+                    let fila = document.querySelector(`[data-incidencia-id="${incidenciaId}"]`).closest('tr');
+                    if (fila) {
+                      let statusCell = fila.querySelector(`.status-color[data-validacion="${validacion}"]`);
+
+                        // Actualizar el color de la clase según el estado
+                        if (estado === 1) {
+                            statusCell.classList.add('status-color-green');
+                            statusCell.classList.remove('status-color-red', 'status-color-yellow');
+                        } else if (estado === 2) {
+                            statusCell.classList.add('status-color-red');
+                            statusCell.classList.remove('status-color-green', 'status-color-yellow');
+                        } else {
+                            statusCell.classList.add('status-color-yellow');
+                            statusCell.classList.remove('status-color-green', 'status-color-red');
+                        }
+                    }
+                });
+        } else {
+            Swal.fire('Error', `No se pudo actualizar la incidencia. Respuesta del servidor: ${data}`, 'error');
+        }
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        Swal.fire('Error', 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.', 'error');
+    });
+}
   </script>
 
 
