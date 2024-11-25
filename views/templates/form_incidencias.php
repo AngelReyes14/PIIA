@@ -17,16 +17,14 @@ $incidencias = $consultas->obtenerIncidencias();
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
 $imgUser  = $consultas->obtenerImagen($idusuario);
-?>
-<?php
+
 // Crear instancia de CarreraManager y obtener el ID de usuario
 $carreraManager = new CarreraManager($conn);
 $idusuario = $sessionManager->getUserId();
 
 // Obtener carrera para el usuario autenticado
 $carrera = $carreraManager->obtenerCarreraPorUsuario($idusuario);
-?>
-          <?php
+
 // Crear instancia de la clase UsuarioManager
 $usuarioManager = new UsuarioManager($conn);
 

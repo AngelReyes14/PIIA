@@ -1063,6 +1063,7 @@ class IncidenciaUsuario {
             $horario_incidencia = $_POST['time'];
             $diaIncidencia = $_POST['dia-incidencia']; 
             $carreraId = $_POST['area'];
+            $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
 
             // Validar los datos (ejemplo básico, se puede expandir)
             if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
@@ -1071,13 +1072,45 @@ class IncidenciaUsuario {
             }
 
             // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
         }
     }
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
-        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
-                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+        $validacionDivicionAcademica = 3;
+        $validacionSubdireccion = 3;
+        $validacionRH = 3;
+
+        $query = "INSERT INTO incidencia_has_usuario (
+                    incidencia_incidenciaid,
+                    usuario_usuario_id,
+                    fecha_solicitada,
+                    motivo,
+                    horario_inicio,
+                    horario_termino,
+                    horario_incidencia,
+                    dia_incidencia,
+                    carrera_carrera_id,
+                    Validacion_Divicion_Academica,
+                    Validacion_Subdireccion,
+                    Validacion_RH,
+                    status_incidencia_id
+                  ) VALUES (
+                    :incidencia_id,
+                    :usuario_id,
+                    :fecha_solicitada,
+                    :motivo,
+                    :horario_inicio,
+                    :horario_termino,
+                    :horario_incidencia,
+                    :dia_incidencia,
+                    :carrera_id,
+                    :validacion_divicion_academica,
+                    :validacion_subdireccion,
+                    :validacion_rh,
+                    :status_incidencia_id
+                  )";
+
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':incidencia_id', $incidenciaId);
         $stmt->bindParam(':usuario_id', $usuarioId);
@@ -1088,60 +1121,15 @@ class IncidenciaUsuario {
         $stmt->bindParam(':horario_incidencia', $horario_incidencia);
         $stmt->bindParam(':dia_incidencia', $diaIncidencia);
         $stmt->bindParam(':carrera_id', $carreraId);
+        $stmt->bindParam(':validacion_divicion_academica', $validacionDivicionAcademica);
+        $stmt->bindParam(':validacion_subdireccion', $validacionSubdireccion);
+        $stmt->bindParam(':validacion_rh', $validacionRH);
+        $stmt->bindParam(':status_incidencia_id', $status_incidencia_id);
 
         try {
             $stmt->execute();
             header("Location: ../views/templates/form_incidencias.php?success=true");
-            exit(); // Asegúrate de detener el script después de la redirección
-        } catch (PDOException $e) {
-            error_log("Error: " . $e->getMessage()); // Registra el error en el log
-            echo "Ocurrió un error al procesar la solicitud.";
-            exit();
-        }
-    }
-
-    public function handleRequest1() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Obtener los datos del formulario
-            $incidenciaId = $_POST['incidencias'];
-            $usuarioId = $_POST['usuario-servidor-publico']; 
-            $fechaSolicitada = $_POST['fecha'];
-            $motivo = $_POST['motivo'];
-            $horarioInicio = $_POST['start-time'];
-            $horarioTermino = $_POST['end-time'];
-            $horario_incidencia = $_POST['time'];
-            $diaIncidencia = $_POST['dia-incidencia']; 
-            $carreraId = $_POST['area'];
-
-            // Validar los datos (ejemplo básico, se puede expandir)
-            if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
-                echo "Por favor, completa todos los campos requeridos.";
-                return;
-            }
-
-            // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuarioM($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
-        }
-    }
-
-    private function insertIncidenciaUsuarioM($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
-        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
-                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':incidencia_id', $incidenciaId);
-        $stmt->bindParam(':usuario_id', $usuarioId);
-        $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
-        $stmt->bindParam(':motivo', $motivo);
-        $stmt->bindParam(':horario_inicio', $horarioInicio);
-        $stmt->bindParam(':horario_termino', $horarioTermino);
-        $stmt->bindParam(':horario_incidencia', $horario_incidencia);
-        $stmt->bindParam(':dia_incidencia', $diaIncidencia);
-        $stmt->bindParam(':carrera_id', $carreraId);
-
-        try {
-            $stmt->execute();
-            header("Location: ../views/templates/dashboard_docentes.php?success=true");
-            exit(); // Asegúrate de detener el script después de la redirección
+            exit(); // Detiene el script después de la redirección
         } catch (PDOException $e) {
             error_log("Error: " . $e->getMessage()); // Registra el error en el log
             echo "Ocurrió un error al procesar la solicitud.";
@@ -1210,3 +1198,150 @@ class UsuarioManager
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
     }
 }
+
+
+class ActualizarEstado {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleForm() {
+        if (isset($_POST['form_type']) && $_POST['form_type'] === 'validacion-incidencia') {
+            if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+                // Validar los datos recibidos
+                $incidenciaId = (int)$_POST['incidencia_id'];
+                $validacion = $_POST['validacion'];
+                $estado = (int)$_POST['estado'];
+
+                if (empty($incidenciaId)) {
+                    echo "ID de incidencia no válido.";
+                    exit;
+                }
+
+                // Validar el campo de validación
+                $validaciones = [
+                    'division' => 'validacion_divicion_academica',
+                    'subdireccion' => 'validacion_subdireccion',
+                    'rh' => 'validacion_rh',
+                ];
+                $campoValidacion = $validaciones[$validacion] ?? null;
+
+                if (!$campoValidacion) {
+                    echo "Campo de validación no válido.";
+                    exit;
+                }
+
+                // Verificar que el registro existe
+                $queryCheck = "SELECT COUNT(*) FROM incidencia_has_usuario WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmtCheck = $this->conn->prepare($queryCheck);
+                $stmtCheck->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                $stmtCheck->execute();
+
+                if ($stmtCheck->fetchColumn() === 0) {
+                    echo "No se encontró el registro con el ID proporcionado.";
+                    exit;
+                }
+
+                // **Verificación de jerarquía antes de proceder**
+                if (!$this->validarJerarquia($validacion, $incidenciaId)) {
+                    echo "Error: La validación no sigue el flujo jerárquico.";
+                    exit;
+                }
+
+                // Actualizar el registro de validación
+                $query = "UPDATE incidencia_has_usuario 
+                          SET $campoValidacion = :estado 
+                          WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
+                        // Ahora actualizamos el campo status_incidencia_id según las reglas
+                        $this->actualizarStatus($incidenciaId);
+                        echo "success";
+                    } else {
+                        echo "Advertencia: Se actualizaron más de un registro.";
+                    }
+                } else {
+                    echo "Error al actualizar la incidencia.";
+                }
+            } else {
+                echo "Datos incompletos para la actualización.";
+            }
+        } else {
+            echo "Formulario no reconocido.";
+        }
+    }
+
+    private function actualizarStatus($incidenciaId) {
+        // Obtener los valores de validaciones para calcular el estado
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion, validacion_rh 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $validaciones = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depurar las validaciones obtenidas
+        var_dump($validaciones);
+
+        // Definir la lógica para determinar el nuevo status
+        $nuevoStatus = 3; // Valor por defecto (Pendiente)
+
+        // Si hay un '2' en cualquiera de las validaciones, se coloca '2' en status (Rechazado)
+        if ($validaciones['validacion_divicion_academica'] == 2 || 
+            $validaciones['validacion_subdireccion'] == 2 || 
+            $validaciones['validacion_rh'] == 2) {
+            $nuevoStatus = 2; // Rechazado
+        }
+        // Si todas las tres validaciones son '1', se coloca '1' en status (Aprobado)
+        elseif ($validaciones['validacion_divicion_academica'] == 1 && 
+                $validaciones['validacion_subdireccion'] == 1 && 
+                $validaciones['validacion_rh'] == 1) {
+            $nuevoStatus = 1; // Aprobado
+        }
+
+        // Ahora actualizamos el campo status_incidencia_id con el valor calculado
+        $queryUpdateStatus = "UPDATE incidencia_has_usuario 
+                              SET status_incidencia_id = :nuevoStatus 
+                              WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmtUpdateStatus = $this->conn->prepare($queryUpdateStatus);
+        $stmtUpdateStatus->bindParam(':nuevoStatus', $nuevoStatus, PDO::PARAM_INT);
+        $stmtUpdateStatus->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmtUpdateStatus->execute();
+    }
+
+    private function validarJerarquia($validacion, $incidenciaId) {
+        // Consultar las validaciones actuales
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $validacionesActuales = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depuración de las validaciones actuales
+        var_dump($validacionesActuales);
+
+        // Verificar la jerarquía
+        if ($validacion === 'subdireccion' && $validacionesActuales['validacion_divicion_academica'] != 1) {
+            echo "La división académica no ha aprobado aún.";
+            return false; // División Académica no ha aprobado
+        }
+        if ($validacion === 'rh' && $validacionesActuales['validacion_subdireccion'] != 1) {
+            echo "La subdirección no ha aprobado aún.";
+            return false; // Subdirección no ha aprobado
+        }
+
+        return true;
+    }
+}
+
+
