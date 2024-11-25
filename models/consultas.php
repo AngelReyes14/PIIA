@@ -1244,7 +1244,13 @@ class ActualizarEstado {
                     exit;
                 }
 
-                // Actualizar el registro específico
+                // **Verificación de jerarquía antes de proceder**
+                if (!$this->validarJerarquia($validacion, $incidenciaId)) {
+                    echo "Error: La validación no sigue el flujo jerárquico.";
+                    exit;
+                }
+
+                // Actualizar el registro de validación
                 $query = "UPDATE incidencia_has_usuario 
                           SET $campoValidacion = :estado 
                           WHERE incidencia_has_usuario_id = :incidenciaId";
@@ -1254,6 +1260,8 @@ class ActualizarEstado {
 
                 if ($stmt->execute()) {
                     if ($stmt->rowCount() === 1) {
+                        // Ahora actualizamos el campo status_incidencia_id según las reglas
+                        $this->actualizarStatus($incidenciaId);
                         echo "success";
                     } else {
                         echo "Advertencia: Se actualizaron más de un registro.";
@@ -1268,4 +1276,72 @@ class ActualizarEstado {
             echo "Formulario no reconocido.";
         }
     }
+
+    private function actualizarStatus($incidenciaId) {
+        // Obtener los valores de validaciones para calcular el estado
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion, validacion_rh 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $validaciones = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depurar las validaciones obtenidas
+        var_dump($validaciones);
+
+        // Definir la lógica para determinar el nuevo status
+        $nuevoStatus = 3; // Valor por defecto (Pendiente)
+
+        // Si hay un '2' en cualquiera de las validaciones, se coloca '2' en status (Rechazado)
+        if ($validaciones['validacion_divicion_academica'] == 2 || 
+            $validaciones['validacion_subdireccion'] == 2 || 
+            $validaciones['validacion_rh'] == 2) {
+            $nuevoStatus = 2; // Rechazado
+        }
+        // Si todas las tres validaciones son '1', se coloca '1' en status (Aprobado)
+        elseif ($validaciones['validacion_divicion_academica'] == 1 && 
+                $validaciones['validacion_subdireccion'] == 1 && 
+                $validaciones['validacion_rh'] == 1) {
+            $nuevoStatus = 1; // Aprobado
+        }
+
+        // Ahora actualizamos el campo status_incidencia_id con el valor calculado
+        $queryUpdateStatus = "UPDATE incidencia_has_usuario 
+                              SET status_incidencia_id = :nuevoStatus 
+                              WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmtUpdateStatus = $this->conn->prepare($queryUpdateStatus);
+        $stmtUpdateStatus->bindParam(':nuevoStatus', $nuevoStatus, PDO::PARAM_INT);
+        $stmtUpdateStatus->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmtUpdateStatus->execute();
+    }
+
+    private function validarJerarquia($validacion, $incidenciaId) {
+        // Consultar las validaciones actuales
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $validacionesActuales = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depuración de las validaciones actuales
+        var_dump($validacionesActuales);
+
+        // Verificar la jerarquía
+        if ($validacion === 'subdireccion' && $validacionesActuales['validacion_divicion_academica'] != 1) {
+            echo "La división académica no ha aprobado aún.";
+            return false; // División Académica no ha aprobado
+        }
+        if ($validacion === 'rh' && $validacionesActuales['validacion_subdireccion'] != 1) {
+            echo "La subdirección no ha aprobado aún.";
+            return false; // Subdirección no ha aprobado
+        }
+
+        return true;
+    }
 }
+
+
