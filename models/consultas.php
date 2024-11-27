@@ -147,7 +147,7 @@ class Consultas {
     }
 }
 
-public function obtenerIncidenciasPorUsuario($idusuario, $tipoUsuario = null, $carreraId = null) {
+public function obtenerIncidenciasPorUsuario($idusuario) {
     $query = "
         SELECT ihu.incidencia_has_usuario_id,
                i.descripcion AS descripcion_incidencia, 
@@ -169,25 +169,42 @@ public function obtenerIncidenciasPorUsuario($idusuario, $tipoUsuario = null, $c
         JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
         JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
         JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.usuario_usuario_id = :idusuario
     ";
 
-    // Filtro por carrera para usuarios tipo 2, 4 y 7
-    if (in_array($tipoUsuario, [2, 4, 7])) {
-        $query .= " WHERE ihu.carrera_carrera_id = :carreraId";
-    } else {
-        // Si no es tipo 2, 4 o 7, mostrar solo las incidencias del usuario
-        $query .= " WHERE ihu.usuario_usuario_id = :idusuario";
-    }
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerIncidenciasPorCarrera($carreraId) {
+    $query = "
+        SELECT ihu.incidencia_has_usuario_id,
+               i.descripcion AS descripcion_incidencia, 
+               u.nombre_usuario, 
+               u.apellido_p AS apellido_paterno, 
+               u.apellido_m AS apellido_materno, 
+               ihu.fecha_solicitada, 
+               ihu.motivo, 
+               ihu.horario_inicio, 
+               ihu.horario_termino, 
+               ihu.horario_incidencia, 
+               ihu.dia_incidencia, 
+               c.nombre_carrera, 
+               ihu.Validacion_Divicion_Academica AS validacion_division_academica,
+               ihu.Validacion_Subdireccion AS validacion_subdireccion,
+               ihu.Validacion_RH AS validacion_rh,
+               ihu.status_incidencia_id
+        FROM incidencia_has_usuario ihu
+        JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+        JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+        JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.carrera_carrera_id = :carreraId
+    ";
 
     $stmt = $this->conn->prepare($query);
-
-    // Asignar parámetros según el tipo de usuario
-    if (in_array($tipoUsuario, [2, 4, 7])) {
-        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
-    } else {
-        $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
-    }
-
+    $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -199,9 +216,6 @@ public function obtenerCarreraPorUsuario($idusuario) {
     $stmt->execute();
     return $stmt->fetchColumn();
 }
-
-
-
 
 
 
