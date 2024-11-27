@@ -150,6 +150,15 @@ if (!$usuario_tipo) {
         </thead>
         <tbody>
           <?php // Función para obtener la clase de estado
+          function getStatus($validacionDivision, $validacionSubdireccion, $validacionRH) {
+            if ($validacionDivision == 2 || $validacionSubdireccion == 2 || $validacionRH == 2) {
+                return 2; // Rechazado si alguna validación tiene 2
+            }
+            if ($validacionDivision == 3 || $validacionSubdireccion == 3 || $validacionRH == 3) {
+                return 3; // Pendiente si alguna validación tiene 3
+            }
+            return 1; // Aceptado si todas las validaciones son 1
+        }
 function getStatusClass($status) {
     switch ($status) {
         case 1: 
@@ -440,6 +449,7 @@ function validarIncidencia(element) {
 
 function actualizarIncidencia(incidenciaId, validacion, estado) {
     const formData = new FormData();
+    
     formData.append("form_type", "validacion-incidencia"); // Tipo de formulario
     formData.append("incidencia_id", incidenciaId); // Enviar solo el ID de la incidencia seleccionada
     formData.append("validacion", validacion);
@@ -452,7 +462,12 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
     .then((response) => response.text())
     .then((data) => {
         console.log("Respuesta del servidor:", data); // Depuración
-        if (data.includes('success')) {
+
+        if (data.includes('La división académica no ha aprobado aún.')) {
+            Swal.fire('Error', 'La división académica no ha aprobado aún.', 'error');
+        } else if (data.includes('La subdirección no ha aprobado aún.')) {
+            Swal.fire('Error', 'La subdirección no ha aprobado aún.', 'error');
+        } else if (data.includes('success')) {
             Swal.fire('Actualizado', 'La incidencia fue actualizada correctamente.', 'success')
                 .then(() => {
                     // Actualiza solo la fila correspondiente con el ID de la incidencia
@@ -472,9 +487,11 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
                             statusCell.classList.remove('status-color-green', 'status-color-red');
                         }
                     }
+                                        // Recargar la página después de mostrar el mensaje de éxito
+                                        location.reload();
                 });
         } else {
-            Swal.fire('Error', `No se pudo actualizar la incidencia. Respuesta del servidor: ${data}`, 'error');
+            Swal.fire('Error', `${data}`, 'error');
         }
     })
     .catch((error) => {
@@ -482,6 +499,7 @@ function actualizarIncidencia(incidenciaId, validacion, estado) {
         Swal.fire('Error', 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.', 'error');
     });
 }
+
   </script>
 
 
