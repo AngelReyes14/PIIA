@@ -3,6 +3,7 @@ include('../../models/session.php');
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('aside.php');
+
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
@@ -10,15 +11,25 @@ if (isset($_POST['logout'])) {
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
-// Obtener las carreras
-$carreras = $consultas->obtenerCarreras();
-$incidencias = $consultas->obtenerDatosincidencias();
+// Obtener el ID del usuario actual y su tipo
 $idusuario = (int) $_SESSION['user_id'];
 $usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario); // Usar $usuario_tipo directamente
+
 if (!$usuario_tipo) {
   die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
+// Obtener incidencias según el tipo de usuario
+if ($usuario_tipo == 1) {
+  // Solo incidencias del usuario actual si es tipo 1
+  $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+} else {
+  // Para otros usuarios, obtiene todas las incidencias
+  $incidencias = $consultas->obtenerDatosincidencias();
+}
+
+// Obtener las carreras
+$carreras = $consultas->obtenerCarreras();
 ?>
 
 <!-- Aquí sigue tu código HTML para el formulario -->
@@ -130,6 +141,16 @@ if (!$usuario_tipo) {
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
+            <div class="filter-container">
+    <label for="statusFilter">Filtrar por estado:</label>
+    <select id="statusFilter" class="form-control">
+        <option value="all">Todas</option>
+        <option value="1">Aprobadas</option>
+        <option value="2">Rechazadas</option>
+        <option value="3">Pendientes</option>
+    </select>
+</div>
+
     <table class="table datatables" id="dataTable-1">
         <thead>
             <tr>
@@ -236,7 +257,8 @@ function getStatusClass($status) {
                     <?php
                     $statusClass = getStatusClass($incidencia['status_incidencia_id']);
                     ?>
-                    <span class="status-color <?php echo $statusClass; ?>"></span>
+      <span class="status-color <?php echo $statusClass; ?>" data-status="<?php echo $incidencia['status_incidencia_id']; ?>"></span>
+
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -426,6 +448,28 @@ function getStatusClass($status) {
   <script src="js/Chart.min.js"></script>
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const selectedStatus = this.value; // Valor seleccionado en el filtro
+        const rows = document.querySelectorAll('#dataTable-1 tbody tr'); // Filas de la tabla
+
+        rows.forEach(row => {
+            const statusCell = row.querySelector('td:last-child span'); // Buscar el span del estado dentro de la última celda
+            if (statusCell) {
+                const statusValue = statusCell.getAttribute('data-status'); // Obtener el valor data-status
+
+                if (selectedStatus === 'all') {
+                    row.style.display = ''; // Mostrar todas si selecciona 'Todas'
+                } else if (statusValue === selectedStatus) {
+                    row.style.display = ''; // Mostrar solo las que coinciden
+                } else {
+                    row.style.display = 'none'; // Ocultar las que no coinciden
+                }
+            }
+        });
+    });
+</script>
+
   <script>
 function validarIncidencia(element) {
     const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
