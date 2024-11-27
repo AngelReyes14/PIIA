@@ -12,12 +12,19 @@ $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y su tipo
+// Obtener el ID del usuario actual y su tipo
 $idusuario = (int) $_SESSION['user_id'];
-$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario); // Usar $usuario_tipo directamente
+$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Obtener la carrera del usuario (asegúrate de que este valor se cargue en la sesión)
+$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
 
 if (!$usuario_tipo) {
   die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
+
+// Obtener incidencias según el tipo de usuario
+$incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario, $usuario_tipo, $carreraId);
 
 // Obtener incidencias según el tipo de usuario
 if ($usuario_tipo == 1) {
@@ -150,7 +157,6 @@ $carreras = $consultas->obtenerCarreras();
         <option value="3">Pendientes</option>
     </select>
 </div>
-
     <table class="table datatables" id="dataTable-1">
         <thead>
             <tr>

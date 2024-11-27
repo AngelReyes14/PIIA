@@ -147,7 +147,7 @@ class Consultas {
     }
 }
 
-public function obtenerIncidenciasPorUsuario($idusuario) {
+public function obtenerIncidenciasPorUsuario($idusuario, $tipoUsuario = null, $carreraId = null) {
     $query = "
         SELECT ihu.incidencia_has_usuario_id,
                i.descripcion AS descripcion_incidencia, 
@@ -169,13 +169,35 @@ public function obtenerIncidenciasPorUsuario($idusuario) {
         JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
         JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
         JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
-        WHERE ihu.usuario_usuario_id = :idusuario
     ";
 
+    // Filtro por carrera para usuarios tipo 2, 4 y 7
+    if (in_array($tipoUsuario, [2, 4, 7])) {
+        $query .= " WHERE ihu.carrera_carrera_id = :carreraId";
+    } else {
+        // Si no es tipo 2, 4 o 7, mostrar solo las incidencias del usuario
+        $query .= " WHERE ihu.usuario_usuario_id = :idusuario";
+    }
+
+    $stmt = $this->conn->prepare($query);
+
+    // Asignar parámetros según el tipo de usuario
+    if (in_array($tipoUsuario, [2, 4, 7])) {
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+    } else {
+        $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerCarreraPorUsuario($idusuario) {
+    $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :idusuario";
     $stmt = $this->conn->prepare($query);
     $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $stmt->fetchColumn();
 }
 
 
