@@ -14,6 +14,7 @@ $consultas = new Consultas($conn);
 // Obtener el ID del usuario actual y su tipo
 $idusuario = (int)$_SESSION['user_id'];
 // Obtener el tipo de usuario
+// Obtener el tipo de usuario
 $usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
 
 // Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
@@ -31,7 +32,7 @@ if (!$carreraId) {
 if ($usuario_tipo == 1) {
     // Usuario tipo 1: solo incidencias propias
     $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
-} elseif (in_array($usuario_tipo, [4, 6])) {
+} elseif (in_array($usuario_tipo, [2, 4, 6])) {
     // Usuarios tipo 2, 4 y 6: solo incidencias de su carrera
     $incidencias = $consultas->obtenerIncidenciasPorCarrera($carreraId);
 } else {
@@ -216,20 +217,20 @@ function getStatusClass($status) {
                 <td><?php echo $incidencia['nombre_carrera']; ?></td>
 
                 <!-- Validación División Académica -->
-<td class="text-center">
-    <?php
-    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
-    ?>
-    <span class="status-color <?php echo $statusClass; ?>"
-        <?php if ($usuario_tipo == 2): ?>
-            onclick="validarIncidencia(this)"
-            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
-            data-validacion="division">
-        <?php else: ?>
-            <?php echo $statusClass; ?>
-        <?php endif; ?>
-    </span>
-</td>
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 2): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['incidencia_has_usuario_id']; ?>"
+                            data-validacion="division">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
 
 
                 <!-- Validación Subdirección -->
