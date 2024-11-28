@@ -2260,7 +2260,7 @@ pre code {
     color: #4BA722;
     opacity: 1; }
   .form-control:disabled, .form-control[readonly] {
-    background-color: #4BA722;
+    background-color: #ffffff;
     opacity: 1; }
 
 input[type="date"].form-control,
