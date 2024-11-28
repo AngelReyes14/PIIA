@@ -137,6 +137,7 @@
         /* Elimina el margen izquierdo */
         max-width: 100%;
         /* Asegura que el texto ocupe el ancho disponible */
+        margin-bottom: 75%;
     }
 
     .logo {

@@ -5,32 +5,45 @@ include('../../models/consultas.php');
 include('aside.php');
 
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y su tipo
-$idusuario = (int) $_SESSION['user_id'];
-$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario); // Usar $usuario_tipo directamente
+$idusuario = (int)$_SESSION['user_id'];
+// Obtener el tipo de usuario
+// Obtener el tipo de usuario
+$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
+$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
 
 if (!$usuario_tipo) {
-  die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+}
+
+if (!$carreraId) {
+    die("Error: Carrera del usuario no encontrada.");
 }
 
 // Obtener incidencias según el tipo de usuario
 if ($usuario_tipo == 1) {
-  // Solo incidencias del usuario actual si es tipo 1
-  $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+    // Usuario tipo 1: solo incidencias propias
+    $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+} elseif (in_array($usuario_tipo, [2, 4, 6])) {
+    // Usuarios tipo 2, 4 y 6: solo incidencias de su carrera
+    $incidencias = $consultas->obtenerIncidenciasPorCarrera($carreraId);
 } else {
-  // Para otros usuarios, obtiene todas las incidencias
-  $incidencias = $consultas->obtenerDatosincidencias();
+    // Otros usuarios: todas las incidencias
+    $incidencias = $consultas->obtenerDatosincidencias();
 }
-
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
+
 ?>
+
 
 <!-- Aquí sigue tu código HTML para el formulario -->
 
@@ -141,14 +154,18 @@ $carreras = $consultas->obtenerCarreras();
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-            <div class="filter-container">
-    <label for="statusFilter">Filtrar por estado:</label>
-    <select id="statusFilter" class="form-control">
-        <option value="all">Todas</option>
-        <option value="1">Aprobadas</option>
-        <option value="2">Rechazadas</option>
-        <option value="3">Pendientes</option>
-    </select>
+            <div class="d-flex justify-content-between align-items-center">
+    <!-- Otros elementos de la fila pueden ir aquí -->
+    
+    <div class="filter-container-status ml-auto">
+        <label for="statusFilter" class="mr-2">Filtro Estatus:</label>
+        <select id="statusFilter" class="form-control form-control-sm">
+            <option value="all">Todas</option>
+            <option value="1">Aprobadas</option>
+            <option value="2">Rechazadas</option>
+            <option value="3" selected>Pendientes</option>
+        </select>
+    </div>
 </div>
 
     <table class="table datatables" id="dataTable-1">
@@ -166,7 +183,7 @@ $carreras = $consultas->obtenerCarreras();
                 <th>Validación por División Académica</th>
                 <th>Validación por Subdirección</th>
                 <th>Validación por Recursos Humanos</th>
-                <th>Status</th>
+                <th>Estado de la Incidencia</th>
             </tr>
         </thead>
         <tbody>
@@ -212,13 +229,14 @@ function getStatusClass($status) {
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 2): ?>
                             onclick="validarIncidencia(this)"
-                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-incidencia-id="<?php echo $incidencia['incidencia_has_usuario_id']; ?>"
                             data-validacion="division">
                         <?php else: ?>
                             <?php echo $statusClass; ?>
                         <?php endif; ?>
                     </span>
                 </td>
+
 
                 <!-- Validación Subdirección -->
                 <td class="text-center">
@@ -468,7 +486,15 @@ function getStatusClass($status) {
             }
         });
     });
-</script>
+
+    // Aplicar el filtro por defecto (Pendientes) al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Establecer el valor predeterminado como '3' (Pendientes)
+        document.getElementById('statusFilter').value = '3';
+        // Activar el filtro para aplicar la acción
+        document.getElementById('statusFilter').dispatchEvent(new Event('change'));
+    });
+  </script>
 
   <script>
 function validarIncidencia(element) {

@@ -140,7 +140,7 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
               <div class="row mb-3">
                 <!-- Caja contenedora para los campos de "Área" y "Fecha" en la misma fila -->
                 <div class="col-md-12">
-                  <div class="form-group p-3 border rounded" style="background-color: #f8f9fa;">
+                  <div class="form-group p-3 border rounded" >
                     <div class="row">
                       <!-- Campo de Área alineado a la izquierda -->
              <div class="col-md-6">
