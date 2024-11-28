@@ -154,15 +154,20 @@ $carreras = $consultas->obtenerCarreras();
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-            <div class="filter-container">
-    <label for="statusFilter">Filtrar por estado:</label>
-    <select id="statusFilter" class="form-control">
-        <option value="all">Todas</option>
-        <option value="1">Aprobadas</option>
-        <option value="2">Rechazadas</option>
-        <option value="3">Pendientes</option>
-    </select>
+            <div class="d-flex justify-content-between align-items-center">
+    <!-- Otros elementos de la fila pueden ir aquí -->
+    
+    <div class="filter-container-status ml-auto">
+        <label for="statusFilter" class="mr-2">Filtro Estatus:</label>
+        <select id="statusFilter" class="form-control form-control-sm">
+            <option value="all">Todas</option>
+            <option value="1">Aprobadas</option>
+            <option value="2">Rechazadas</option>
+            <option value="3" selected>Pendientes</option>
+        </select>
+    </div>
 </div>
+
     <table class="table datatables" id="dataTable-1">
         <thead>
             <tr>
@@ -178,7 +183,7 @@ $carreras = $consultas->obtenerCarreras();
                 <th>Validación por División Académica</th>
                 <th>Validación por Subdirección</th>
                 <th>Validación por Recursos Humanos</th>
-                <th>Status</th>
+                <th>Estado de la Incidencia</th>
             </tr>
         </thead>
         <tbody>
@@ -481,7 +486,15 @@ function getStatusClass($status) {
             }
         });
     });
-</script>
+
+    // Aplicar el filtro por defecto (Pendientes) al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Establecer el valor predeterminado como '3' (Pendientes)
+        document.getElementById('statusFilter').value = '3';
+        // Activar el filtro para aplicar la acción
+        document.getElementById('statusFilter').dispatchEvent(new Event('change'));
+    });
+  </script>
 
   <script>
 function validarIncidencia(element) {
