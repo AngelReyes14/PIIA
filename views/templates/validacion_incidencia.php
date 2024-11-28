@@ -5,39 +5,45 @@ include('../../models/consultas.php');
 include('aside.php');
 
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y su tipo
-// Obtener el ID del usuario actual y su tipo
-$idusuario = (int) $_SESSION['user_id'];
+$idusuario = (int)$_SESSION['user_id'];
+// Obtener el tipo de usuario
+// Obtener el tipo de usuario
 $usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
 
-// Obtener la carrera del usuario (asegúrate de que este valor se cargue en la sesión)
+// Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
 $carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
 
 if (!$usuario_tipo) {
-  die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
-// Obtener incidencias según el tipo de usuario
-$incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario, $usuario_tipo, $carreraId);
+if (!$carreraId) {
+    die("Error: Carrera del usuario no encontrada.");
+}
 
 // Obtener incidencias según el tipo de usuario
 if ($usuario_tipo == 1) {
-  // Solo incidencias del usuario actual si es tipo 1
-  $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+    // Usuario tipo 1: solo incidencias propias
+    $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+} elseif (in_array($usuario_tipo, [2, 4, 6])) {
+    // Usuarios tipo 2, 4 y 6: solo incidencias de su carrera
+    $incidencias = $consultas->obtenerIncidenciasPorCarrera($carreraId);
 } else {
-  // Para otros usuarios, obtiene todas las incidencias
-  $incidencias = $consultas->obtenerDatosincidencias();
+    // Otros usuarios: todas las incidencias
+    $incidencias = $consultas->obtenerDatosincidencias();
 }
-
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
+
 ?>
+
 
 <!-- Aquí sigue tu código HTML para el formulario -->
 
@@ -218,13 +224,14 @@ function getStatusClass($status) {
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 2): ?>
                             onclick="validarIncidencia(this)"
-                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-incidencia-id="<?php echo $incidencia['incidencia_has_usuario_id']; ?>"
                             data-validacion="division">
                         <?php else: ?>
                             <?php echo $statusClass; ?>
                         <?php endif; ?>
                     </span>
                 </td>
+
 
                 <!-- Validación Subdirección -->
                 <td class="text-center">
