@@ -387,6 +387,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
 
 
 
+
             </div>
           </div>
         </div>
