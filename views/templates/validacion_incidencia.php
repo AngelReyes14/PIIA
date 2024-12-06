@@ -3,23 +3,47 @@ include('../../models/session.php');
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('aside.php');
+
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
-// Obtener las carreras
-$carreras = $consultas->obtenerCarreras();
-$incidencias = $consultas->obtenerDatosincidencias();
-$idusuario = (int) $_SESSION['user_id'];
-$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario); // Usar $usuario_tipo directamente
+// Obtener el ID del usuario actual y su tipo
+$idusuario = (int)$_SESSION['user_id'];
+// Obtener el tipo de usuario
+// Obtener el tipo de usuario
+$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
+$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
+
 if (!$usuario_tipo) {
-  die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
+if (!$carreraId) {
+    die("Error: Carrera del usuario no encontrada.");
+}
+
+// Obtener incidencias según el tipo de usuario
+if ($usuario_tipo == 1) {
+    // Usuario tipo 1: solo incidencias propias
+    $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+} elseif (in_array($usuario_tipo, [2, 4, 6])) {
+    // Usuarios tipo 2, 4 y 6: solo incidencias de su carrera
+    $incidencias = $consultas->obtenerIncidenciasPorCarrera($carreraId);
+} else {
+    // Otros usuarios: todas las incidencias
+    $incidencias = $consultas->obtenerDatosincidencias();
+}
+// Obtener las carreras
+$carreras = $consultas->obtenerCarreras();
+
 ?>
+
 
 <!-- Aquí sigue tu código HTML para el formulario -->
 
@@ -130,6 +154,20 @@ if (!$usuario_tipo) {
                     <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
+            <div class="d-flex justify-content-between align-items-center">
+    <!-- Otros elementos de la fila pueden ir aquí -->
+    
+    <div class="filter-container-status ml-auto">
+        <label for="statusFilter" class="mr-2">Filtro Estatus:</label>
+        <select id="statusFilter" class="form-control form-control-sm">
+            <option value="all">Todas</option>
+            <option value="1">Aprobadas</option>
+            <option value="2">Rechazadas</option>
+            <option value="3" selected>Pendientes</option>
+        </select>
+    </div>
+</div>
+
     <table class="table datatables" id="dataTable-1">
         <thead>
             <tr>
@@ -145,7 +183,7 @@ if (!$usuario_tipo) {
                 <th>Validación por División Académica</th>
                 <th>Validación por Subdirección</th>
                 <th>Validación por Recursos Humanos</th>
-                <th>Status</th>
+                <th>Estado de la Incidencia</th>
             </tr>
         </thead>
         <tbody>
@@ -191,13 +229,14 @@ function getStatusClass($status) {
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 2): ?>
                             onclick="validarIncidencia(this)"
-                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-incidencia-id="<?php echo $incidencia['incidencia_has_usuario_id']; ?>"
                             data-validacion="division">
                         <?php else: ?>
                             <?php echo $statusClass; ?>
                         <?php endif; ?>
                     </span>
                 </td>
+
 
                 <!-- Validación Subdirección -->
                 <td class="text-center">
@@ -236,7 +275,8 @@ function getStatusClass($status) {
                     <?php
                     $statusClass = getStatusClass($incidencia['status_incidencia_id']);
                     ?>
-                    <span class="status-color <?php echo $statusClass; ?>"></span>
+      <span class="status-color <?php echo $statusClass; ?>" data-status="<?php echo $incidencia['status_incidencia_id']; ?>"></span>
+
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -426,6 +466,36 @@ function getStatusClass($status) {
   <script src="js/Chart.min.js"></script>
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const selectedStatus = this.value; // Valor seleccionado en el filtro
+        const rows = document.querySelectorAll('#dataTable-1 tbody tr'); // Filas de la tabla
+
+        rows.forEach(row => {
+            const statusCell = row.querySelector('td:last-child span'); // Buscar el span del estado dentro de la última celda
+            if (statusCell) {
+                const statusValue = statusCell.getAttribute('data-status'); // Obtener el valor data-status
+
+                if (selectedStatus === 'all') {
+                    row.style.display = ''; // Mostrar todas si selecciona 'Todas'
+                } else if (statusValue === selectedStatus) {
+                    row.style.display = ''; // Mostrar solo las que coinciden
+                } else {
+                    row.style.display = 'none'; // Ocultar las que no coinciden
+                }
+            }
+        });
+    });
+
+    // Aplicar el filtro por defecto (Pendientes) al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Establecer el valor predeterminado como '3' (Pendientes)
+        document.getElementById('statusFilter').value = '3';
+        // Activar el filtro para aplicar la acción
+        document.getElementById('statusFilter').dispatchEvent(new Event('change'));
+    });
+  </script>
+
   <script>
 function validarIncidencia(element) {
     const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
