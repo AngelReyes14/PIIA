@@ -2260,7 +2260,7 @@ pre code {
     color: #4BA722;
     opacity: 1; }
   .form-control:disabled, .form-control[readonly] {
-    background-color: #4BA722;
+    background-color: #ffffff;
     opacity: 1; }
 
 input[type="date"].form-control,
@@ -19466,3 +19466,24 @@ input.form-control {
   color: white; /* Letras blancas en hover */
 }
 
+.status-color {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+}
+
+.status-color-yellow {
+  background-color: yellow;
+}
+
+.status-color-green {
+  background-color: green;
+}
+
+.status-color-red {
+  background-color: red;
+}
+
+.status-color-gray {
+  background-color: gray;
+}

@@ -4,6 +4,10 @@ include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('aside.php');
 
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -20,6 +24,8 @@ try {
 
   // Obtén los cuerpos colegiados
   $cuerposColegiados = $consultas->obtenerCuerposColegiados();
+
+  $periodos = $consultas->obtenerPeriodos();
 
   // Obtén los tipos de usuario
   $tiposUsuario = $consultas->obtenerTiposDeUsuario();
@@ -101,10 +107,12 @@ try {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+                <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                    alt="Avatar del usuario" 
+                    class="avatar-img rounded-circle" 
+                    style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
@@ -197,7 +205,7 @@ try {
                     </div>
 
                     <div class="row">
-                      <div class="col-sm-12 col-md-4 mt-3">
+                      <div class="col-sm-12 col-md-3 mt-3">
                         <label for="carrera_carrera_id" class="form-label">Carrera:</label>
                         <select id="carrera_carrera_id" name="carrera_carrera_id" class="form-control" required>
                           <option value="" disabled selected>Seleccione una carrera</option>
@@ -207,7 +215,17 @@ try {
                         </select>
                         <div class="invalid-feedback">Este campo no puede estar vacío.</div>
                       </div>
-                      <div class="col-sm-12 col-md-4 mt-3">
+                      <div class="col-sm-12 col-md-3 mt-3">
+                        <label for="periodo_periodo_id" class="form-label">Periodos:</label>
+                        <select id="periodo_periodo_id" name="periodo_periodo_id" class="form-control" required>
+                          <option value="" disabled selected>Seleccione un periodo</option>
+                          <?php foreach ($periodos as $periodo): ?>
+                            <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+                      </div>
+                      <div class="col-sm-12 col-md-3 mt-3">
                         <label for="cuerpo_colegiado_cuerpo_colegiado_id" class="form-label">Cuerpo Colegiado:</label>
                         <select id="cuerpo_colegiado_cuerpo_colegiado_id" name="cuerpo_colegiado_cuerpo_colegiado_id" class="form-control" required>
                           <option value="" disabled selected>Seleccione una opcion.</option>
@@ -218,7 +236,7 @@ try {
                         <div class="invalid-feedback">Este campo no puede estar vacío.</div>
                       </div>
 
-                      <div class="col-sm-12 col-md-4 mt-3">
+                      <div class="col-sm-12 col-md-3 mt-3">
                         <label for="fecha_contratacion" class="form-label">Fecha de Contratación:</label>
                         <input type="date" id="fecha_contratacion" name="fecha_contratacion" class="form-control" required>
                         <div class="invalid-feedback">Este campo no puede estar vacío.</div>
@@ -443,6 +461,7 @@ try {
                             <th>Tipo Usuario ID</th>
                             <th>Cuerpo Colegiado ID</th>
                             <th>Carrera ID</th>
+                            <th>Periodo</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -464,6 +483,7 @@ try {
                               <td><?php echo $usuario['tipo_usuario']; ?></td>
                               <td><?php echo $usuario['cuerpo_colegiado']; ?></td>
                               <td><?php echo $usuario['carrera']; ?></td>
+                              <td><?php echo $usuario['periodo']; ?></td>
                             </tr>
                           <?php endforeach; ?>
                         </tbody>

@@ -3,37 +3,47 @@ include('../../models/session.php');
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 include('aside.php');
+
 if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 $conn = $database->getConnection();
 $consultas = new Consultas($conn);
 
+// Obtener el ID del usuario actual y su tipo
+$idusuario = (int)$_SESSION['user_id'];
+// Obtener el tipo de usuario
+// Obtener el tipo de usuario
+$usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
+
+// Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
+$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
+
+if (!$usuario_tipo) {
+    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+}
+
+if (!$carreraId) {
+    die("Error: Carrera del usuario no encontrada.");
+}
+
+// Obtener incidencias según el tipo de usuario
+if ($usuario_tipo == 1) {
+    // Usuario tipo 1: solo incidencias propias
+    $incidencias = $consultas->obtenerIncidenciasPorUsuario($idusuario);
+} elseif (in_array($usuario_tipo, [2, 4, 6])) {
+    // Usuarios tipo 2, 4 y 6: solo incidencias de su carrera
+    $incidencias = $consultas->obtenerIncidenciasPorCarrera($carreraId);
+} else {
+    // Otros usuarios: todas las incidencias
+    $incidencias = $consultas->obtenerDatosincidencias();
+}
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
-$incidencias = $consultas->obtenerIncidencias();
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
-
-$imgUser  = $consultas->obtenerImagen($idusuario);
-
-// Crear instancia de CarreraManager y obtener el ID de usuario
-$carreraManager = new CarreraManager($conn);
-$idusuario = $sessionManager->getUserId();
-
-// Obtener carrera para el usuario autenticado
-$carrera = $carreraManager->obtenerCarreraPorUsuario($idusuario);
-
-// Crear instancia de la clase UsuarioManager
-$usuarioManager = new UsuarioManager($conn);
-
-// Obtener el ID del usuario a través del SessionManager
-$idusuario = $sessionManager->getUserId();
-
-// Obtener el servidor público del usuario autenticado
-$servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario);
 ?>
+
 
 <!-- Aquí sigue tu código HTML para el formulario -->
 
@@ -103,13 +113,11 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
+            </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -125,128 +133,170 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <main role="main" class="main-content">
       <div class="col-md-12">
-      <form id="formincidencias" method="POST" action="../../models/insert.php" enctype="multipart/form-data">
-      <input type="hidden" name="form_type" value="incidencia-usuario">
         <div class="card shadow mb-4">
           <div class="card-body">
             <div class="logo-container mb-3">
               <img class="form-logo-left" src="assets/images/logo-teschi.png" alt="Logo Izquierda">
               <img class="form-logo-right" src="assets/icon/icon_piia.png" alt="Logo Derecha">
             </div>
-            <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>AVISO DE JUSTIFICACION DE PUNTUALIDAD Y ASISTENCIA</strong></p>
-            </div>
-            <div class="container p-4 mb-4 box-shadow-div">
               <div class="row mb-3">
                 <!-- Caja contenedora para los campos de "Área" y "Fecha" en la misma fila -->
                 <div class="col-md-12">
-                  <div class="form-group p-3 border rounded" >
-                    <div class="row">
-                      <!-- Campo de Área alineado a la izquierda -->
-             <div class="col-md-6">
-                <label for="area" class="form-label">Área:</label>
-                <select class="form-control" id="area" name="area" required>
-                    <option value="" disabled>Selecciona una carrera</option>
-                    <?php if ($carrera): ?>
-                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>" selected>
-                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
-                        </option>
-                    <?php else: ?>
-                        <option value="">No hay carreras disponibles para este usuario</option>
-                    <?php endif; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+                <div class="container-fluid ">
+          <div class="row justify-content-center">
+            <div class="col-12 ">
+              <div class="row my-4">
+                <!-- Small table -->
+                <div class="col-md-12 ">
+                    
+                  <div class="card shadow p-5">
+                    <div class="table-responsive">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+              <p class="titulo-grande"><strong>ESTADO INCIDENCIAS</strong></p>
             </div>
-
-                      <!-- Campo de Fecha alineado a la derecha -->
-                      <div class="col-md-6">
-                        <label for="fecha" class="form-label">Fecha:</label>
-                        <input class="form-control" id="fecha" type="date" name="fecha" required>
-                        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
-          <div class="form-group mb-3">
-            <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
-            <select class="form-control" id="incidencias" name="incidencias" required>
-              <option value="" disabled selected>Selecciona una incidencia</option>
-              <?php foreach ($incidencias as $incidencia): ?>
-                <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
-                  <?php echo htmlspecialchars($incidencia['descripcion']); // Solo la descripción 
-                  ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <div class="invalid-feedback">Este campo es obligatorio.</div>
-          </div>
-
-        </div>
-
-        <div class="conteiner p-3 box-shadow-div">
-          <div class="form-group mb-3">
-            <label for="motivo">Motivo</label>
-            <input class="form-control" id="motivo" name="motivo" type="text" required>
-            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-          </div>
-
-          <div class="d-flex flex-wrap mb-3">
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="start-time" class="horario-label me-2">Horario entrada:</label>
-              <div class="d-flex">
-                <input type="time" id="start-time" name="start-time" required class="me-1 form-control">
-              </div>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="end-time" class="horario-label me-2">Horario salida:</label>
-              <div class="d-flex">
-                <input type="time" id="end-time" name="end-time" required class="form-control">
-              </div>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="time" class="me-2">Hora de Incidencia:</label>
-              <input class="form-control" id="example-time" type="time" name="time" required>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-
-            <div class="form-group mr-3 flex-fill mb-3">
-              <label for="dia-incidencia" class="me-2">Día de la incidencia:</label>
-              <input class="form-control" id="dia-incidencia" type="date" name="dia-incidencia" required>
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
-            </div>
-          </div>
-
-
-
-<div class="d-flex flex-column mb-3">
-    <div class="mb-2">
-        <label for="usuario-servidor-publico" class="form-label">Seleccionar Servidor Público:</label>
-        <select class="form-control" id="usuario-servidor-publico" name="usuario-servidor-publico" required>
-            <option value="">Seleccione un servidor público</option>
-            <?php
-            if ($servidorPublico) {
-                echo '<option value="' . htmlspecialchars($servidorPublico['usuario_id']) . '">' . htmlspecialchars($servidorPublico['nombre_completo']) . '</option>';
-            } else {
-                echo '<option value="">No hay servidores públicos disponibles</option>';
-            }
-            ?>
+            <div class="d-flex justify-content-between align-items-center">
+    <!-- Otros elementos de la fila pueden ir aquí -->
+    
+    <div class="filter-container-status ml-auto">
+        <label for="statusFilter" class="mr-2">Filtro Estatus:</label>
+        <select id="statusFilter" class="form-control form-control-sm">
+            <option value="all">Todas</option>
+            <option value="1">Aprobadas</option>
+            <option value="2">Rechazadas</option>
+            <option value="3" selected>Pendientes</option>
         </select>
-        <div class="invalid-feedback">Debe seleccionar un servidor público.</div>
     </div>
 </div>
-          <!-- Botón para enviar el formulario -->
-          <div class="text-center mt-4">
-            <button type="button" class="btn btn-primary" id="submit-button">Enviar</button>
+
+    <table class="table datatables" id="dataTable-1">
+        <thead>
+            <tr>
+                <th>Tipo Incidencia</th>
+                <th>Usuario</th>
+                <th>Fecha Solicitada</th>
+                <th>Motivo</th>
+                <th>Horario Inicio</th>
+                <th>Horario Término</th>
+                <th>Horario Incidencia</th>
+                <th>Día Incidencia</th>
+                <th>Carrera</th>
+                <th>Validación por División Académica</th>
+                <th>Validación por Subdirección</th>
+                <th>Validación por Recursos Humanos</th>
+                <th>Estado de la Incidencia</th>
+            </tr>
+        </thead>
+        <tbody>
+          <?php // Función para obtener la clase de estado
+          function getStatus($validacionDivision, $validacionSubdireccion, $validacionRH) {
+            if ($validacionDivision == 2 || $validacionSubdireccion == 2 || $validacionRH == 2) {
+                return 2; // Rechazado si alguna validación tiene 2
+            }
+            if ($validacionDivision == 3 || $validacionSubdireccion == 3 || $validacionRH == 3) {
+                return 3; // Pendiente si alguna validación tiene 3
+            }
+            return 1; // Aceptado si todas las validaciones son 1
+        }
+function getStatusClass($status) {
+    switch ($status) {
+        case 1: 
+            return 'status-color-green'; // Aceptado
+        case 2:
+            return 'status-color-red'; // Rechazado
+        case 3:
+            return 'status-color-yellow'; // En espera
+        default:
+            return 'status-color-gray'; // Estado por defecto
+    }
+}?>
+        <?php foreach ($incidencias as $incidencia): ?>
+            <tr>
+                <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
+                <td><?php echo $incidencia['fecha_solicitada']; ?></td>
+                <td><?php echo $incidencia['motivo']; ?></td>
+                <td><?php echo $incidencia['horario_inicio']; ?></td>
+                <td><?php echo $incidencia['horario_termino']; ?></td>
+                <td><?php echo $incidencia['horario_incidencia']; ?></td>
+                <td><?php echo $incidencia['dia_incidencia']; ?></td>
+                <td><?php echo $incidencia['nombre_carrera']; ?></td>
+
+                <!-- Validación División Académica -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 2): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['incidencia_has_usuario_id']; ?>"
+                            data-validacion="division">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+
+                <!-- Validación Subdirección -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_subdireccion']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 7): ?>
+                            onclick="validarIncidencia(this)"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="subdireccion">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+                <!-- Validación Recursos Humanos -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['validacion_rh']);
+                    ?>
+                    <span class="status-color <?php echo $statusClass; ?>"
+                        <?php if ($usuario_tipo == 3): ?>
+                            onclick="validarIncidencia(this)"
+                           data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-validacion="rh">
+                        <?php else: ?>
+                            <?php echo $statusClass; ?>
+                        <?php endif; ?>
+                    </span>
+                </td>
+
+                <!-- Estado -->
+                <td class="text-center">
+                    <?php
+                    $statusClass = getStatusClass($incidencia['status_incidencia_id']);
+                    ?>
+      <span class="status-color <?php echo $statusClass; ?>" data-status="<?php echo $incidencia['status_incidencia_id']; ?>"></span>
+
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
+                  </div>
+                </div> <!-- simple table -->
+              </div> <!-- end section -->
+            </div> <!-- .col-12 -->
+          </div> <!-- .row -->
+        </div> <!-- .container-fluid -->
+                </div>
+      </div>
+    </main>
+  </div>
+                </div>
+            </div>
           </div>
+        </div>
           <!-- Modal -->
           <!-- Modal -->
           <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
@@ -265,7 +315,6 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
             </div>
           </div>
         </div>
-      </form>
       </div>
   </div>
   </main>
@@ -417,7 +466,115 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
   <script src="js/Chart.min.js"></script>
   <!-- Incluir SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="js/form_carrera.js"></script>
+  <script>
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const selectedStatus = this.value; // Valor seleccionado en el filtro
+        const rows = document.querySelectorAll('#dataTable-1 tbody tr'); // Filas de la tabla
+
+        rows.forEach(row => {
+            const statusCell = row.querySelector('td:last-child span'); // Buscar el span del estado dentro de la última celda
+            if (statusCell) {
+                const statusValue = statusCell.getAttribute('data-status'); // Obtener el valor data-status
+
+                if (selectedStatus === 'all') {
+                    row.style.display = ''; // Mostrar todas si selecciona 'Todas'
+                } else if (statusValue === selectedStatus) {
+                    row.style.display = ''; // Mostrar solo las que coinciden
+                } else {
+                    row.style.display = 'none'; // Ocultar las que no coinciden
+                }
+            }
+        });
+    });
+
+    // Aplicar el filtro por defecto (Pendientes) al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Establecer el valor predeterminado como '3' (Pendientes)
+        document.getElementById('statusFilter').value = '3';
+        // Activar el filtro para aplicar la acción
+        document.getElementById('statusFilter').dispatchEvent(new Event('change'));
+    });
+  </script>
+
+  <script>
+function validarIncidencia(element) {
+    const incidenciaId = element.getAttribute("data-incidencia-id"); // ID de la incidencia seleccionada
+    const validacion = element.getAttribute("data-validacion"); // Tipo de validación (division, subdireccion, rh)
+
+    Swal.fire({
+        title: '¿Aceptar o rechazar esta incidencia?',
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        denyButtonText: 'Rechazar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            actualizarIncidencia(incidenciaId, validacion, 1); // Estado 1: Aceptar
+        } else if (result.isDenied) {
+            actualizarIncidencia(incidenciaId, validacion, 2); // Estado 2: Rechazar
+        }
+    });
+}
+
+function actualizarIncidencia(incidenciaId, validacion, estado) {
+    const formData = new FormData();
+    
+    formData.append("form_type", "validacion-incidencia"); // Tipo de formulario
+    formData.append("incidencia_id", incidenciaId); // Enviar solo el ID de la incidencia seleccionada
+    formData.append("validacion", validacion);
+    formData.append("estado", estado); // Estado (1, 2, o 3)
+
+    fetch('../../models/insert.php', {
+        method: 'POST',
+        body: formData,
+    })
+    .then((response) => response.text())
+    .then((data) => {
+        console.log("Respuesta del servidor:", data); // Depuración
+
+        if (data.includes('La división académica no ha aprobado aún.')) {
+            Swal.fire('Error', 'La división académica no ha aprobado aún.', 'error');
+        } else if (data.includes('La subdirección no ha aprobado aún.')) {
+            Swal.fire('Error', 'La subdirección no ha aprobado aún.', 'error');
+        } else if (data.includes('success')) {
+            Swal.fire('Actualizado', 'La incidencia fue actualizada correctamente.', 'success')
+                .then(() => {
+                    // Actualiza solo la fila correspondiente con el ID de la incidencia
+                    let fila = document.querySelector(`[data-incidencia-id="${incidenciaId}"]`).closest('tr');
+                    if (fila) {
+                      let statusCell = fila.querySelector(`.status-color[data-validacion="${validacion}"]`);
+
+                        // Actualizar el color de la clase según el estado
+                        if (estado === 1) {
+                            statusCell.classList.add('status-color-green');
+                            statusCell.classList.remove('status-color-red', 'status-color-yellow');
+                        } else if (estado === 2) {
+                            statusCell.classList.add('status-color-red');
+                            statusCell.classList.remove('status-color-green', 'status-color-yellow');
+                        } else {
+                            statusCell.classList.add('status-color-yellow');
+                            statusCell.classList.remove('status-color-green', 'status-color-red');
+                        }
+                    }
+                                        // Recargar la página después de mostrar el mensaje de éxito
+                                        location.reload();
+                });
+        } else {
+            Swal.fire('Error', `${data}`, 'error');
+        }
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        Swal.fire('Error', 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.', 'error');
+    });
+}
+
+  </script>
+
+
+
+
   <script>
     function getNextBusinessDays(date, days) {
       let result = new Date(date);
@@ -480,25 +637,6 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script>
-$(document).ready(function() {
-    $('#submit-button').on('click', function() {
-        // Aquí puedes realizar validaciones antes de enviar
-        if ($("#formincidencias")[0].checkValidity()) {
-            // Si el formulario es válido, envíalo
-            $('#formincidencias').submit(); // Esto enviará el formulario
-        } else {
-            // Si no es válido, muestra el mensaje de error
-            $("#formincidencias")[0].reportValidity();
-        }
-    });
-
-    $('#closeModal').on('click', function() {
-        $('#customModal').modal('hide');
-    });
-});
-
-</script>
   <script>
     $('.select2').select2({
       theme: 'bootstrap4',

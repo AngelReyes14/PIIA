@@ -1,10 +1,13 @@
 <?php
 class Consultas {
     private $conn;
+    
+    
 
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -12,6 +15,20 @@ class Consultas {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    // Método en la clase Consultas para obtener períodos
+    public function obtenerPeriodos() {
+        $query = "SELECT periodo_id, descripcion, fecha_inicio, fecha_termino FROM periodo ORDER BY fecha_inicio DESC"; // Ajusta la consulta según tu tabla
+        $result = $this->conn->query($query);
+    
+        $periodos = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) { // Cambia a fetch(PDO::FETCH_ASSOC) si estás usando PDO
+                $periodos[] = $row;
+            }
+        }
+        return $periodos;
+    }
+    
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -37,6 +54,30 @@ class Consultas {
         }
     }
     
+
+    public function obtenerImagen($iduser) {
+        $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':iduser', $iduser); // Asegúrate de enlazar el parámetro
+        $stmt->execute();
+        
+        // Obtener el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Agregar "../" al inicio de la URL de la imagen si existe
+        if ($result && isset($result['imagen_url'])) {
+            $result['imagen_url'] = "../" . $result['imagen_url'];
+        }
+        
+        return $result; // Devuelve el resultado modificado
+    }
+
+    public function obtenerProfesores() {
+        $sql = "SELECT * FROM usuario WHERE tipo_usuario_tipo_usuario_id = 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
@@ -79,30 +120,6 @@ class Consultas {
         return $result ? (int)$result['tipo_usuario_tipo_usuario_id'] : null; // Retorna solo el ID
     }
     
-    public function obtenerProfesores() {
-        $sql = "SELECT * FROM usuario WHERE tipo_usuario_tipo_usuario_id = 1";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    public function obtenerImagen($iduser) {
-        $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':iduser', $iduser); // Asegúrate de enlazar el parámetro
-        $stmt->execute();
-        
-        // Obtener el resultado
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Agregar "../" al inicio de la URL de la imagen si existe
-        if ($result && isset($result['imagen_url'])) {
-            $result['imagen_url'] = "../" . $result['imagen_url'];
-        }
-        
-        return $result; // Devuelve el resultado modificado
-    }
-    
 
    public function actualizarImagenPerfil($imagenUrl, $idusuario) {
     if (empty($imagenUrl)) {
@@ -130,6 +147,78 @@ class Consultas {
     }
 }
 
+public function obtenerIncidenciasPorUsuario($idusuario) {
+    $query = "
+        SELECT ihu.incidencia_has_usuario_id,
+            i.descripcion AS descripcion_incidencia, 
+            u.nombre_usuario, 
+            u.apellido_p AS apellido_paterno, 
+            u.apellido_m AS apellido_materno, 
+            ihu.fecha_solicitada, 
+            ihu.motivo, 
+            ihu.horario_inicio, 
+            ihu.horario_termino, 
+            ihu.horario_incidencia, 
+            ihu.dia_incidencia, 
+            c.nombre_carrera, 
+            ihu.Validacion_Divicion_Academica AS validacion_division_academica,
+            ihu.Validacion_Subdireccion AS validacion_subdireccion,
+            ihu.Validacion_RH AS validacion_rh,
+            ihu.status_incidencia_id
+        FROM incidencia_has_usuario ihu
+        JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+        JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+        JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.usuario_usuario_id = :idusuario
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerIncidenciasPorCarrera($carreraId) {
+    $query = "
+        SELECT ihu.incidencia_has_usuario_id,
+            i.descripcion AS descripcion_incidencia, 
+            u.nombre_usuario, 
+            u.apellido_p AS apellido_paterno, 
+            u.apellido_m AS apellido_materno, 
+            ihu.fecha_solicitada, 
+            ihu.motivo, 
+            ihu.horario_inicio, 
+            ihu.horario_termino, 
+            ihu.horario_incidencia, 
+            ihu.dia_incidencia, 
+            c.nombre_carrera, 
+            ihu.Validacion_Divicion_Academica AS validacion_division_academica,
+            ihu.Validacion_Subdireccion AS validacion_subdireccion,
+            ihu.Validacion_RH AS validacion_rh,
+            ihu.status_incidencia_id
+        FROM incidencia_has_usuario ihu
+        JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+        JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+        JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.carrera_carrera_id = :carreraId
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerCarreraPorUsuario($idusuario) {
+    $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :idusuario";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchColumn();
+}
+
+
+
     
     
 
@@ -142,12 +231,30 @@ class Consultas {
     }
     
 
+    public function CarreraMaestros($carrera_id) {
+        $sql = "SELECT * FROM piia.vista_usuarios where carrera_carrera_id = :carrera_id and tipo_usuario_tipo_usuario_id = 1;";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function Incidenciausuario($carrera_id) {
+        $sql = "SELECT * FROM vista_incidencias_usuarios WHERE carrera_carrera_id = :carrera_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+
     public function obtenerCarreras() {
         $query = "SELECT carrera_id, nombre_carrera FROM carrera"; // Asegúrate de que la tabla y las columnas sean correctas
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
 
     //*********************** PRUEBA ************************************************************* */    
@@ -262,7 +369,6 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-
     // Método para obtener semestres basados en la carrera seleccionada
     public function obtenerSemestresPorCarrera($carrera_id) {
         if (empty($carrera_id)) {
@@ -298,6 +404,13 @@ $stmt->execute();
 return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+public function obtenerDatosincidencias(){
+    $query = "SELECT * FROM datos_incidencia";        
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 // Método para obtener todos los tipos de usuario
 public function obtenerTiposDeUsuario() {
 $query = "SELECT tipo_usuario_id, descripcion FROM tipo_usuario"; // Asegúrate de que la tabla y las columnas sean correctas
@@ -327,6 +440,227 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         return $row['total'];
     }
+
+    public function datosCarreraPorId($usuarioId) {
+        try {
+            // Primera consulta para obtener el ID de la carrera usando el usuario ID
+            $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :usuario_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener el resultado de carrera_id
+            $carrera = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($carrera) {
+                $carreraId = $carrera['carrera_carrera_id'];
+    
+                // Segunda consulta para obtener todos los datos de la carrera usando el carrera_id
+                $query = "SELECT * FROM vista_datos_carrera WHERE carrera_id = :carrera_id";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+                $stmt->execute();
+                
+                // Retorna todos los datos de la carrera
+                return $stmt->fetch(PDO::FETCH_ASSOC);
+            } else {
+                return null; // Retorna null si no encuentra una carrera asociada al usuario
+            }
+        } catch (PDOException $e) {
+            // Manejo de errores
+            echo "Error: " . $e->getMessage();
+            return null;
+        }
+    }
+    
+    public function mujeresCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_mujeres 
+        FROM usuario
+        WHERE carrera_carrera_id = :carrera_id AND sexo_sexo_id = 2";// Suponiendo que '1' representa mujeres
+        
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula el parámetro correctamente
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT); // Asegúrate de que el nombre sea exactamente ':carrera_id'
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+    
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        // Retorna el total de mujeres
+        return $result['total_mujeres'];
+    }
+
+    public function hombresCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_hombres 
+        FROM usuario
+        WHERE carrera_carrera_id = :carrera_id AND sexo_sexo_id = 1";// Suponiendo que '1' representa hombres
+        
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula el parámetro correctamente
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT); // Asegúrate de que el nombre sea exactamente ':carrera_id'
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+    
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        // Retorna el total de mujeres
+        return $result['total_hombres'];
+    }
+
+    public function docentesCarrera($carreraId) {
+        // Prepara la consulta SQL
+        $sql = "SELECT COUNT(*) as total_docentes 
+                FROM usuario 
+                WHERE carrera_carrera_id = :carrera_id 
+                AND tipo_usuario_tipo_usuario_id = :tipo_usuario_id"; // Asegúrate de que este es el ID para docentes
+    
+        // Prepara la sentencia
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincula los parámetros
+        $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+        
+        // Aquí puedes poner el ID correspondiente para los docentes. Asegúrate de reemplazarlo por el correcto.
+        $tipoUsuarioDocente = 1; // Supongamos que '1' es el ID para docentes, cámbialo según tu base de datos.
+        $stmt->bindParam(':tipo_usuario_id', $tipoUsuarioDocente, PDO::PARAM_INT);
+        
+        // Ejecuta la consulta
+        $stmt->execute();
+        
+        // Obtiene el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Retorna el total de docentes
+        return $result['total_docentes'];
+    }
+    
+    public function gruposCarrera($carreraId) {
+        try {
+            // Primera consulta: obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0); // Obtiene una columna como array
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retorna 0
+            }
+            
+            // Segunda consulta: contar grupos para los semestres obtenidos
+            $placeholders = implode(',', array_fill(0, count($semestres), '?')); // Genera los placeholders para la consulta
+            $sql = "SELECT COUNT(*) as total_grupos 
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders)";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres); // Pasa el array de semestres como parámetros
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Retorna el total de grupos
+            return $result['total_grupos'];
+            
+        } catch (PDOException $e) {
+            // Manejo de errores
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+    public function gruposTurnoMatutino($carreraId) {
+        try {
+            // Obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retornar 0
+            }
+            
+            // Contar grupos del turno matutino
+            $placeholders = implode(',', array_fill(0, count($semestres), '?'));
+            $sql = "SELECT COUNT(*) as total_grupos_matutino 
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders) AND turno_idturno = '1'";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres);
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return $result['total_grupos_matutino'];
+            
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+    public function gruposTurnoVespertino($carreraId) {
+        try {
+            // Obtener los ID de los semestres para la carrera
+            $sql = "SELECT semestre_id 
+                    FROM semestre 
+                    WHERE carrera_carrera_id = :carrera_id";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Obtener todos los IDs de semestres
+            $semestres = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            
+            if (empty($semestres)) {
+                return 0; // Si no hay semestres, retornar 0
+            }
+            
+            // Contar grupos del turno vespertino
+            $placeholders = implode(',', array_fill(0, count($semestres), '?'));
+            $sql = "SELECT COUNT(*) as total_grupos_vespertino
+                    FROM grupo 
+                    WHERE semestre_semestre_id IN ($placeholders) AND turno_idturno = '2'";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($semestres);
+            
+            // Obtener el resultado
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return $result['total_grupos_vespertino'];
+            
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return 0;
+        }
+    }
+    
+
 }
 
 
@@ -577,7 +911,7 @@ class Usuario {
             $tipo_usuario_tipo_usuario_id = $_POST['tipo_usuario_tipo_usuario_id'];
             $carrera_carrera_id = $_POST['carrera_carrera_id'];
             $cuerpo_colegiado_cuerpo_colegiado_id = $_POST['cuerpo_colegiado_cuerpo_colegiado_id'];
-
+            $periodo_periodo_id = $_POST['periodo_periodo_id']; // Agregar periodo_id
             // Manejar la carga de imagen
             $imagen_url = $this->handleImageUpload($_FILES['imagen_url']);
             if ($imagen_url === false) {
@@ -612,7 +946,7 @@ class Usuario {
             // Insertar en la base de datos
             $this->insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
                 $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id);
+                $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id);
         }
     }
     
@@ -659,7 +993,7 @@ class Usuario {
 
     private function insertUsuario($nombre_usuario, $apellido_p, $apellido_m, $edad, $correo, $password, $fecha_contratacion, $numero_empleado, 
     $grado_academico, $cedula, $imagen_url, $sexo_sexo_id, $status_status_id, $tipo_usuario_tipo_usuario_id, 
-    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id) {
+    $carrera_carrera_id, $cuerpo_colegiado_cuerpo_colegiado_id, $periodo_periodo_id) {
 
             // Verificar si el correo ya existe
     if ($this->isEmailDuplicate($correo)) {
@@ -675,7 +1009,7 @@ class Usuario {
 
         $query = "CALL piia.insertarUsuario(:nombre_usuario, :apellido_p, :apellido_m, :edad, :correo, :password, 
             :fecha_contratacion, :numero_empleado, :grado_academico, :cedula, :imagen_url, :sexo_sexo_id, 
-            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id)";
+            :status_status_id, :tipo_usuario_tipo_usuario_id, :cuerpo_colegiado_cuerpo_colegiado_id, :carrera_carrera_id, :periodo_periodo_id)";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':nombre_usuario', $nombre_usuario);
@@ -694,6 +1028,7 @@ class Usuario {
         $stmt->bindParam(':tipo_usuario_tipo_usuario_id', $tipo_usuario_tipo_usuario_id);
         $stmt->bindParam(':cuerpo_colegiado_cuerpo_colegiado_id', $cuerpo_colegiado_cuerpo_colegiado_id);
         $stmt->bindParam(':carrera_carrera_id', $carrera_carrera_id);
+        $stmt->bindParam(':periodo_periodo_id', $periodo_periodo_id); // Añadir bind para periodo_id
 
         try {
             $stmt->execute();
@@ -719,6 +1054,7 @@ class Usuario {
         return $stmt->fetchColumn() > 0;
     }
 }
+
 class UsuarioHasCarrera {
     private $conn;
 
@@ -779,3 +1115,305 @@ class UsuarioHasCarrera {
         }
     }
 }
+
+class IncidenciaUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener los datos del formulario
+            $incidenciaId = $_POST['incidencias'];
+            $usuarioId = $_POST['usuario-servidor-publico']; 
+            $fechaSolicitada = $_POST['fecha'];
+            $motivo = $_POST['motivo'];
+            $horarioInicio = $_POST['start-time'];
+            $horarioTermino = $_POST['end-time'];
+            $horario_incidencia = $_POST['time'];
+            $diaIncidencia = $_POST['dia-incidencia']; 
+            $carreraId = $_POST['area'];
+            $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
+
+            // Validar los datos (ejemplo básico, se puede expandir)
+            if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
+                echo "Por favor, completa todos los campos requeridos.";
+                return;
+            }
+
+            // Insertar los datos en la base de datos
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
+        }
+    }
+
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+        $validacionDivicionAcademica = 3;
+        $validacionSubdireccion = 3;
+        $validacionRH = 3;
+
+        $query = "INSERT INTO incidencia_has_usuario (
+                    incidencia_incidenciaid,
+                    usuario_usuario_id,
+                    fecha_solicitada,
+                    motivo,
+                    horario_inicio,
+                    horario_termino,
+                    horario_incidencia,
+                    dia_incidencia,
+                    carrera_carrera_id,
+                    Validacion_Divicion_Academica,
+                    Validacion_Subdireccion,
+                    Validacion_RH,
+                    status_incidencia_id
+                  ) VALUES (
+                    :incidencia_id,
+                    :usuario_id,
+                    :fecha_solicitada,
+                    :motivo,
+                    :horario_inicio,
+                    :horario_termino,
+                    :horario_incidencia,
+                    :dia_incidencia,
+                    :carrera_id,
+                    :validacion_divicion_academica,
+                    :validacion_subdireccion,
+                    :validacion_rh,
+                    :status_incidencia_id
+                  )";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidencia_id', $incidenciaId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':horario_inicio', $horarioInicio);
+        $stmt->bindParam(':horario_termino', $horarioTermino);
+        $stmt->bindParam(':horario_incidencia', $horario_incidencia);
+        $stmt->bindParam(':dia_incidencia', $diaIncidencia);
+        $stmt->bindParam(':carrera_id', $carreraId);
+        $stmt->bindParam(':validacion_divicion_academica', $validacionDivicionAcademica);
+        $stmt->bindParam(':validacion_subdireccion', $validacionSubdireccion);
+        $stmt->bindParam(':validacion_rh', $validacionRH);
+        $stmt->bindParam(':status_incidencia_id', $status_incidencia_id);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_incidencias.php?success=true");
+            exit(); // Detiene el script después de la redirección
+        } catch (PDOException $e) {
+            error_log("Error: " . $e->getMessage()); // Registra el error en el log
+            echo "Ocurrió un error al procesar la solicitud.";
+            exit();
+        }
+    }
+}
+
+class CarreraManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener la carrera asociada a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos de la carrera o null si no se encuentra.
+     */
+    public function obtenerCarreraPorUsuario($userId)
+    {
+        $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
+                  FROM carrera
+                  JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
+                  WHERE usuario.usuario_id = :user_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+class UsuarioManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener el servidor público asociado a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos del servidor público o null si no se encuentra.
+     */
+    public function obtenerServidorPublicoPorUsuario($userId)
+    {
+        $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                  FROM usuario 
+                  WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+
+class ActualizarEstado {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleForm() {
+        if (isset($_POST['form_type']) && $_POST['form_type'] === 'validacion-incidencia') {
+            if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+                // Validar los datos recibidos
+                $incidenciaId = (int)$_POST['incidencia_id'];
+                $validacion = $_POST['validacion'];
+                $estado = (int)$_POST['estado'];
+
+                if (empty($incidenciaId)) {
+                    echo "ID de incidencia no válido.";
+                    exit;
+                }
+
+                // Validar el campo de validación
+                $validaciones = [
+                    'division' => 'validacion_divicion_academica',
+                    'subdireccion' => 'validacion_subdireccion',
+                    'rh' => 'validacion_rh',
+                ];
+                $campoValidacion = $validaciones[$validacion] ?? null;
+
+                if (!$campoValidacion) {
+                    echo "Campo de validación no válido.";
+                    exit;
+                }
+
+                // Verificar que el registro existe
+                $queryCheck = "SELECT COUNT(*) FROM incidencia_has_usuario WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmtCheck = $this->conn->prepare($queryCheck);
+                $stmtCheck->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                $stmtCheck->execute();
+
+                if ($stmtCheck->fetchColumn() === 0) {
+                    echo "No se encontró el registro con el ID proporcionado.";
+                    exit;
+                }
+
+                // **Verificación de jerarquía antes de proceder**
+                if (!$this->validarJerarquia($validacion, $incidenciaId)) {
+                    echo "Error: La validación no sigue el flujo jerárquico.";
+                    exit;
+                }
+
+                // Actualizar el registro de validación
+                $query = "UPDATE incidencia_has_usuario 
+                          SET $campoValidacion = :estado 
+                          WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
+                        // Ahora actualizamos el campo status_incidencia_id según las reglas
+                        $this->actualizarStatus($incidenciaId);
+                        echo "success";
+                    } else {
+                        echo "Advertencia: Se actualizaron más de un registro.";
+                    }
+                } else {
+                    echo "Error al actualizar la incidencia.";
+                }
+            } else {
+                echo "Datos incompletos para la actualización.";
+            }
+        } else {
+            echo "Formulario no reconocido.";
+        }
+    }
+
+    private function actualizarStatus($incidenciaId) {
+        // Obtener los valores de validaciones para calcular el estado
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion, validacion_rh 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $validaciones = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depurar las validaciones obtenidas
+        var_dump($validaciones);
+
+        // Definir la lógica para determinar el nuevo status
+        $nuevoStatus = 3; // Valor por defecto (Pendiente)
+
+        // Si hay un '2' en cualquiera de las validaciones, se coloca '2' en status (Rechazado)
+        if ($validaciones['validacion_divicion_academica'] == 2 || 
+            $validaciones['validacion_subdireccion'] == 2 || 
+            $validaciones['validacion_rh'] == 2) {
+            $nuevoStatus = 2; // Rechazado
+        }
+        // Si todas las tres validaciones son '1', se coloca '1' en status (Aprobado)
+        elseif ($validaciones['validacion_divicion_academica'] == 1 && 
+                $validaciones['validacion_subdireccion'] == 1 && 
+                $validaciones['validacion_rh'] == 1) {
+            $nuevoStatus = 1; // Aprobado
+        }
+
+        // Ahora actualizamos el campo status_incidencia_id con el valor calculado
+        $queryUpdateStatus = "UPDATE incidencia_has_usuario 
+                              SET status_incidencia_id = :nuevoStatus 
+                              WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmtUpdateStatus = $this->conn->prepare($queryUpdateStatus);
+        $stmtUpdateStatus->bindParam(':nuevoStatus', $nuevoStatus, PDO::PARAM_INT);
+        $stmtUpdateStatus->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmtUpdateStatus->execute();
+    }
+
+    private function validarJerarquia($validacion, $incidenciaId) {
+        // Consultar las validaciones actuales
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $validacionesActuales = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depuración de las validaciones actuales
+        var_dump($validacionesActuales);
+
+        // Verificar la jerarquía
+        if ($validacion === 'subdireccion' && $validacionesActuales['validacion_divicion_academica'] != 1) {
+            echo "La división académica no ha aprobado aún.";
+            return false; // División Académica no ha aprobado
+        }
+        if ($validacion === 'rh' && $validacionesActuales['validacion_subdireccion'] != 1) {
+            echo "La subdirección no ha aprobado aún.";
+            return false; // Subdirección no ha aprobado
+        }
+
+        return true;
+    }
+}
+
+

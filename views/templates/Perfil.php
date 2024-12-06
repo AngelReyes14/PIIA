@@ -4,6 +4,10 @@ include('../../controllers/db.php'); // Asegúrate de que este archivo incluya l
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
+
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 // El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
@@ -51,10 +55,6 @@ $usuario['antiguedad'] = $antiguedad;
 echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usuario) . ");</script>";
 
 // Verificar si se ha enviado el formulario de cerrar sesión
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
-
 ?>
 
 <!doctype html>
@@ -123,11 +123,14 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="avatar avatar-sm mt-2">
-              <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" alt="Avatar del usuario" class="avatar-img rounded-circle">
+                <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                    alt="Avatar del usuario" 
+                    class="avatar-img rounded-circle" 
+                    style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
             </span>
-          </a>
+        </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="#">Profile</a>
@@ -322,6 +325,7 @@ if (isset($_POST['logout'])) {
                     <label class="form-label">Correo Electrónico:</label>
                     <input type="text" class="form-control" id="correo" value="" readonly>
                   </div>
+
                 </div>
                 <div class="row mb-3">
                   <div class="col-sm-6">
@@ -379,6 +383,9 @@ if (isset($_POST['logout'])) {
                   }
                 });
               </script>
+
+
+
 
 
             </div>
