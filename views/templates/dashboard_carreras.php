@@ -10,6 +10,11 @@ if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
+
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión  
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Retrieve user ID and carrera data
 $idusuario = $sessionManager->getUserId();
 $consultas = new Consultas($conn);
@@ -20,7 +25,7 @@ $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
-$maestros = $consultas->CarreraMaestros($carreraId);
+$maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
 
 // Get the count of women in the carrera
@@ -93,12 +98,15 @@ if ($carreraId) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
-            </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar avatar-sm mt-2">
+                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                      alt="Avatar del usuario" 
+                      class="avatar-img rounded-circle" 
+                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+              </span>
           </a>
+
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
@@ -195,8 +203,6 @@ if ($carreraId) {
                     </p>
                   </div>
                 </div>
-
-
 
 
 
@@ -307,9 +313,9 @@ if ($carreraId) {
                               <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_inicio']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_termino']); ?></td>
+                              <td><?php echo htmlspecialchars($incidencias['horario_incidencia']); ?></td>
                               <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
                             </tr>                  
                           <?php endforeach; ?>
@@ -563,34 +569,30 @@ if ($carreraId) {
                     <table class="table datatables" id="tabla-materias-2">
                       <thead class="thead-dark">
                         <tr>
-                          <th>Numero de incidencia</th>
-                          <th>Usuario</th>
-                          <th>Fecha solicitada</th>
-                          <th>Motivo</th>
-                          <th>Hora de inicio</th>
-                          <th>Hora de termino</th>
-                          <th>Horario de incidencias</th>
-                          <th>Dia de las incidencias</th>
+                          <th>Nombre</th>
+                          <th>Edad</th>
+                          <th>Fecha de contratacion</th>
+                          <th>Numero de empleado</th>
+                          <th>cedula</th>
+                          <th>correo</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <?php if ($incidencia): ?>
-                          <?php foreach ($incidencia as $incidencias): ?>
+                        <?php if ($maestros): ?>
+                          <?php foreach ($maestros as $maestroscarrera): ?>
                             <tr>
                             <tr>
-                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['hora_incidencia']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
                             </tr>                  
                           <?php endforeach; ?>
                         <?php else: ?>
                           <tr>
-                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
+                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
                           </tr>
                         <?php endif; ?>
                       </tbody>
@@ -605,6 +607,9 @@ if ($carreraId) {
                   </div>
                 </div> <!-- /.col -->
 
+
+              </div>
+            </div>
 
               </div>
             </div>

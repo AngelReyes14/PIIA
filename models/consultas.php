@@ -1,7 +1,8 @@
 <?php
 class Consultas {
     private $conn;
-
+    
+    
 
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
@@ -53,6 +54,30 @@ class Consultas {
         }
     }
     
+
+    public function obtenerImagen($iduser) {
+        $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':iduser', $iduser); // Asegúrate de enlazar el parámetro
+        $stmt->execute();
+        
+        // Obtener el resultado
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Agregar "../" al inicio de la URL de la imagen si existe
+        if ($result && isset($result['imagen_url'])) {
+            $result['imagen_url'] = "../" . $result['imagen_url'];
+        }
+        
+        return $result; // Devuelve el resultado modificado
+    }
+
+    public function obtenerProfesores() {
+        $sql = "SELECT * FROM usuario WHERE tipo_usuario_tipo_usuario_id = 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
@@ -121,6 +146,78 @@ class Consultas {
         return false; // Devuelve falso si hay un error
     }
 }
+
+public function obtenerIncidenciasPorUsuario($idusuario) {
+    $query = "
+        SELECT ihu.incidencia_has_usuario_id,
+            i.descripcion AS descripcion_incidencia, 
+            u.nombre_usuario, 
+            u.apellido_p AS apellido_paterno, 
+            u.apellido_m AS apellido_materno, 
+            ihu.fecha_solicitada, 
+            ihu.motivo, 
+            ihu.horario_inicio, 
+            ihu.horario_termino, 
+            ihu.horario_incidencia, 
+            ihu.dia_incidencia, 
+            c.nombre_carrera, 
+            ihu.Validacion_Divicion_Academica AS validacion_division_academica,
+            ihu.Validacion_Subdireccion AS validacion_subdireccion,
+            ihu.Validacion_RH AS validacion_rh,
+            ihu.status_incidencia_id
+        FROM incidencia_has_usuario ihu
+        JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+        JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+        JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.usuario_usuario_id = :idusuario
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerIncidenciasPorCarrera($carreraId) {
+    $query = "
+        SELECT ihu.incidencia_has_usuario_id,
+            i.descripcion AS descripcion_incidencia, 
+            u.nombre_usuario, 
+            u.apellido_p AS apellido_paterno, 
+            u.apellido_m AS apellido_materno, 
+            ihu.fecha_solicitada, 
+            ihu.motivo, 
+            ihu.horario_inicio, 
+            ihu.horario_termino, 
+            ihu.horario_incidencia, 
+            ihu.dia_incidencia, 
+            c.nombre_carrera, 
+            ihu.Validacion_Divicion_Academica AS validacion_division_academica,
+            ihu.Validacion_Subdireccion AS validacion_subdireccion,
+            ihu.Validacion_RH AS validacion_rh,
+            ihu.status_incidencia_id
+        FROM incidencia_has_usuario ihu
+        JOIN incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+        JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+        JOIN carrera c ON ihu.carrera_carrera_id = c.carrera_id
+        WHERE ihu.carrera_carrera_id = :carreraId
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerCarreraPorUsuario($idusuario) {
+    $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :idusuario";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchColumn();
+}
+
+
 
     
     
@@ -305,6 +402,13 @@ $query = "SELECT sexo_id, descripcion FROM sexo"; // Ajusta la tabla y columnas 
 $stmt = $this->conn->prepare($query);
 $stmt->execute();
 return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function obtenerDatosincidencias(){
+    $query = "SELECT * FROM datos_incidencia";        
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Método para obtener todos los tipos de usuario
@@ -581,7 +685,6 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
 
-}
 
 class Grupo {
     private $conn;
@@ -1054,6 +1157,7 @@ class IncidenciaUsuario {
             $horario_incidencia = $_POST['time'];
             $diaIncidencia = $_POST['dia-incidencia']; 
             $carreraId = $_POST['area'];
+            $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
 
             // Validar los datos (ejemplo básico, se puede expandir)
             if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
@@ -1062,13 +1166,45 @@ class IncidenciaUsuario {
             }
 
             // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId);
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
         }
     }
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino,$horario_incidencia, $diaIncidencia, $carreraId) {
-        $query = "INSERT INTO incidencia_has_usuario (incidencia_incidenciaid, usuario_usuario_id, fecha_solicitada, motivo, horario_inicio, horario_termino, horario_incidencia, dia_incidencia, carrera_carrera_id) 
-                  VALUES (:incidencia_id, :usuario_id, :fecha_solicitada, :motivo, :horario_inicio, :horario_termino, :horario_incidencia, :dia_incidencia, :carrera_id)";
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+        $validacionDivicionAcademica = 3;
+        $validacionSubdireccion = 3;
+        $validacionRH = 3;
+
+        $query = "INSERT INTO incidencia_has_usuario (
+                    incidencia_incidenciaid,
+                    usuario_usuario_id,
+                    fecha_solicitada,
+                    motivo,
+                    horario_inicio,
+                    horario_termino,
+                    horario_incidencia,
+                    dia_incidencia,
+                    carrera_carrera_id,
+                    Validacion_Divicion_Academica,
+                    Validacion_Subdireccion,
+                    Validacion_RH,
+                    status_incidencia_id
+                  ) VALUES (
+                    :incidencia_id,
+                    :usuario_id,
+                    :fecha_solicitada,
+                    :motivo,
+                    :horario_inicio,
+                    :horario_termino,
+                    :horario_incidencia,
+                    :dia_incidencia,
+                    :carrera_id,
+                    :validacion_divicion_academica,
+                    :validacion_subdireccion,
+                    :validacion_rh,
+                    :status_incidencia_id
+                  )";
+
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':incidencia_id', $incidenciaId);
         $stmt->bindParam(':usuario_id', $usuarioId);
@@ -1079,11 +1215,15 @@ class IncidenciaUsuario {
         $stmt->bindParam(':horario_incidencia', $horario_incidencia);
         $stmt->bindParam(':dia_incidencia', $diaIncidencia);
         $stmt->bindParam(':carrera_id', $carreraId);
+        $stmt->bindParam(':validacion_divicion_academica', $validacionDivicionAcademica);
+        $stmt->bindParam(':validacion_subdireccion', $validacionSubdireccion);
+        $stmt->bindParam(':validacion_rh', $validacionRH);
+        $stmt->bindParam(':status_incidencia_id', $status_incidencia_id);
 
         try {
             $stmt->execute();
             header("Location: ../views/templates/form_incidencias.php?success=true");
-            exit(); // Asegúrate de detener el script después de la redirección
+            exit(); // Detiene el script después de la redirección
         } catch (PDOException $e) {
             error_log("Error: " . $e->getMessage()); // Registra el error en el log
             echo "Ocurrió un error al procesar la solicitud.";
@@ -1091,3 +1231,211 @@ class IncidenciaUsuario {
         }
     }
 }
+
+class CarreraManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener la carrera asociada a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos de la carrera o null si no se encuentra.
+     */
+    public function obtenerCarreraPorUsuario($userId)
+    {
+        $query = "SELECT carrera.carrera_id, carrera.nombre_carrera 
+                  FROM carrera
+                  JOIN usuario ON usuario.carrera_carrera_id = carrera.carrera_id
+                  WHERE usuario.usuario_id = :user_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+class UsuarioManager
+{
+    private $conn;
+
+    public function __construct($dbConnection)
+    {
+        $this->conn = $dbConnection;
+    }
+
+    /**
+     * Obtener el servidor público asociado a un usuario específico.
+     * 
+     * @param int $userId El ID del usuario autenticado.
+     * @return array|null Los datos del servidor público o null si no se encuentra.
+     */
+    public function obtenerServidorPublicoPorUsuario($userId)
+    {
+        $query = "SELECT usuario_id, CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo 
+                  FROM usuario 
+                  WHERE usuario_id = :user_id"; // Filtramos solo por el usuario en sesión
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+
+        $stmt->execute();
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve null si no hay resultados
+    }
+}
+
+
+class ActualizarEstado {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleForm() {
+        if (isset($_POST['form_type']) && $_POST['form_type'] === 'validacion-incidencia') {
+            if (isset($_POST['incidencia_id'], $_POST['validacion'], $_POST['estado'])) {
+                // Validar los datos recibidos
+                $incidenciaId = (int)$_POST['incidencia_id'];
+                $validacion = $_POST['validacion'];
+                $estado = (int)$_POST['estado'];
+
+                if (empty($incidenciaId)) {
+                    echo "ID de incidencia no válido.";
+                    exit;
+                }
+
+                // Validar el campo de validación
+                $validaciones = [
+                    'division' => 'validacion_divicion_academica',
+                    'subdireccion' => 'validacion_subdireccion',
+                    'rh' => 'validacion_rh',
+                ];
+                $campoValidacion = $validaciones[$validacion] ?? null;
+
+                if (!$campoValidacion) {
+                    echo "Campo de validación no válido.";
+                    exit;
+                }
+
+                // Verificar que el registro existe
+                $queryCheck = "SELECT COUNT(*) FROM incidencia_has_usuario WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmtCheck = $this->conn->prepare($queryCheck);
+                $stmtCheck->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+                $stmtCheck->execute();
+
+                if ($stmtCheck->fetchColumn() === 0) {
+                    echo "No se encontró el registro con el ID proporcionado.";
+                    exit;
+                }
+
+                // **Verificación de jerarquía antes de proceder**
+                if (!$this->validarJerarquia($validacion, $incidenciaId)) {
+                    echo "Error: La validación no sigue el flujo jerárquico.";
+                    exit;
+                }
+
+                // Actualizar el registro de validación
+                $query = "UPDATE incidencia_has_usuario 
+                          SET $campoValidacion = :estado 
+                          WHERE incidencia_has_usuario_id = :incidenciaId";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':estado', $estado, PDO::PARAM_INT);
+                $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
+                        // Ahora actualizamos el campo status_incidencia_id según las reglas
+                        $this->actualizarStatus($incidenciaId);
+                        echo "success";
+                    } else {
+                        echo "Advertencia: Se actualizaron más de un registro.";
+                    }
+                } else {
+                    echo "Error al actualizar la incidencia.";
+                }
+            } else {
+                echo "Datos incompletos para la actualización.";
+            }
+        } else {
+            echo "Formulario no reconocido.";
+        }
+    }
+
+    private function actualizarStatus($incidenciaId) {
+        // Obtener los valores de validaciones para calcular el estado
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion, validacion_rh 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $validaciones = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depurar las validaciones obtenidas
+        var_dump($validaciones);
+
+        // Definir la lógica para determinar el nuevo status
+        $nuevoStatus = 3; // Valor por defecto (Pendiente)
+
+        // Si hay un '2' en cualquiera de las validaciones, se coloca '2' en status (Rechazado)
+        if ($validaciones['validacion_divicion_academica'] == 2 || 
+            $validaciones['validacion_subdireccion'] == 2 || 
+            $validaciones['validacion_rh'] == 2) {
+            $nuevoStatus = 2; // Rechazado
+        }
+        // Si todas las tres validaciones son '1', se coloca '1' en status (Aprobado)
+        elseif ($validaciones['validacion_divicion_academica'] == 1 && 
+                $validaciones['validacion_subdireccion'] == 1 && 
+                $validaciones['validacion_rh'] == 1) {
+            $nuevoStatus = 1; // Aprobado
+        }
+
+        // Ahora actualizamos el campo status_incidencia_id con el valor calculado
+        $queryUpdateStatus = "UPDATE incidencia_has_usuario 
+                              SET status_incidencia_id = :nuevoStatus 
+                              WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmtUpdateStatus = $this->conn->prepare($queryUpdateStatus);
+        $stmtUpdateStatus->bindParam(':nuevoStatus', $nuevoStatus, PDO::PARAM_INT);
+        $stmtUpdateStatus->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmtUpdateStatus->execute();
+    }
+
+    private function validarJerarquia($validacion, $incidenciaId) {
+        // Consultar las validaciones actuales
+        $query = "SELECT validacion_divicion_academica, validacion_subdireccion 
+                  FROM incidencia_has_usuario 
+                  WHERE incidencia_has_usuario_id = :incidenciaId";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':incidenciaId', $incidenciaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $validacionesActuales = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Depuración de las validaciones actuales
+        var_dump($validacionesActuales);
+
+        // Verificar la jerarquía
+        if ($validacion === 'subdireccion' && $validacionesActuales['validacion_divicion_academica'] != 1) {
+            echo "La división académica no ha aprobado aún.";
+            return false; // División Académica no ha aprobado
+        }
+        if ($validacion === 'rh' && $validacionesActuales['validacion_subdireccion'] != 1) {
+            echo "La subdirección no ha aprobado aún.";
+            return false; // Subdirección no ha aprobado
+        }
+
+        return true;
+    }
+}
+
+
