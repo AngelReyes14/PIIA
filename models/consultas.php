@@ -53,6 +53,31 @@ class Consultas {
             return false;  // Devuelve false si ocurre algún error
         }
     }
+
+
+    public function verUsuariosGrupos(){
+        $query = "SELECT 
+        u.nombre_usuario,
+        g.descripcion AS nombre_grupo,
+        m.descripcion AS nombre_materia
+        FROM 
+        usuario_has_grupo ug
+        JOIN 
+        usuario u ON ug.usuario_usuario_id = u.usuario_id
+        JOIN 
+        grupo g ON ug.grupo_grupo_id = g.grupo_id
+        JOIN 
+        vista_materias m ON ug.materia_materia_id = m.materia_id;
+";  // Cambia el nombre de la vista
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
     
 
     public function obtenerImagen($iduser) {
