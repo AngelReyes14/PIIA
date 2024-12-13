@@ -47,11 +47,32 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
+    } elseif ($form_type === 'agregar-edificio') {
+            $nombreEdificio = $_POST['nombre_edificio'] ?? null;
+        
+            if ($nombreEdificio) {
+                try {
+                    $resultado = $consultas->agregarEdificio($nombreEdificio);
+        
+                    if ($resultado) {
+                        header('Location: success.php?message=Edificio registrado exitosamente');
+                        exit();
+                    } else {
+                        header('Location: error.php?message=No se pudo registrar el edificio');
+                        exit();
+                    }
+                } catch (Exception $e) {
+                    echo "Error al registrar el edificio: " . $e->getMessage();
+                }
+            } else {
+                echo "Los datos del formulario están incompletos.";
+            }   
+        }
+        else {
+            // Manejar otros formularios o enviar un mensaje de error
+            echo "Formulario no reconocido.";
+        }
     } else {
-        // Manejar otros formularios o enviar un mensaje de error
-        echo "Formulario no reconocido.";
-    }
-} else {
-    echo "Tipo de formulario no especificado.";
-}
+        echo "Tipo de formulario no especificado.";
+    } 
 ?>

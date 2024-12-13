@@ -1415,5 +1415,56 @@ class ActualizarEstado {
         return true;
     }
 }
+class Edificio {
+    private $conn;
 
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleFormSubmission() {
+        session_start(); // Iniciar la sesión
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
+
+            // Registrar los datos para depuración
+            error_log("Descripción: $descripcion");
+
+            // Validar que el campo no esté vacío
+            if (empty($descripcion)) {
+                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
+                exit();
+            }
+
+            // Insertar el edificio en la base de datos
+            if ($this->insertarEdificio($descripcion)) {
+                header("Location: ../views/templates/form_edificio.php?success=true");
+                exit();
+            } else {
+                header("Location: ../views/templates/form_edificio.php?error=insert");
+                exit();
+            }
+        } else {
+            // Si no es una solicitud POST, redirigir o manejar el error
+            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
+            exit();
+        }
+    }
+
+    public function agregarEdificio($nombreEdificio) {
+        $sql = "INSERT INTO edificios (descripcion) VALUES (:descripcion)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':descripcion', $nombreEdificio, PDO::PARAM_STR);
+    
+        try {
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error al agregar el edificio: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+}
 
