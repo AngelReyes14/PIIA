@@ -350,6 +350,14 @@ public function obtenerCarreraPorUsuario($idusuario) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerSalon(){
+        $query = "SELECT salon_id, descripcion FROM salones";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    
     public function obtenerDatosGrupo(){
         $query = "SELECT * FROM datosgrupo";        
         $stmt = $this->conn->prepare($query);
@@ -369,25 +377,21 @@ public function obtenerCarreraPorUsuarioId($usuario_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-    // Método para obtener semestres basados en la carrera seleccionada
-    public function obtenerSemestresPorCarrera($carrera_id) {
-        if (empty($carrera_id)) {
-            return ['error' => 'ID de carrera no proporcionado'];
-        }
 
-        $query = "SELECT semestre_id, nombre_semestre FROM semestre WHERE carrera_carrera_id = :carrera_id"; // Asegúrate que esta relación es correcta
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindValue(':carrera_id', $carrera_id, PDO::PARAM_INT);
-        $stmt->execute();
+// Método para obtener los semestres por carrera
+public function obtenerSemestresPorCarrera($carrera_id) {
+    $sql = "SELECT semestre_id, nombre_semestre 
+            FROM semestre 
+            WHERE carrera_carrera_id = :carrera_id";
+    
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // Obtiene todos los resultados como un array asociativo
 
-        if (empty($result)) {
-            return ['error' => 'No hay semestres disponibles'];
-        } else {
-            return $result; // Devuelve los semestres obtenidos
-        }
-    }
     
 // Método para obtener todos los sexos disponibles
 public function obtenerDatosUsuario(){
@@ -663,7 +667,6 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 }
 
-
 class Grupo {
     private $conn;
 
@@ -675,43 +678,40 @@ class Grupo {
         session_start(); // Iniciar la sesión
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Verificar que los campos no estén vacíos
             $descripcion = trim($_POST['grupo']);
             $semestre_id = intval($_POST['semestre']);
             $turno_id = intval($_POST['turno']);
             $periodo_id = intval($_POST['periodo']);
+            $salon_id = intval($_POST['salon']);
 
-            // Registrar los datos para depuración
-            error_log("Descripción: $descripcion, Semestre ID: $semestre_id, Turno ID: $turno_id, Periodo ID: $periodo_id");
-
-            // Validar que los campos no estén vacíos
-            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id)) {
+            // Validar los campos
+            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id)) {
                 header("Location: ../views/templates/formulario_grupo.php?error=campos_vacios");
                 exit();
             }
 
-            // Insertar el grupo en la base de datos
-            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id )) {
+            // Si todos los campos son válidos, insertar el grupo en la base de datos
+            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id)) {
                 header("Location: ../views/templates/formulario_grupo.php?success=true");
                 exit();
             } else {
                 header("Location: ../views/templates/formulario_grupo.php?error=insert");
                 exit();
             }
-        } else {
-            // Si no es una solicitud POST, redirigir o manejar el error
-            header("Location: ../views/templates/formulario_grupo.php?error=invalid_request");
-            exit();
         }
     }
-    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id) {
-        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id) 
-                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id)";
+
+    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id) {
+        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones) 
+                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
         $stmt->bindParam(':semestre_id', $semestre_id, PDO::PARAM_INT);
         $stmt->bindParam(':idturno', $turno_id, PDO::PARAM_INT);
         $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':salon_id', $salon_id, PDO::PARAM_INT);
 
         try {
             $stmt->execute();
@@ -725,6 +725,7 @@ class Grupo {
         }
     }
 }
+
 
 class Materia {
     private $conn;

@@ -15,13 +15,18 @@ $response = ['status' => 'error', 'message' => ''];
 try {
   // Inicializa las consultas
   $consultas = new Consultas($conn);
-  // Obtén las carreras y semestres
+  // Obtén las carreras
   $carreras = $consultas->obtenerCarreras();
-  $semestres = $consultas->obtenerSemestres();
+
+  // Si se ha enviado el formulario y se ha seleccionado una carrera
+  $semestres = [];
+  if (isset($_POST['carrera'])) {
+    $semestres = $consultas->obtenerSemestresPorCarrera($_POST['carrera']);
+  }
+
   $turnos = $consultas->obtenerTurnos();
   $periodos = $consultas->obtenerPeriodo();
-
-
+  $salones  = $consultas->obtenerSalon();
   $grupos = $consultas->obtenerDatosGrupo();
 } catch (Exception $e) {
   // Si falla la conexión, retorna un error
@@ -145,89 +150,102 @@ if (isset($_POST['logout'])) {
             <div class="d-flex justify-content-center align-items-center mb-3 col">
               <p class="titulo-grande"><strong>Registro de grupo</strong></p>
             </div>
-            <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
-              <input type="hidden" name="form_type" value="grupo"> <!-- Campo oculto para el tipo de formulario -->
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="grupo" class="form-label">Grupo:</label>
-                    <input class="form-control" id="grupo" name="grupo" type="text" required>
-                    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="semestre" class="form-label">Semestre:</label>
-                    <select class="form-control" id="semestre" name="semestre" required>
-                      <option value="">Selecciona un semestre</option> <!-- Opción por defecto -->
-                      <?php foreach ($semestres as $semestre): ?>
-                        <option value="<?php echo $semestre['semestre_id']; ?>"><?php echo htmlspecialchars($semestre['nombre_semestre']); ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="turno" class="form-label">Turno:</label>
-                    <select class="form-control" id="turno" name="turno" required>
-                      <option value="">Selecciona un turno</option> <!-- Opción por defecto -->
-                      <?php foreach ($turnos as $turno): ?>
-                        <option value="<?php echo $turno['idturno']; ?>"><?php echo htmlspecialchars($turno['descripcion']); ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label for="periodo" class="form-label">Periodo:</label>
-                    <select class="form-control" id="periodo" name="periodo" required>
-                      <option value="">Selecciona un periodo</option> <!-- Opción por defecto -->
-                      <?php foreach ($periodos as $periodo): ?>
-                        <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Botón para enviar el formulario -->
-              <div class="text-center mt-4">
-                <input type="submit" class="btn btn-primary"></input>
-              </div>
-            </form>
-
-
-            <!-- Modal de Confirmación -->
-            <div class="modal fade" id="customModal2" tabindex="-1" aria-labelledby="customModalLabel2" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="customModalLabel2">Confirmación</h5>
-                    <button type="button" class="btn-close" id="closeModal2" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    ¿Estás seguro de que deseas enviar el formulario?
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="closeModal2">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="confirmSubmit">Confirmar</button>
-                  </div>
-                </div>
-              </div>
+  <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
+    <input type="hidden" name="form_type" value="grupo"> <!-- Campo oculto para el tipo de formulario -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="grupo" class="form-label">Grupo:</label>
+                <input class="form-control" id="grupo" name="grupo" type="text" required>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
+        </div>
+
+        <div class="col-md-4">
+      <div class="form-group">
+        <label for="carrera" class="form-label">Carrera:</label>
+        <select class="form-control" id="carrera" name="carrera" required onchange="this.form.submit()">
+          <option value="">Selecciona una carrera</option>
+          <?php foreach ($carreras as $carrera): ?>
+            <option value="<?php echo $carrera['carrera_id']; ?>" <?php if (isset($_POST['carrera']) && $_POST['carrera'] == $carrera['carrera_id']) echo 'selected'; ?>>
+              <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="form-group">
+        <label for="semestre" class="form-label">Semestre:</label>
+        <select class="form-control" id="semestre" name="semestre" required>
+          <option value="">Selecciona un semestre</option>
+          <?php if (!empty($semestres)): ?>
+            <?php foreach ($semestres as $semestre): ?>
+              <option value="<?php echo $semestre['semestre_id']; ?>" <?php if (isset($_POST['semestre']) && $_POST['semestre'] == $semestre['semestre_id']) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($semestre['nombre_semestre']); ?>
+              </option>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </select>
+        <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+      </div>
+    </div>
+  </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="turno" class="form-label">Turno:</label>
+                <select class="form-control" id="turno" name="turno" required>
+                    <option value="">Selecciona un turno</option>
+                    <?php foreach ($turnos as $turno): ?>
+                        <option value="<?php echo $turno['idturno']; ?>"><?php echo htmlspecialchars($turno['descripcion']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="periodo" class="form-label">Periodo:</label>
+                <select class="form-control" id="periodo" name="periodo" required>
+                    <option value="">Selecciona un periodo</option>
+                    <?php foreach ($periodos as $periodo): ?>
+                        <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="salon" class="form-label">Salon:</label>
+                <select class="form-control" id="salon" name="salon" required>
+                    <option value="">Selecciona un salon</option>
+                    <?php foreach ($salones as $salon): ?>
+                        <option value="<?php echo $salon['salon_id']; ?>"><?php echo htmlspecialchars($salon['descripcion']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <input type="submit" class="btn btn-primary"></input>
+    </div>
+</form>
 
 
-            <!-- Script para manejar SweetAlert y el envío del formulario -->
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <!-- Modal -->
             <!-- Modal -->
           </div> <!-- /.card-body -->
         </div> <!-- /.card -->
+      </div>
 
         <div class="container-fluid">
           <div class="row justify-content-center">
@@ -398,116 +416,6 @@ if (isset($_POST['logout'])) {
     </main> <!-- main -->
   </div> <!-- .wrapper -->
 <!-- jQuery (necesario para DataTables) -->
-<script>
-    // Función para previsualizar la imagen seleccionada
-    function previewImage() {
-        const file = document.getElementById('fileInput').files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.getElementById('imagePreview');
-            img.src = e.target.result;
-            img.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-    }
-
-    // Limpiar campos al cargar la página
-    window.onload = function() {
-        document.getElementById('formRegistroGrupo').reset();
-    };
-
-    $(document).ready(function() {
-
-        // Función para validar y manejar el formulario
-        $('#formRegistroGrupo').on('submit', function(event) {
-            event.preventDefault(); // Prevenir el envío del formulario
-
-            // Validaciones
-            const nombreGrupo = $('#grupo').val().trim();
-            const semestre = $('#semestre').val();
-            const turno = $('#turno').val();
-            const periodo = $('#periodo').val();
-
-            // Validación de campos vacíos
-            if (!nombreGrupo || !semestre || !turno || !periodo ) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Todos los campos son obligatorios.',
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-                return;
-            }
-
-            // Opcional: Validaciones adicionales según tus requisitos
-            // Por ejemplo, verificar la longitud del nombre del grupo
-            if (nombreGrupo.length < 3) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'El nombre del grupo debe tener al menos 3 caracteres.',
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-                return;
-            }
-
-            // Mostrar una confirmación antes de enviar el formulario
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "¿Deseas enviar el formulario?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, enviar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Envía el formulario
-                    $('#formRegistroGrupo')[0].submit();
-                }
-            });
-        });
-
-        // Función para comprobar mensajes de la URL
-        function checkForMessages() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const success = urlParams.get('success');
-            const error = urlParams.get('error');
-
-            if (success === 'true') {
-                Swal.fire({
-                    title: 'Éxito!',
-                    text: 'Formulario enviado con éxito!',
-                    icon: 'success',
-                    confirmButtonText: 'Aceptar'
-                });
-            } else if (error) {
-                let errorMessage = '';
-
-                switch (error) {
-                    case 'duplicate':
-                        errorMessage = 'Este registro ya existe.';
-                        break;
-                    case 'invalid':
-                        errorMessage = 'Datos inválidos proporcionados.';
-                        break;
-                    // Puedes agregar más casos según tus necesidades
-                    default:
-                        errorMessage = 'Error desconocido.';
-                }
-
-                Swal.fire({
-                    title: 'Error!',
-                    text: errorMessage,
-                    icon: 'error',
-                    confirmButtonText: 'Aceptar'
-                });
-            }
-        }
-
-        // Llamamos a la función al cargar la página para verificar si hay mensajes en la URL
-        checkForMessages();
-    });
-</script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

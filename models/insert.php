@@ -29,6 +29,7 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase Grupo
         $grupo = new Grupo($conn);
         $grupo->handleFormSubmission();  // Método para procesar el formulario de grupo
+
     } elseif ($form_type === 'materia-grupo') {
         // Crear una instancia de la clase Usuario
         $materiagrupo = new MateriaGrupo($conn);
@@ -47,6 +48,7 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
+        
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
