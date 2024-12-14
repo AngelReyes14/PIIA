@@ -48,6 +48,22 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
+    
+    } elseif ($form_type === 'edificio') {
+        // Crear una instancia de la clase Edificio
+        $edificio = new Edificio($conn);
+        $edificio->gestionarEdificio();  // Método para procesar el formulario de edificio
+
+    } elseif ($form_type === 'salon') {
+        // Crear una instancia de la clase Salon
+        $salon = new Salon($conn);
+        $salon->gestionarSalon();  // Método para procesar el formulario de salón
+        
+    } elseif ($form_type === 'usuario-grupo') {
+        // Crear una instancia de la clase UsuarioGrupo
+        $usuarioGrupo = new UsuarioGrupo($conn);
+        $usuarioGrupo->gestionarUsuarioGrupo();  // Método para procesar el formulario de usuario-grupo
+
         
     } else {
         // Manejar otros formularios o enviar un mensaje de error
@@ -56,4 +72,5 @@ if (isset($_POST['form_type'])) {
 } else {
     echo "Tipo de formulario no especificado.";
 }
+
 ?>
