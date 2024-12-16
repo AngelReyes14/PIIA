@@ -14,7 +14,7 @@ try {
     // Inicializa las consultas
     $consultas = new Consultas($conn);
     // Obtén las carreras
-    $edificios = $consultas->obtenerEdificio();+
+    $edificios = $consultas->obtenerEdificio();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
