@@ -712,31 +712,9 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC);
             return 0;
         }
     }
+    
 
-    public function obtenerProfesores() {
-        $sql = "SELECT * FROM usuario WHERE tipo_usuario_tipo_usuario_id = 1";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    public function obtenerImagen($iduser) {
-        $sql = "SELECT imagen_url FROM usuario WHERE usuario_id = :iduser";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':iduser', $iduser); // Asegúrate de enlazar el parámetro
-        $stmt->execute();
-        
-        // Obtener el resultado
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Agregar "../" al inicio de la URL de la imagen si existe
-        if ($result && isset($result['imagen_url'])) {
-            $result['imagen_url'] = "../" . $result['imagen_url'];
-        }
-        
-        return $result; // Devuelve el resultado modificado
-    }
-    
+}
 
 class Grupo {
     private $conn;
@@ -1488,6 +1466,42 @@ class ActualizarEstado {
         return true;
     }
 }
+class Edificio {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleFormSubmission() {
+        session_start(); // Iniciar la sesión
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
+
+            // Registrar los datos para depuración
+            error_log("Descripción: $descripcion");
+
+            // Validar que el campo no esté vacío
+            if (empty($descripcion)) {
+                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
+                exit();
+            }
+
+            // Insertar el edificio en la base de datos
+            if ($this->insertarEdificio($descripcion)) {
+                header("Location: ../views/templates/form_edificio.php?success=true");
+                exit();
+            } else {
+                header("Location: ../views/templates/form_edificio.php?error=insert");
+                exit();
+            }
+        } else {
+            // Si no es una solicitud POST, redirigir o manejar el error
+            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
+            exit();
+        }
+    }
 
 class Edificio {
     private $conn;
