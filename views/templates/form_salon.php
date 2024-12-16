@@ -6,8 +6,6 @@ include('aside.php');
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
-$imgUser  = $consultas->obtenerImagen($idusuario);
-
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -16,12 +14,8 @@ try {
     // Inicializa las consultas
     $consultas = new Consultas($conn);
     // Obtén las carreras
-    $carreras = $consultas->obtenerCarreras();
-
-    $turnos = $consultas->obtenerTurnos();
-    $periodos = $consultas->obtenerPeriodo();
-    $salones  = $consultas->obtenerSalon();
-    $grupos = $consultas->obtenerDatosGrupo();
+    $edificios = $consultas->obtenerEdificio();
+    $salones = $consultas->obtenerSalones();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -140,146 +134,80 @@ if (isset($_POST['logout'])) {
 
     <main role="main" class="main-content">
 
-      <div class="col-md-12">
-        <div class="card shadow mb-4">
-          <div class="card-body">
-            <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>Registro de grupo</strong></p>
-            </div>
-  <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
-    <input type="hidden" name="form_type" value="grupo"> <!-- Campo oculto para el tipo de formulario -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="grupo" class="form-label">Grupo:</label>
-                <input class="form-control" id="grupo" name="grupo" type="text" required>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="carrera" class="form-label">Carrera:</label>
-                <select class="form-control" id="carrera" name="carrera" required>
-                    <option value="">Selecciona una carrera</option>
-                    <?php foreach ($carreras as $carrera): ?>
-                        <option value="<?php echo $carrera['carrera_id']; ?>">
-                            <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="semestre" class="form-label">Semestre:</label>
-                <select class="form-control" id="semestre" name="semestre" required>
-                    <option value="">Selecciona un semestre</option>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="turno" class="form-label">Turno:</label>
-                <select class="form-control" id="turno" name="turno" required>
-                    <option value="">Selecciona un turno</option>
-                    <?php foreach ($turnos as $turno): ?>
-                        <option value="<?php echo $turno['idturno']; ?>"><?php echo htmlspecialchars($turno['descripcion']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="periodo" class="form-label">Periodo:</label>
-                <select class="form-control" id="periodo" name="periodo" required>
-                    <option value="">Selecciona un periodo</option>
-                    <?php foreach ($periodos as $periodo): ?>
-                        <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="salon" class="form-label">Salon:</label>
-                <select class="form-control" id="salon" name="salon" required>
-                    <option value="">Selecciona un salon</option>
-                    <?php foreach ($salones as $salon): ?>
-                        <option value="<?php echo $salon['salon_id']; ?>"><?php echo htmlspecialchars($salon['descripcion']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-    </div>
-    <div class="row mt-3">
-                      <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-success btn-lg">Registrar Grupo</button>
-                      </div>
-                    </div>
-          </form>
-
-
-            <!-- Modal -->
-            <!-- Modal -->
-          </div> <!-- /.card-body -->
-        </div> <!-- /.card -->
-      </div>
-
 <div class="container-fluid">
-  <div class="row justify-content-center">
-    <div class="col-12">
-      <div class="d-flex justify-content-center align-items-center mb-3 col">
-        <p class="titulo-grande"><strong>Registro de grupo</strong></p>
-      </div>
-      <div class="row my-4">
-        <!-- Small table -->
-        <div class="col-md-12">
-          <div class="card shadow">
-            <div class="card-body">
-              <!-- table -->
-              <table class="table datatables" id="dataTable-1">
-                <thead>
-                  <tr>
-                    <th>Nombre grupo</th>
-                    <th>Semestre</th>
-                    <th>Turno</th>
-                    <th>Periodo</th>
-                    <th>Salón</th> <!-- Nueva columna para el salón -->
-                  </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($grupos as $grupo): ?>
-        <tr>
-            <td><?php echo $grupo['descripcion']; ?></td>
-            <td><?php echo $grupo['nombre_semestre']; ?></td>
-            <td><?php echo $grupo['nombre_turno']; ?></td>
-            <td><?php echo $grupo['nombre_periodo']; ?></td>
-            <td><?php echo $grupo['nombre_salon']; ?></td> <!-- Información del salón -->
-        </tr>
-        <?php endforeach; ?>
+    <div class="d-flex justify-content-center align-items-center mb-3 col">
+        <p class="titulo-grande"><strong>Salones</strong></p>
+    </div>
+    <div class="row">
+        <!-- Formulario del lado izquierdo -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+                        <p class="titulo-grande"><strong>Registro de Salones</strong></p>
+                    </div>
+                    <form method="POST" action="../../models/insert.php" enctype="multipart/form-data">
+    <input type="hidden" name="form_type" value="salon">
+    <div class="form-group">
+        <label for="descripcion">Salón:</label>
+        <input class="form-control" id="descripcion" name="descripcion" type="text" required>
+    </div>
+    <div class="form-group">
+        <label for="edificios_id_edificio">Edificio:</label>
+        <select class="form-control" id="edificios_id_edificio" name="edificios_id_edificio" required>
+            <option value="">Seleccione un edificio</option>
+            <?php foreach ($edificios as $edificio): ?>
+                <option value="<?php echo $edificio['edificio_id']; ?>">
+                    <?php echo $edificio['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-success">Registrar Salón</button>
+</form>
 
-
-                </tbody>
-              </table>
+                </div>
             </div>
-          </div>
-        </div> <!-- simple table -->
-      </div> <!-- end section -->
-    </div> <!-- .col-12 -->
-  </div> <!-- .row -->
-</div> <!-- .container-fluid -->
+        </div>
+
+        <!-- Tabla del lado derecho -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+                        <p class="titulo-grande"><strong>Registro de Salones</strong></p>
+                    </div>
+                    <div class="row my-4">
+                        <div class="col-md-12">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <table class="table datatables" id="dataTable-salones">
+                                        <thead>
+                                            <tr>
+                                                <th>ID Salón</th>
+                                                <th>Descripción</th>
+                                                <th>Edificio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($salones as $salon): ?>
+                                                <tr>
+                                                    <td><?php echo $salon['salon_id']; ?></td>
+                                                    <td><?php echo $salon['descripcion']; ?></td>
+                                                    <td><?php echo $salon['edificio']; ?></td> <!-- Nombre del edificio -->
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-sm" role="document">
@@ -437,66 +365,27 @@ if (isset($_POST['logout'])) {
 <script src='js/apps.js'></script>
 
 <?php if (isset($_GET['success'])): ?>
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'El grupo se registró correctamente.',
-            confirmButtonText: 'Cerrar'
-        });
-    </script>
-<?php elseif (isset($_GET['error'])): ?>
-    <?php if ($_GET['error'] == 'campos_vacios'): ?>
-        <script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        <?php if ($_GET['success'] === 'true'): ?>
             Swal.fire({
-                icon: 'error',
-                title: 'Campos vacíos',
-                text: 'Por favor, llena todos los campos.',
-                confirmButtonText: 'Cerrar'
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'El edificio ha sido registrado correctamente.',
+                confirmButtonText: 'Aceptar'
             });
-        </script>
-    <?php elseif ($_GET['error'] == 'insert'): ?>
-        <script>
+        <?php elseif ($_GET['success'] === 'false'): ?>
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Hubo un problema al registrar el grupo. Inténtalo de nuevo.',
-                confirmButtonText: 'Cerrar'
+                text: 'Ocurrió un problema al registrar el edificio. Por favor, inténtalo de nuevo.',
+                confirmButtonText: 'Aceptar'
             });
-        </script>
-    <?php endif; ?>
-<?php endif; ?>
-
-<script>
-document.getElementById('carrera').addEventListener('change', function() {
-        const carreraId = this.value;
-        const semestreSelect = document.getElementById('semestre');
-        
-        // Limpiar las opciones actuales del semestre
-        semestreSelect.innerHTML = '<option value="">Selecciona un semestre</option>';
-
-        fetch("../../models/consultarSemestres.php?carrera_id=${carreraId}", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/x-www-form-urlencoded", // Cambiar a formulario codificado
-    },
-    body: new URLSearchParams({ carrera_id: carreraId }), // Usar URLSearchParams para que PHP los reciba en $_POST
-})
-.then(response => response.json())
-.then(data => {
-    const semestreSelect = document.getElementById("semestre");
-    semestreSelect.innerHTML = '<option value="">Selecciona un semestre</option>';
-
-    data.forEach(semestre => {
-        const option = document.createElement("option");
-        option.value = semestre.semestre_id;
-        option.textContent = semestre.nombre_semestre;
-        semestreSelect.appendChild(option);
-    });
-})
-.catch(error => console.error("Error al cargar semestres:", error));
+        <?php endif; ?>
     });
 </script>
+<?php endif; ?>
+
 
 
 <!-- Código de inicialización de DataTable -->
