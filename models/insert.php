@@ -29,6 +29,7 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase Grupo
         $grupo = new Grupo($conn);
         $grupo->handleFormSubmission();  // Método para procesar el formulario de grupo
+
     } elseif ($form_type === 'materia-grupo') {
         // Crear una instancia de la clase Usuario
         $materiagrupo = new MateriaGrupo($conn);
@@ -47,32 +48,28 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
-    } elseif ($form_type === 'agregar-edificio') {
-            $nombreEdificio = $_POST['nombre_edificio'] ?? null;
+    } elseif ($form_type === 'edificio') {
+        // Crear una instancia de la clase Edificio
+        $edificio = new Edificio($conn);
+        $edificio->gestionarEdificio();  // Método para procesar el formulario de edificio
+
+    } elseif ($form_type === 'salon') {
+        // Crear una instancia de la clase Salon
+        $salon = new Salon($conn);
+        $salon->gestionarSalon();  // Método para procesar el formulario de salón
         
-            if ($nombreEdificio) {
-                try {
-                    $resultado = $consultas->agregarEdificio($nombreEdificio);
+    } elseif ($form_type === 'usuario-grupo') {
+        // Crear una instancia de la clase UsuarioGrupo
+        $usuarioGrupo = new UsuarioGrupo($conn);
+        $usuarioGrupo->gestionarUsuarioGrupo();  // Método para procesar el formulario de usuario-grupo
+
         
-                    if ($resultado) {
-                        header('Location: success.php?message=Edificio registrado exitosamente');
-                        exit();
-                    } else {
-                        header('Location: error.php?message=No se pudo registrar el edificio');
-                        exit();
-                    }
-                } catch (Exception $e) {
-                    echo "Error al registrar el edificio: " . $e->getMessage();
-                }
-            } else {
-                echo "Los datos del formulario están incompletos.";
-            }   
-        }
-        else {
-            // Manejar otros formularios o enviar un mensaje de error
-            echo "Formulario no reconocido.";
-        }
     } else {
-        echo "Tipo de formulario no especificado.";
-    } 
+        // Manejar otros formularios o enviar un mensaje de error
+        echo "Formulario no reconocido.";
+    }
+} else {
+    echo "Tipo de formulario no especificado.";
+}
+
 ?>

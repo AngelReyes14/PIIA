@@ -14,7 +14,8 @@ try {
     // Inicializa las consultas
     $consultas = new Consultas($conn);
     // Obtén las carreras
-    $edificios = $consultas->obtenerEdificio();+
+    $edificios = $consultas->obtenerEdificio();
+    $salones = $consultas->obtenerSalones();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -56,6 +57,7 @@ if (isset($_POST['logout'])) {
   <!-- Incluir SweetAlert CSS y JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -77,12 +79,12 @@ if (isset($_POST['logout'])) {
 
 
 
+
 </head>
 
 <body class="vertical  light  ">
   <div class="wrapper">
   <nav class="topnav navbar navbar-light">
-
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
@@ -125,74 +127,87 @@ if (isset($_POST['logout'])) {
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
+
         </li>
       </ul>
     </nav>
 
     <main role="main" class="main-content">
-    <div class="container-fluid">
+
+<div class="container-fluid">
     <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>Edificios</strong></p>
-            </div>
-  <div class="row">
-    <!-- Formulario del lado izquierdo -->
-    <div class="col-6">
-      <div class="card shadow mb-4">
-        <div class="card-body">
-          <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Registro de Edificios</strong></p>
-          </div>
-          <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
-            <input type="hidden" name="form_type" value="edificio"> <!-- Campo oculto para el tipo de formulario -->
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <div class="form-group">
-                  <label for="descripcion" class="form-label">Edificio:</label>
-                  <input class="form-control" id="descripcion" name="descripcion" type="text" required>
-                  <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                </div>
-              </div>
-            </div>
-            <div class="row mt-3">
-                      <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-success btn-lg">Registrar Edificio</button>
-                      </div>
+        <p class="titulo-grande"><strong>Salones</strong></p>
+    </div>
+    <div class="row">
+        <!-- Formulario del lado izquierdo -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+                        <p class="titulo-grande"><strong>Registro de Salones</strong></p>
                     </div>
-          </form>
-        </div> <!-- /.card-body -->
-      </div> <!-- /.card -->
+                    <form method="POST" action="../../models/insert.php" enctype="multipart/form-data">
+    <input type="hidden" name="form_type" value="salon">
+    <div class="form-group">
+        <label for="descripcion">Salón:</label>
+        <input class="form-control" id="descripcion" name="descripcion" type="text" required>
     </div>
-
-    <!-- Tabla del lado derecho -->
-    <div class="col-6">
-      <div class="card shadow">
-        <div class="card-body">
-          <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Edificios</strong></p>
-          </div>
-          <table class="table datatables" id="dataTable-edificios">
-            <thead>
-              <tr>
-                <th>ID Edificio</th>
-                <th>Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($edificios as $edificio): ?>
-                <tr>
-                  <td><?php echo $edificio['edificio_id']; ?></td>
-                  <td><?php echo $edificio['descripcion']; ?></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div> <!-- /.card-body -->
-      </div> <!-- /.card -->
+    <div class="form-group">
+        <label for="edificios_id_edificio">Edificio:</label>
+        <select class="form-control" id="edificios_id_edificio" name="edificios_id_edificio" required>
+            <option value="">Seleccione un edificio</option>
+            <?php foreach ($edificios as $edificio): ?>
+                <option value="<?php echo $edificio['edificio_id']; ?>">
+                    <?php echo $edificio['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
-  </div> <!-- /.row -->
-</div> <!-- /.container-fluid -->
+    <button type="submit" class="btn btn-success">Registrar Salón</button>
+</form>
 
+                </div>
+            </div>
+        </div>
 
+        <!-- Tabla del lado derecho -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center align-items-center mb-3 col">
+                        <p class="titulo-grande"><strong>Registro de Salones</strong></p>
+                    </div>
+                    <div class="row my-4">
+                        <div class="col-md-12">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <table class="table datatables" id="dataTable-salones">
+                                        <thead>
+                                            <tr>
+                                                <th>ID Salón</th>
+                                                <th>Descripción</th>
+                                                <th>Edificio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($salones as $salon): ?>
+                                                <tr>
+                                                    <td><?php echo $salon['salon_id']; ?></td>
+                                                    <td><?php echo $salon['descripcion']; ?></td>
+                                                    <td><?php echo $salon['edificio']; ?></td> <!-- Nombre del edificio -->
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-sm" role="document">

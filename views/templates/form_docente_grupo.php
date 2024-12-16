@@ -14,7 +14,10 @@ try {
     // Inicializa las consultas
     $consultas = new Consultas($conn);
     // Obtén las carreras
-    $edificios = $consultas->obtenerEdificio();+
+    $relaciones = $consultas->obtenerDocentesGrupos();
+    $usuarios = $consultas->obtenerUsuariosDocentes();
+    $grupos = $consultas->obtenerGrupos();
+    $materias = $consultas->obtenerMaterias();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -56,6 +59,7 @@ if (isset($_POST['logout'])) {
   <!-- Incluir SweetAlert CSS y JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -77,12 +81,12 @@ if (isset($_POST['logout'])) {
 
 
 
+
 </head>
 
 <body class="vertical  light  ">
   <div class="wrapper">
   <nav class="topnav navbar navbar-light">
-
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
@@ -125,72 +129,111 @@ if (isset($_POST['logout'])) {
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
+
         </li>
       </ul>
     </nav>
 
     <main role="main" class="main-content">
     <div class="container-fluid">
-    <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>Edificios</strong></p>
-            </div>
   <div class="row">
     <!-- Formulario del lado izquierdo -->
-    <div class="col-6">
+    <div class="col-12">
       <div class="card shadow mb-4">
         <div class="card-body">
           <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Registro de Edificios</strong></p>
+            <p class="titulo-grande"><strong>Asignar Grupos a Docentes</strong></p>
           </div>
-          <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
-            <input type="hidden" name="form_type" value="edificio"> <!-- Campo oculto para el tipo de formulario -->
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <div class="form-group">
-                  <label for="descripcion" class="form-label">Edificio:</label>
-                  <input class="form-control" id="descripcion" name="descripcion" type="text" required>
-                  <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-                </div>
-              </div>
-            </div>
-            <div class="row mt-3">
+          <form method="POST" action="../../models/insert.php">
+    <input type="hidden" name="form_type" value="usuario-grupo">
+    <div class="row">
+    <div class="col-md-4">
+    <div class="form-group">
+    <label for="usuario_usuario_id">Usuario:</label>
+    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required>
+        <option value="">Seleccione un usuario</option>
+        <?php foreach ($usuarios as $usuario): ?>
+            <option value="<?php echo $usuario['usuario_id']; ?>">
+                <?php echo $usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
+</div>
+    <div class="col-md-4">
+    <div class="form-group">
+        <label for="grupo_grupo_id">Grupo:</label>
+        <select class="form-control" id="grupo_grupo_id" name="grupo_grupo_id" required>
+            <option value="">Seleccione un grupo</option>
+            <?php foreach ($grupos as $grupo): ?>
+                <option value="<?php echo $grupo['grupo_id']; ?>">
+                    <?php echo $grupo['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    </div>
+    <div class="col-md-4">
+    <div class="form-group">
+        <label for="materia_materia_id">Materia:</label>
+        <select class="form-control" id="materia_materia_id" name="materia_materia_id" required>
+            <option value="">Seleccione una materia</option>
+            <?php foreach ($materias as $materia): ?>
+                <option value="<?php echo $materia['materia_id']; ?>">
+                    <?php echo $materia['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    </div>
+    </div>
+    <div class="row mt-3">
                       <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-success btn-lg">Registrar Edificio</button>
+                        <button type="submit" class="btn btn-success btn-lg">Asignar grupo</button>
                       </div>
                     </div>
-          </form>
+</form>
+
         </div> <!-- /.card-body -->
       </div> <!-- /.card -->
     </div>
 
-    <!-- Tabla del lado derecho -->
-    <div class="col-6">
-      <div class="card shadow">
-        <div class="card-body">
-          <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Edificios</strong></p>
-          </div>
-          <table class="table datatables" id="dataTable-edificios">
-            <thead>
-              <tr>
-                <th>ID Edificio</th>
-                <th>Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($edificios as $edificio): ?>
-                <tr>
-                  <td><?php echo $edificio['edificio_id']; ?></td>
-                  <td><?php echo $edificio['descripcion']; ?></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div> <!-- /.card-body -->
-      </div> <!-- /.card -->
-    </div>
-  </div> <!-- /.row -->
-</div> <!-- /.container-fluid -->
+<!-- Tabla para Usuario-Grupo -->
+<div class="container-fluid">
+<div class="row justify-content-center">
+<!-- Tabla para mostrar la relación Usuario-Grupo -->
+<div class="col-12">
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="d-flex justify-content-center align-items-center mb-3 col">
+        <p class="titulo-grande"><strong>Relación Usuario-Grupo</strong></p>
+      </div>
+      <table class="table datatables" id="dataTable-usuario-grupo">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Grupo</th>
+            <th>Materia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($relaciones as $relacion): ?>
+            <tr>
+              <td>
+              <?php echo $relacion['nombre_completo_usuario']; ?>
+              </td>
+              <td><?php echo $relacion['grupo_descripcion']; ?></td>
+              <td><?php echo $relacion['materia_descripcion']; ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div> <!-- /.card-body -->
+  </div> <!-- /.card -->
+</div>
+
+</div>
+</div>
 
 
 
