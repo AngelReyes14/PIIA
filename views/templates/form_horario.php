@@ -328,21 +328,34 @@ if (isset($_POST['logout'])) {
      
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Interactividad para el modal
-    const cells = document.querySelectorAll("#horario tbody tr td:not(:first-child)");
-    cells.forEach(cell => {
-        cell.addEventListener("click", function () {
-            const colIndex = this.cellIndex;
-            const day = document.querySelector(`#horario thead th:nth-child(${colIndex + 1})`).innerText;
-            const time = this.parentElement.querySelector("td:first-child").innerText;
-            document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
-            const modal = new bootstrap.Modal(document.getElementById("infoModal"));
-            modal.show();
-        });
-    });
+        document.addEventListener("DOMContentLoaded", function () {
+            // Seleccionar todas las celdas que no son la primera columna (hora)
+            const cells = document.querySelectorAll("tbody tr td:not(:first-child)");
 
-    // Generación de PDF
+            cells.forEach((cell) => {
+                cell.addEventListener("click", function () {
+                    // Obtener el índice de la columna (día)
+                    const columnIndex = this.cellIndex;
+
+                    // Obtener el día desde el encabezado
+                    const day = document.querySelector(`thead th:nth-child(${columnIndex + 1})`).innerText;
+
+                    // Obtener la hora desde la primera columna de la fila
+                    const time = this.parentElement.querySelector("td:first-child").innerText;
+
+                    // Mostrar la información en el modal
+                    document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
+
+                    // Abrir el modal
+                    const myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+                    myModal.show();
+                });
+            });
+        });
+</script>
+
+
+<script>
 // Generación de PDF
 document.getElementById("downloadPDF").addEventListener("click", () => {
     const button = document.querySelector('.pdf-container');
@@ -363,7 +376,7 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
         button.style.display = 'block'; 
     });
 });
-});
+
 </script>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
