@@ -35,8 +35,8 @@ $menuItems = [
             'Registro de incidencias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_incidencias.php'],
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
             'Asignacion de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignacion_carrera.php'],
-            'Asignacion de Salones' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignar-salones.php'],
-            'Asignacion de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignar-grupo_mat.php'],
+            'Asignacion de Salones' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_salon.php'],
+            'Asignacion de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
         ]
        ],

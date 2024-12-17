@@ -752,21 +752,22 @@ class Grupo {
         session_start(); // Iniciar la sesión
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar que los campos no estén vacíos
+            // Obtener y validar los campos del formulario
             $descripcion = trim($_POST['grupo']);
             $semestre_id = intval($_POST['semestre']);
             $turno_id = intval($_POST['turno']);
             $periodo_id = intval($_POST['periodo']);
             $salon_id = intval($_POST['salon']);
+            $cantidad_alumnos = intval($_POST['cantidad_alumnos']); // Nuevo campo
 
-            // Validar los campos
-            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id)) {
+            // Validar que los campos no estén vacíos
+            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id) || empty($cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?error=campos_vacios");
                 exit();
             }
 
             // Si todos los campos son válidos, insertar el grupo en la base de datos
-            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id)) {
+            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?success=true");
                 exit();
             } else {
@@ -776,9 +777,9 @@ class Grupo {
         }
     }
 
-    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id) {
-        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones) 
-                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id)";
+    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos) {
+        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones, cantidad_alumnos) 
+                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id, :cantidad_alumnos)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
@@ -786,6 +787,7 @@ class Grupo {
         $stmt->bindParam(':idturno', $turno_id, PDO::PARAM_INT);
         $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
         $stmt->bindParam(':salon_id', $salon_id, PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad_alumnos', $cantidad_alumnos, PDO::PARAM_INT);
 
         try {
             $stmt->execute();
@@ -799,6 +801,7 @@ class Grupo {
         }
     }
 }
+
 
 
 
