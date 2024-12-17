@@ -454,9 +454,9 @@ public function obtenerEdificio() {
     }
 
 public function obtenerSalones() {
-    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio 
+    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio, s.capacidad
             FROM salones s 
-            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id";
+            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id;";
     $stmt = $this->conn->query($sql);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -1534,17 +1534,20 @@ class Salon {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
             $edificioId = $_POST['edificios_id_edificio'];
+            $capacidad = $_POST['capacidad']; // Nuevo campo capacidad
 
-            $this->insertarSalon($descripcion, $edificioId);
+            $this->insertarSalon($descripcion, $edificioId, $capacidad);
         }
     }
 
-    private function insertarSalon($descripcion, $edificioId) {
-        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio) VALUES (:descripcion, :edificioId)";
+    private function insertarSalon($descripcion, $edificioId, $capacidad) {
+        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio, capacidad) 
+                VALUES (:descripcion, :edificioId, :capacidad)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion);
         $stmt->bindParam(':edificioId', $edificioId);
+        $stmt->bindParam(':capacidad', $capacidad);
 
         try {
             $stmt->execute();
@@ -1554,7 +1557,8 @@ class Salon {
             header("Location: ../views/templates/form_salon.php?success=false");
         }
     }
-}   
+}
+
 
 class UsuarioGrupo {
     private $conn;
