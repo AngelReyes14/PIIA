@@ -56,7 +56,6 @@ if (isset($_POST['logout'])) {
   <!-- Incluir SweetAlert CSS y JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -78,12 +77,12 @@ if (isset($_POST['logout'])) {
 
 
 
-
 </head>
 
 <body class="vertical  light  ">
   <div class="wrapper">
   <nav class="topnav navbar navbar-light">
+
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
@@ -126,7 +125,6 @@ if (isset($_POST['logout'])) {
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
-
         </li>
       </ul>
     </nav>

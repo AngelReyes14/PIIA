@@ -48,7 +48,6 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
-    
     } elseif ($form_type === 'edificio') {
         // Crear una instancia de la clase Edificio
         $edificio = new Edificio($conn);
