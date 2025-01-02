@@ -30,13 +30,17 @@ $menuItems = [
     3 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
         'Recursos Humanos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'recursos_humanos_empleados.php'],
-       'Formularios' => [
+        'Formularios' => [
             'Registro de usuarios' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_usuario.php'],
             'Registro de incidencias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_incidencias.php'],
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
-            'Asignacion de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignacion_carrera.php'],
-            'Asignacion de Salones' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_salon.php'],
-            'Asignacion de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
+
+
+            'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php'],
+            'Grupos con carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
+            'Registro de Escenario' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
+
+
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
         ]
        ],
@@ -47,8 +51,7 @@ $menuItems = [
        'Formularios' => [
             'Registro de materias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_materia.php'],
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
-            'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
-            'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
+            'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php']
         ]
        ],
        
