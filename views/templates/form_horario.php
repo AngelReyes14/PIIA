@@ -55,6 +55,7 @@ if (isset($_POST['logout'])) {
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -130,23 +131,22 @@ if (isset($_POST['logout'])) {
     </nav>
 
     <main role="main" class="main-content">
-    <div id="contenedor">
-    <div class="logo-container">
+    <div id="contenedor">   
+     <!-- Tarjeta principal -->
+     <div class="card box-shadow-div p-4 mb-3">
+     <div class="logo-container">
             <div class="logo-institucional">
                 <!-- Espacio para el logo institucional -->
                 <img src="assets/images/logo.png" alt="Logo Institucional">
             </div>
             <div class="titulo-container">
                 <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
-                <h2>INGENIERÍA EN SISTEMAS COMPUTACIONALES</h2>
             </div>
             <div class="periodo-container">
                 <p>Periodo 2024-2</p>
             </div>
         </div>
-     <!-- Tarjeta principal -->
-     <div class="card box-shadow-div p-4 mb-3">
-          <h2 class="text-center">Ingeniería en Sistemas Computacionales</h2>
+          <h2 class="text-center mt-3">Ingeniería en Sistemas Computacionales</h2>
           <div class="row">
             <div class="col-12 mb-0">
               <div class="schedule-container">
@@ -306,6 +306,7 @@ if (isset($_POST['logout'])) {
         <button id="downloadPDF">Descargar como PDF</button>
     </div>
     <!-- Modal -->
+    <!-- Modal -->
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -314,11 +315,10 @@ if (isset($_POST['logout'])) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Aquí se mostrará la información -->
                     <p id="modalContent">Día y hora seleccionados.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" id="closeModalBtn" class="btn btn-secondary">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -327,22 +327,32 @@ if (isset($_POST['logout'])) {
     </div>
      
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Interactividad para el modal
-    const cells = document.querySelectorAll("#horario tbody tr td:not(:first-child)");
-    cells.forEach(cell => {
-        cell.addEventListener("click", function () {
-            const colIndex = this.cellIndex;
-            const day = document.querySelector(`#horario thead th:nth-child(${colIndex + 1})`).innerText;
-            const time = this.parentElement.querySelector("td:first-child").innerText;
-            document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
-            const modal = new bootstrap.Modal(document.getElementById("infoModal"));
-            modal.show();
-        });
-    });
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let myModal;
 
-    // Generación de PDF
+            const cells = document.querySelectorAll("tbody tr td:not(:first-child)");
+
+            cells.forEach((cell) => {
+                cell.addEventListener("click", function () {
+                    const columnIndex = this.cellIndex;
+                    const day = document.querySelector(`thead th:nth-child(${columnIndex + 1})`).innerText;
+                    const time = this.parentElement.querySelector("td:first-child").innerText;
+                    document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
+                    myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+                    myModal.show();
+                });
+            });
+
+            document.getElementById("closeModalBtn").addEventListener("click", function () {
+                if (myModal) {
+                    myModal.hide();
+                }
+            });
+        });
+    </script>
+
+<script>
 // Generación de PDF
 document.getElementById("downloadPDF").addEventListener("click", () => {
     const button = document.querySelector('.pdf-container');
@@ -363,7 +373,7 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
         button.style.display = 'block'; 
     });
 });
-});
+
 </script>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
