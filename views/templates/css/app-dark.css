@@ -12748,3 +12748,145 @@ a.uppy-Dashboard-poweredBy {
 .status-color-gray {
   background-color: gray;
 }
+
+
+/* Estilos del horario en modo oscuro */
+/* General */
+body {
+  font-family: 'Overpass', sans-serif;
+  background-color: #1e1e1e; /* Negro profundo */
+  color: #d4d4d4;
+  margin: 0;
+}
+
+/* Logo Institucional */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #1b1f23;
+  border-bottom: 3px solid #06753e; /* Verde principal */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.logo-container img {
+  max-width: 90px;
+  height: auto;
+}
+
+.titulo-container h1,
+.titulo-container h2 {
+  margin: 0;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+}
+
+.periodo-container p {
+  font-weight: bold;
+  color: #f7f7f7;
+  text-align: center;
+}
+
+/* Estilo del horario */
+.schedule-container {
+  background-color: #2b2b2b;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #444444;
+}
+
+.schedule-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Encabezado (fila superior) */
+.schedule-container th {
+  background-color: #3c3c3c; /* Gris oscuro */
+  color: #ffffff;
+  text-transform: uppercase;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #444444;
+}
+
+/* Primera columna "Hora" */
+.schedule-container td:first-child {
+  text-align: center;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Filas alternas para toda la tabla (incluye la columna de "Hora") */
+.schedule-container tr:nth-child(odd) {
+  background-color: #06753e;
+}
+
+.schedule-container tr:nth-child(even) {
+  background-color: #3a3d3a;
+}
+
+.schedule-container tr:hover {
+  background-color: #333333;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .schedule-container table {
+    font-size: 12px;
+  }
+
+  .schedule-container th,
+  .schedule-container td {
+    padding: 8px;
+  }
+
+  .titulo-container h1,
+  .titulo-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .logo-container img {
+    max-width: 70px;
+  }
+}
+
+/* Botón */
+button#downloadPDF {
+  background-color: #06753e;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  display: block;
+  margin: 20px auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+button#downloadPDF:hover {
+  background-color: #04552b;
+}
+
+/* Firmas */
+.firmas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+.firma p {
+  text-align: center;
+  margin: 5px 0;
+  font-weight: bold;
+  color: white;
+}

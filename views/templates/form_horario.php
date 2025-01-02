@@ -15,6 +15,7 @@ try {
     $consultas = new Consultas($conn);
     // Obtén las carreras
     $edificios = $consultas->obtenerEdificio();
+    $salones = $consultas->obtenerSalones();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -25,10 +26,7 @@ try {
 if (isset($_POST['logout'])) {
     $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
-
 ?>
-
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -56,6 +54,8 @@ if (isset($_POST['logout'])) {
   <!-- Incluir SweetAlert CSS y JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -77,12 +77,12 @@ if (isset($_POST['logout'])) {
 
 
 
+
 </head>
 
 <body class="vertical  light  ">
   <div class="wrapper">
   <nav class="topnav navbar navbar-light">
-
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
@@ -125,74 +125,256 @@ if (isset($_POST['logout'])) {
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
+
         </li>
       </ul>
     </nav>
 
     <main role="main" class="main-content">
-    <div class="container-fluid">
-    <div class="d-flex justify-content-center align-items-center mb-3 col">
-              <p class="titulo-grande"><strong>Edificios</strong></p>
+    <div id="contenedor">   
+     <!-- Tarjeta principal -->
+     <div class="card box-shadow-div p-4 mb-3">
+     <div class="logo-container">
+            <div class="logo-institucional">
+                <!-- Espacio para el logo institucional -->
+                <img src="assets/images/logo.png" alt="Logo Institucional">
             </div>
-  <div class="row">
-    <!-- Formulario del lado izquierdo -->
-    <div class="col-6">
-      <div class="card shadow mb-4">
-        <div class="card-body">
-          <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Registro de Edificios</strong></p>
-          </div>
-          <form method="POST" action="../../models/insert.php" enctype="multipart/form-data" id="formRegistroGrupo">
-            <input type="hidden" name="form_type" value="edificio"> <!-- Campo oculto para el tipo de formulario -->
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <div class="form-group">
-                  <label for="descripcion" class="form-label">Edificio:</label>
-                  <input class="form-control" id="descripcion" name="descripcion" type="text" required>
-                  <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            <div class="titulo-container">
+                <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
+            </div>
+            <div class="periodo-container">
+                <p>Periodo 2024-2</p>
+            </div>
+        </div>
+          <h2 class="text-center mt-3">Ingeniería en Sistemas Computacionales</h2>
+          <div class="row">
+            <div class="col-12 mb-0">
+              <div class="schedule-container">
+                <div class="table-responsive">
+                  <table class="table table-borderless table-striped">
+                    <thead>
+                      <tr  role="row">
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr  scope="col">
+                        <td>07:00 - 08:00</td>
+                        <td>Clase A</td>
+                        <td></td>
+                        <td>Clase B</td>
+                        <td></td>
+                        <td>Clase C</td>
+                      </tr>
+                      <tr>
+                        <td>08:00 - 09:00</td>
+                        <td>Clase A</td>
+                        <td>Clase A</td>
+                        <td>Clase A</td>
+                        <td>Clase A</td>
+                        <td>Clase E</td>
+                      </tr>
+                      <tr  scope="col">
+                        <td>09:00 - 10:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+                      <tr>
+                        <td>10:00 - 11:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+                      <tr  scope="col">
+                        <td>11:00 - 12:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr>
+                        <td>12:00 - 13:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr  scope="col">
+                        <td>13:00 - 14:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr>
+                        <td>14:00 - 15:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr  scope="col">
+                        <td>15:00 - 16:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr>
+                        <td>16:00 - 17:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr  scope="col">
+                        <td>17:00 - 18:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr>
+                        <td>18:00 - 19:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr  scope="col">
+                        <td>19:00 - 20:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+
+                      <tr>
+                        <td>20:00 - 21:00</td>
+                        <td>Clase D</td>
+                        <td>Clase D</td>
+                        <td></td>
+                        <td></td>
+                        <td>Clase E</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-            <div class="row mt-3">
-                      <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-success btn-lg">Registrar Edificio</button>
-                      </div>
-                    </div>
-          </form>
-        </div> <!-- /.card-body -->
-      </div> <!-- /.card -->
-    </div>
-
-    <!-- Tabla del lado derecho -->
-    <div class="col-6">
-      <div class="card shadow">
-        <div class="card-body">
-          <div class="d-flex justify-content-center align-items-center mb-3 col">
-            <p class="titulo-grande"><strong>Edificios</strong></p>
           </div>
-          <table class="table datatables" id="dataTable-edificios">
-            <thead>
-              <tr>
-                <th>ID Edificio</th>
-                <th>Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($edificios as $edificio): ?>
-                <tr>
-                  <td><?php echo $edificio['edificio_id']; ?></td>
-                  <td><?php echo $edificio['descripcion']; ?></td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div> <!-- /.card-body -->
-      </div> <!-- /.card -->
+
+          <div class="firmas">
+        <div class="firma">
+            <p>M. ISC. MARTHA AMPARO SOTO RODRÍGUEZ</p>
+            <p>__________________________</p>
+        </div>
+        <div class="firma">
+            <p>MTRA. MICOL EDITH GENIS LÓPEZ</p>
+            <p>__________________________</p>
+        </div>
     </div>
-  </div> <!-- /.row -->
-</div> <!-- /.container-fluid -->
 
+    <div class="pdf-container no-print">
+        <button id="downloadPDF">Descargar como PDF</button>
+    </div>
+    <!-- Modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">Información Seleccionada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalContent">Día y hora seleccionados.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="closeModalBtn" class="btn btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+     </div>
+    </div>
+     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let myModal;
 
+            const cells = document.querySelectorAll("tbody tr td:not(:first-child)");
+
+            cells.forEach((cell) => {
+                cell.addEventListener("click", function () {
+                    const columnIndex = this.cellIndex;
+                    const day = document.querySelector(`thead th:nth-child(${columnIndex + 1})`).innerText;
+                    const time = this.parentElement.querySelector("td:first-child").innerText;
+                    document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
+                    myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+                    myModal.show();
+                });
+            });
+
+            document.getElementById("closeModalBtn").addEventListener("click", function () {
+                if (myModal) {
+                    myModal.hide();
+                }
+            });
+        });
+    </script>
+
+<script>
+// Generación de PDF
+document.getElementById("downloadPDF").addEventListener("click", () => {
+    const button = document.querySelector('.pdf-container');
+    button.style.display = 'none'; 
+    
+    // Seleccionar solo el contenedor deseado
+    const element = document.getElementById("contenedor");
+
+    const options = {
+        margin: 0.5,
+        filename: 'horario_isc.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(options).from(element).save().then(() => {
+        button.style.display = 'block'; 
+    });
+});
+
+</script>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-sm" role="document">
@@ -319,17 +501,13 @@ if (isset($_POST['logout'])) {
         </div>
       </div> <!-- / fin de card de registros -->
     </main> <!-- main -->
-  </div> <!-- .wrapper -->
 <!-- jQuery (necesario para DataTables) -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
 <!-- DataTables Bootstrap4 JS -->
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-
 <!-- Otros scripts -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/popper.min.js"></script>
@@ -349,63 +527,7 @@ if (isset($_POST['logout'])) {
 <script src='js/quill.min.js'></script>
 <script src='js/apps.js'></script>
 
-<?php if (isset($_GET['success'])): ?>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        <?php if ($_GET['success'] === 'true'): ?>
-            Swal.fire({
-                icon: 'success',
-                title: '¡Éxito!',
-                text: 'El edificio ha sido registrado correctamente.',
-                confirmButtonText: 'Aceptar'
-            });
-        <?php elseif ($_GET['success'] === 'false'): ?>
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Ocurrió un problema al registrar el edificio. Por favor, inténtalo de nuevo.',
-                confirmButtonText: 'Aceptar'
-            });
-        <?php endif; ?>
-    });
-</script>
-<?php endif; ?>
 
-
-
-<!-- Código de inicialización de DataTable -->
-<script>
-$(function() {
-   $('#dataTable-1').DataTable({
-       "responsive": true,
-       "autoWidth": false,
-       "pageLength": 10,
-       "language": {
-           "decimal": "",
-           "emptyTable": "No hay informacion",
-           "info": "Mostrando _START_ a _END_ de _TOTAL_ grupos",
-           "infoEmpty": "Mostrando 0 a 0 de 0 Saldos",
-           "thousands": ",",
-           "lengthMenu": "Mostrar _MENU_ Grupos",
-           "loadingRecords": "Cargando...",
-           "processing": "Procesando...",
-           "search": "Buscador de grupos",
-           "zeroRecords": "Sin resultados encontrados",
-           "paginate": {
-               "first": "Primero",
-               "last": "Último",
-               "next": "Siguiente",
-               "previous": "Anterior"
-           }
-       },
-       // Define la opción lengthMenu
-       "lengthMenu": [
-           [16, 32, 64, -1],
-           [16, 32, 64, "Todos"]
-       ]
-   });
-});
-</script>
 
 
 <!-- Google Analytics -->
