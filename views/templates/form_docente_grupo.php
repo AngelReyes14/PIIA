@@ -15,6 +15,7 @@ try {
     $consultas = new Consultas($conn);
     // Obtén las carreras
     $relaciones = $consultas->obtenerDocentesGrupos();
+    $carreras = $consultas->obtenerCarreras();
     $usuarios = $consultas->obtenerUsuariosDocentes();
     $grupos = $consultas->obtenerGrupos();
     $materias = $consultas->obtenerMaterias();
@@ -144,6 +145,22 @@ if (isset($_POST['logout'])) {
           <div class="d-flex justify-content-center align-items-center mb-3 col">
             <p class="titulo-grande"><strong>Asignar Grupos a Docentes</strong></p>
           </div>
+
+          <div class="col-md-12">
+            <div class="form-group">
+              <label for="carrera" class="form-label">Carrera:</label>
+              <select class="form-control" id="carrera" name="carrera" required>
+                <option value="">Selecciona una Carrera</option>
+                <?php foreach ($carreras as $carrera): ?>
+                  <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+                <?php endforeach; ?>
+              </select>
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+          </div>
+
+
+
           <form method="POST" action="../../models/insert.php">
     <input type="hidden" name="form_type" value="usuario-grupo">
     <div class="row">

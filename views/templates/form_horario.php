@@ -165,7 +165,7 @@ if (isset($_POST['logout'])) {
                     <tbody>
                       <tr  scope="col">
                         <td>07:00 - 08:00</td>
-                        <td>Clase A</td>
+                        <td>Matematicas Basicas<br>1ISC11 H15</td>
                         <td></td>
                         <td>Clase B</td>
                         <td></td>
@@ -316,6 +316,35 @@ if (isset($_POST['logout'])) {
                 </div>
                 <div class="modal-body">
                     <p id="modalContent">Día y hora seleccionados.</p>
+                    <label for="grupo_grupo_id">Profesor:</label>
+                    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required>
+        <option value="">Seleccione un usuario</option>
+        <?php foreach ($usuarios as $usuario): ?>
+            <option value="<?php echo $usuario['usuario_id']; ?>">
+                <?php echo $usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <label for="grupo_grupo_id">Grupo:</label>
+    <select class="form-control" id="grupo_grupo_id" name="grupo_grupo_id" required>
+            <option value="">Seleccione un grupo</option>
+            <?php foreach ($grupos as $grupo): ?>
+                <option value="<?php echo $grupo['grupo_id']; ?>">
+                    <?php echo $grupo['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <label for="grupo_grupo_id">Salon:</label>
+        <select class="form-control" id="grupo_grupo_id" name="grupo_grupo_id" required>
+            <option value="">Seleccione un Salon</option>
+            <?php foreach ($grupos as $grupo): ?>
+                <option value="<?php echo $grupo['grupo_id']; ?>">
+                    <?php echo $grupo['descripcion']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="closeModalBtn" class="btn btn-secondary">Cerrar</button>
