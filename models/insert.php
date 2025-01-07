@@ -62,7 +62,12 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase UsuarioGrupo
         $usuarioGrupo = new UsuarioGrupo($conn);
         $usuarioGrupo->gestionarUsuarioGrupo();  // Método para procesar el formulario de usuario-grupo
-
+        
+    } elseif ($form_type === 'horario') {
+        // Crear una instancia de la clase Horario
+        $horario = new Horario($conn);
+        $horario->gestionarHorario();  // Método para procesar el formulario de horarios
+        
         
     } else {
         // Manejar otros formularios o enviar un mensaje de error
