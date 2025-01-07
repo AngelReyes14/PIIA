@@ -16,6 +16,12 @@ try {
     // Obtén las carreras
     $edificios = $consultas->obtenerEdificio();
     $salones = $consultas->obtenerSalones();
+    $periodos = $consultas->obtenerPeriodo();
+    $carreras = $consultas->obtenerCarreras(); 
+    $usuarios = $consultas->obtenerUsuariosDocentes();
+    $materias = $consultas->verMaterias();
+    $grupos = $consultas->obtenerGrupos();
+    $salones = $consultas->obtenerSalon();
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -142,151 +148,107 @@ if (isset($_POST['logout'])) {
             <div class="titulo-container">
                 <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
             </div>
-            <div class="periodo-container">
-                <p>Periodo 2024-2</p>
-            </div>
+            <div class="form-group">
+                <label for="periodo" class="form-label-custom">Periodo:</label>
+                <select class="form-control" id="periodo" name="periodo" required>
+                  <option value="">Selecciona un periodo</option>
+                  <?php foreach ($periodos as $periodo): ?>
+                    <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              
         </div>
-          <h2 class="text-center mt-3">Ingeniería en Sistemas Computacionales</h2>
+        <div class="row">
+          
+ <div class="col-md-6">
+        <div class="form-group mt-2">
+    <label for="usuario_usuario_id">Docente:</label>
+    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required>
+        <option value="">Seleccione un usuario</option>
+        <?php foreach ($usuarios as $usuario): ?>
+            <option value="<?php echo $usuario['usuario_id']; ?>">
+                <?php echo $usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
+</div>
+<div class="col-md-6">
+        <div class="form-group  mt-2">
+              <label for="carrera" class="form-label">Carrera:</label>
+              <select class="form-control" id="carrera" name="carrera" required>
+                <option value="">Selecciona una carrera</option>
+                <?php foreach ($carreras as $carrera): ?>
+                  <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+                <?php endforeach; ?>
+              </select>
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+                </div>
+                </div>
+
           <div class="row">
             <div class="col-12 mb-0">
               <div class="schedule-container">
-                <div class="table-responsive">
-                  <table class="table table-borderless table-striped">
-                    <thead>
-                      <tr  role="row">
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr  scope="col">
-                        <td>07:00 - 08:00</td>
-                        <td>Clase A</td>
-                        <td></td>
-                        <td>Clase B</td>
-                        <td></td>
-                        <td>Clase C</td>
-                      </tr>
-                      <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>09:00 - 10:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>11:00 - 12:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+              <div class="table-responsive">
+    <table class="table table-borderless table-striped">
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Lunes</th>
+                <th>Martes</th>
+                <th>Miércoles</th>
+                <th>Jueves</th>
+                <th>Viernes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            // Definir las horas con sus IDs
+            $horas = [
+                ['id' => 1, 'descripcion' => '07:00 - 08:00'],
+                ['id' => 2, 'descripcion' => '08:00 - 09:00'],
+                ['id' => 3, 'descripcion' => '09:00 - 10:00'],
+                ['id' => 4, 'descripcion' => '10:00 - 11:00'],
+                ['id' => 5, 'descripcion' => '11:00 - 12:00'],
+                ['id' => 6, 'descripcion' => '12:00 - 13:00'],
+                ['id' => 7, 'descripcion' => '13:00 - 14:00'],
+                ['id' => 8, 'descripcion' => '14:00 - 15:00'],
+                ['id' => 9, 'descripcion' => '15:00 - 16:00'],
+                ['id' => 10, 'descripcion' => '16:00 - 17:00'],
+                ['id' => 11, 'descripcion' => '17:00 - 18:00'],
+                ['id' => 12, 'descripcion' => '18:00 - 19:00'],
+                ['id' => 13, 'descripcion' => '19:00 - 20:00'],
+                ['id' => 14, 'descripcion' => '20:00 - 21:00'],
+            ];
 
-                      <tr>
-                        <td>12:00 - 13:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+            // Definir los días con sus IDs
+            $dias = [
+                ['id' => 1, 'descripcion' => 'Lunes'],
+                ['id' => 2, 'descripcion' => 'Martes'],
+                ['id' => 3, 'descripcion' => 'Miércoles'],
+                ['id' => 4, 'descripcion' => 'Jueves'],
+                ['id' => 5, 'descripcion' => 'Viernes'],
+            ];
 
-                      <tr  scope="col">
-                        <td>13:00 - 14:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+            // Crear filas dinámicamente
+            foreach ($horas as $hora) {
+                echo "<tr>";
+                echo "<td>{$hora['descripcion']}</td>";
 
-                      <tr>
-                        <td>14:00 - 15:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+                foreach ($dias as $dia) {
+                    echo "<td class='editable-cell' data-horas-id='{$hora['id']}' data-dia-id='{$dia['id']}'></td>";
+                }
 
-                      <tr  scope="col">
-                        <td>15:00 - 16:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
 
-                      <tr>
-                        <td>16:00 - 17:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
 
-                      <tr  scope="col">
-                        <td>17:00 - 18:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>18:00 - 19:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>19:00 - 20:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>20:00 - 21:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
               </div>
             </div>
           </div>
@@ -305,10 +267,9 @@ if (isset($_POST['logout'])) {
     <div class="pdf-container no-print">
         <button id="downloadPDF">Descargar como PDF</button>
     </div>
-    <!-- Modal -->
-    <!-- Modal -->
-    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+<!-- Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="infoModalLabel">Información Seleccionada</h5>
@@ -316,64 +277,176 @@ if (isset($_POST['logout'])) {
                 </div>
                 <div class="modal-body">
                     <p id="modalContent">Día y hora seleccionados.</p>
+
+
+                    <input type="hidden" id="hora" name="hora"> <!-- Campo oculto para horas_id -->
+                    <input type="hidden" id="dia" name="dia">   <!-- Campo oculto para dias_id -->
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="materia_materia_id">Materia:</label>
+                                <select class="form-control" id="materia_materia_id" name="materia_materia_id" required>
+                                    <option value="">Seleccione una materia</option>
+                                    <?php foreach ($materias as $materia): ?>
+                                        <option value="<?php echo $materia['materia_id']; ?>">
+                                            <?php echo $materia['descripcion']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="grupo_grupo_id">Grupo:</label>
+                                <select class="form-control" id="grupo_grupo_id" name="grupo_grupo_id" required>
+                                    <option value="">Seleccione un grupo</option>
+                                    <?php foreach ($grupos as $grupo): ?>
+                                        <option value="<?php echo $grupo['grupo_id']; ?>">
+                                            <?php echo $grupo['descripcion']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="salon_salon_id">Salón:</label>
+                                <select class="form-control" id="salon_salon_id" name="salon_salon_id" required>
+                                    <option value="">Seleccione un Salón</option>
+                                    <?php foreach ($salones as $salon): ?>
+                                        <option value="<?php echo $salon['salon_id']; ?>">
+                                            <?php echo $salon['descripcion']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="closeModalBtn" class="btn btn-secondary">Cerrar</button>
+                    <button type="button" id="closeModalBtn" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button> <!-- Botón de envío -->
                 </div>
             </div>
-        </div>
     </div>
+</div>
+
      </div>
     </div>
-     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let myModal;
+      document.addEventListener("DOMContentLoaded", function () {
+        const cells = document.querySelectorAll(".editable-cell");
+        
+        cells.forEach(cell => {
+          cell.addEventListener("click", function () {
+            const horasId = this.dataset.horasId; // Obtener horas_id
+            const diasId = this.dataset.diaId;   // Obtener dias_id
+            
+            // Asignar valores al formulario del modal
+            document.getElementById("hora").value = horasId;
+            document.getElementById("dia").value = diasId;
+            
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById("infoModal"));
+            modal.show();
+          });
+        });
+        
+    // Enviar el formulario del modal
+    document.getElementById("horarioForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      fetch("/guardar_horario.php", {
+            method: "POST",
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert("Horario guardado con éxito.");
+              location.reload(); // Refrescar la página para actualizar la tabla
+            } else {
+              alert("Error al guardar el horario.");
+            }
+          });
+        });
+});
 
-            const cells = document.querySelectorAll("tbody tr td:not(:first-child)");
+</script>
 
-            cells.forEach((cell) => {
-                cell.addEventListener("click", function () {
-                    const columnIndex = this.cellIndex;
-                    const day = document.querySelector(`thead th:nth-child(${columnIndex + 1})`).innerText;
-                    const time = this.parentElement.querySelector("td:first-child").innerText;
-                    document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
-                    myModal = new bootstrap.Modal(document.getElementById("infoModal"));
-                    myModal.show();
-                });
-            });
-
-            document.getElementById("closeModalBtn").addEventListener("click", function () {
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let myModal;
+    
+    const cells = document.querySelectorAll("tbody tr td:not(:first-child)");
+    
+    cells.forEach((cell) => {
+      cell.addEventListener("click", function () {
+        const columnIndex = this.cellIndex;
+        const day = document.querySelector(`thead th:nth-child(${columnIndex + 1})`).innerText;
+        const time = this.parentElement.querySelector("td:first-child").innerText;
+        document.getElementById("modalContent").innerText = `Día: ${day}\nHora: ${time}`;
+        myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+        myModal.show();
+      });
+    });
+    
+    document.getElementById("closeModalBtn").addEventListener("click", function () {
                 if (myModal) {
                     myModal.hide();
                 }
+              });
             });
-        });
     </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-// Generación de PDF
-document.getElementById("downloadPDF").addEventListener("click", () => {
+  document.getElementById("downloadPDF").addEventListener("click", () => {
     const button = document.querySelector('.pdf-container');
-    button.style.display = 'none'; 
+    button.style.display = 'none';
     
-    // Seleccionar solo el contenedor deseado
     const element = document.getElementById("contenedor");
-
+    
+    // Configuración del PDF
     const options = {
-        margin: 0.5,
-        filename: 'horario_isc.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      margin: 0.5,
+      filename: 'horario_isc.pdf',
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: {
+        scale: 3, // Alta resolución
+        scrollY: 0,
+        useCORS: true, // Permitir imágenes externas
+      },
+      jsPDF: {
+        unit: 'px', // Usar píxeles para precisión
+        format: [element.scrollWidth, element.scrollHeight], // Tamaño dinámico basado en el contenido
+        orientation: 'portrait', // Orientación vertical
+        },
     };
 
-    html2pdf().set(options).from(element).save().then(() => {
-        button.style.display = 'block'; 
-    });
-});
+    // Ajustar temporalmente el tamaño del contenedor para que encaje en una sola hoja
+    const originalStyle = element.getAttribute("style");
+    element.style.width = "100%"; // Ajuste dinámico del ancho
+    element.style.overflow = "hidden"; // Evitar desbordes
 
+    // Generar el PDF
+    html2pdf()
+        .set(options)
+        .from(element)
+        .save()
+        .finally(() => {
+            // Restaurar estilos originales
+            element.setAttribute("style", originalStyle || "");
+            button.style.display = 'block';
+        });
+});
 </script>
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">

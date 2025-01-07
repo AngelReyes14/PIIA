@@ -8,6 +8,7 @@ class Consultas {
         $this->conn = $dbConnection;
     }
     
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -1501,43 +1502,6 @@ class Edificio {
         $this->conn = $dbConnection;
     }
 
-    public function handleFormSubmission() {
-        session_start(); // Iniciar la sesión
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
-
-            // Registrar los datos para depuración
-            error_log("Descripción: $descripcion");
-
-            // Validar que el campo no esté vacío
-            if (empty($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
-                exit();
-            }
-
-            // Insertar el edificio en la base de datos
-            if ($this->insertarEdificio($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?success=true");
-                exit();
-            } else {
-                header("Location: ../views/templates/form_edificio.php?error=insert");
-                exit();
-            }
-        } else {
-            // Si no es una solicitud POST, redirigir o manejar el error
-            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
-            exit();
-        }
-    }
-
-class Edificio {
-    private $conn;
-
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
-    }
-
     public function gestionarEdificio() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
@@ -1637,4 +1601,70 @@ class UsuarioGrupo {
         }
     }
 }
+
+class Horario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+    public function gestionarHorario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $diaId = $_POST['dia'] ?? null;
+            $horaId = $_POST['hora'] ?? null;
+            $materiaId = $_POST['materia_materia_id'] ?? null;
+            $grupoId = $_POST['grupo_grupo_id'] ?? null;
+            $salonId = $_POST['salon_salon_id'] ?? null;
+            $periodoId = $_POST['periodo_id'] ?? null;
+            $usuarioId = $_POST['usuario_usuario_id'] ?? null;
+            $carreraId = $_POST['carrera_id'] ?? null;
+    
+            // Validar datos
+            if ($diaId && $horaId && $materiaId && $grupoId && $salonId && $periodoId && $usuarioId && $carreraId) {
+                $response = $this->insertarHorario(
+                    $diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId
+                );
+                echo json_encode($response);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Datos incompletos'
+                ]);
+            }
+            exit;
+        }
+    }
+    
+    private function insertarHorario($diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId) {
+        $sql = "INSERT INTO horario (dias_dias_id, horas_horas_id, materia_materia_id, grupo_grupo_id, salones_salon_id, periodo_periodo_id, usuario_usuario_id, carrera_carrera_id) 
+                VALUES (:diaId, :horaId, :materiaId, :grupoId, :salonId, :periodoId, :usuarioId, :carreraId)";
+        $stmt = $this->conn->prepare($sql);
+    
+        try {
+            $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+            $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+            $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+            $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+            $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+            $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+            $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+    
+            $stmt->execute();
+    
+            // Respuesta para actualizar la tabla
+            return [
+                'success' => true,
+                'diaId' => $diaId,
+                'horaId' => $horaId,
+                'materiaDescripcion' => "Materia: $materiaId, Grupo: $grupoId, Salón: $salonId"
+            ];
+        } catch (PDOException $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al insertar: ' . $e->getMessage()
+            ];
+        }
+    }
+    
 
