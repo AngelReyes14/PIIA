@@ -1647,67 +1647,60 @@ class UsuarioGrupo {
 class Horario {
     private $conn;
 
+    // Constructor de la clase, se pasa la conexión a la base de datos
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+
+    // Método para gestionar la inserción de datos en la tabla horario
     public function gestionarHorario() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $diaId = $_POST['dia'] ?? null;
-            $horaId = $_POST['hora'] ?? null;
-            $materiaId = $_POST['materia_materia_id'] ?? null;
-            $grupoId = $_POST['grupo_grupo_id'] ?? null;
-            $salonId = $_POST['salon_salon_id'] ?? null;
-            $periodoId = $_POST['periodo_id'] ?? null;
-            $usuarioId = $_POST['usuario_usuario_id'] ?? null;
-            $carreraId = $_POST['carrera_id'] ?? null;
-    
-            // Validar datos
-            if ($diaId && $horaId && $materiaId && $grupoId && $salonId && $periodoId && $usuarioId && $carreraId) {
-                $response = $this->insertarHorario(
-                    $diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId
-                );
-                echo json_encode($response);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Datos incompletos'
-                ]);
-            }
+            $periodoId = $_POST['periodo_periodo_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $carreraId = $_POST['carrera_carrera_id'];
+            $diasId = $_POST['dias_dias_id'];
+            $horasId = $_POST['horas_horas_id'];
+            $salonId = $_POST['salones_salon_id'];
+            $grupoId = $_POST['grupo_grupo_id'];
+            $materiaId = $_POST['materia_materia_id'];
+
+            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diasId, $horasId, $salonId, $grupoId, $materiaId);
+        }
+    }
+
+    // Método privado para insertar el horario en la base de datos
+    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diasId, $horasId, $salonId, $grupoId, $materiaId) {
+        $sql = "INSERT INTO horario 
+                (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, 
+                 salones_salon_id, grupo_grupo_id, materia_materia_id) 
+                VALUES 
+                (:periodoId, :usuarioId, :carreraId, :diasId, :horasId, :salonId, :grupoId, :materiaId)";
+
+        // Preparar la sentencia SQL
+        $stmt = $this->conn->prepare($sql);
+        
+        // Vincular los parámetros
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diasId', $diasId, PDO::PARAM_INT);
+        $stmt->bindParam(':horasId', $horasId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
+        try {
+            // Ejecutar la sentencia SQL
+            $stmt->execute();
+            header("Location: ../views/templates/form_horario.php?success=true");
+            exit;
+        } catch (PDOException $e) {
+            error_log("Error al insertar en horario: " . $e->getMessage());
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/form_horario.php?success=false");
             exit;
         }
     }
-    
-    private function insertarHorario($diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId) {
-        $sql = "INSERT INTO horario (dias_dias_id, horas_horas_id, materia_materia_id, grupo_grupo_id, salones_salon_id, periodo_periodo_id, usuario_usuario_id, carrera_carrera_id) 
-                VALUES (:diaId, :horaId, :materiaId, :grupoId, :salonId, :periodoId, :usuarioId, :carreraId)";
-        $stmt = $this->conn->prepare($sql);
-    
-        try {
-            $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
-            $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
-            $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
-            $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
-            $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
-            $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
-            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
-            $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
-    
-            $stmt->execute();
-    
-            // Respuesta para actualizar la tabla
-            return [
-                'success' => true,
-                'diaId' => $diaId,
-                'horaId' => $horaId,
-                'materiaDescripcion' => "Materia: $materiaId, Grupo: $grupoId, Salón: $salonId"
-            ];
-        } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'message' => 'Error al insertar: ' . $e->getMessage()
-            ];
-        }
-    }
 }
-    
+
 
