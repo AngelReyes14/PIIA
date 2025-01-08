@@ -8,6 +8,36 @@ class Consultas {
         $this->conn = $dbConnection;
     }
     
+    // Método para obtener el horario filtrado por periodo, usuarioId y carrera
+public function obtenerHorario($periodo, $usuarioId, $carrera) {
+    try {
+        $sql = "SELECT h.horas_horas_id, ho.descripcion AS hora, d.dias_id, di.descripcion AS dia,
+                       m.materia_id AS materia, g.grupo_id AS grupo, s.salon_id AS salon
+                FROM horario h
+                LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
+                LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
+                LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
+                LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
+                WHERE h.periodo_periodo_id = :periodo 
+                  AND h.usuario_usuario_id = :usuarioId 
+                  AND h.carrera_carrera_id = :carrera
+                ORDER BY h.horas_horas_id, d.dias_id";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+        $stmt->execute();
+
+        // Retorna los resultados como un array asociativo
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error al obtener horario: " . $e->getMessage());
+        return []; // Retorna un arreglo vacío en caso de error
+    }
+}
+
     
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
@@ -1502,43 +1532,6 @@ class Edificio {
         $this->conn = $dbConnection;
     }
 
-    public function handleFormSubmission() {
-        session_start(); // Iniciar la sesión
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
-
-            // Registrar los datos para depuración
-            error_log("Descripción: $descripcion");
-
-            // Validar que el campo no esté vacío
-            if (empty($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
-                exit();
-            }
-
-            // Insertar el edificio en la base de datos
-            if ($this->insertarEdificio($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?success=true");
-                exit();
-            } else {
-                header("Location: ../views/templates/form_edificio.php?error=insert");
-                exit();
-            }
-        } else {
-            // Si no es una solicitud POST, redirigir o manejar el error
-            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
-            exit();
-        }
-    }
-
-class Edificio {
-    private $conn;
-
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
-    }
-
     public function gestionarEdificio() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
@@ -1562,7 +1555,6 @@ class Edificio {
         }
     }
 }
-
 class Salon {
     private $conn;
 
@@ -1703,5 +1695,6 @@ class Horario {
             ];
         }
     }
+}
     
 

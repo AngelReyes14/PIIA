@@ -22,6 +22,7 @@ try {
     $materias = $consultas->verMaterias();
     $grupos = $consultas->obtenerGrupos();
     $salones = $consultas->obtenerSalon();
+
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -33,6 +34,9 @@ if (isset($_POST['logout'])) {
     $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 ?>
+
+
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -150,7 +154,7 @@ if (isset($_POST['logout'])) {
             </div>
             <div class="form-group">
                 <label for="periodo" class="form-label-custom">Periodo:</label>
-                <select class="form-control" id="periodo" name="periodo" required>
+                <select class="form-control" id="periodo" name="periodo" required onchange="filtrarHorario()">
                   <option value="">Selecciona un periodo</option>
                   <?php foreach ($periodos as $periodo): ?>
                     <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
@@ -164,7 +168,7 @@ if (isset($_POST['logout'])) {
  <div class="col-md-6">
         <div class="form-group mt-2">
     <label for="usuario_usuario_id">Docente:</label>
-    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required>
+    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarHorario()">
         <option value="">Seleccione un usuario</option>
         <?php foreach ($usuarios as $usuario): ?>
             <option value="<?php echo $usuario['usuario_id']; ?>">
@@ -177,7 +181,7 @@ if (isset($_POST['logout'])) {
 <div class="col-md-6">
         <div class="form-group  mt-2">
               <label for="carrera" class="form-label">Carrera:</label>
-              <select class="form-control" id="carrera" name="carrera" required>
+              <select class="form-control" id="carrera" name="carrera" required onchange="filtrarHorario()">
                 <option value="">Selecciona una carrera</option>
                 <?php foreach ($carreras as $carrera): ?>
                   <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
@@ -192,7 +196,7 @@ if (isset($_POST['logout'])) {
             <div class="col-12 mb-0">
               <div class="schedule-container">
               <div class="table-responsive">
-    <table class="table table-borderless table-striped">
+              <table class="table table-borderless table-striped">
         <thead>
             <tr>
                 <th>Hora</th>
@@ -238,7 +242,12 @@ if (isset($_POST['logout'])) {
                 echo "<td>{$hora['descripcion']}</td>";
 
                 foreach ($dias as $dia) {
-                    echo "<td class='editable-cell' data-horas-id='{$hora['id']}' data-dia-id='{$dia['id']}'></td>";
+                    $celda = isset($horario_data[$hora['id']][$dia['id']])
+                        ? "{$horario_data[$hora['id']][$dia['id']]['materia']}<br>
+                           {$horario_data[$hora['id']][$dia['id']]['grupo']}<br>
+                           {$horario_data[$hora['id']][$dia['id']]['salon']}"
+                        : ""; // Si no hay datos, la celda estará vacía
+                    echo "<td class='editable-cell' data-horas-id='{$hora['id']}' data-dia-id='{$dia['id']}'>$celda</td>";
                 }
 
                 echo "</tr>";
@@ -336,48 +345,7 @@ if (isset($_POST['logout'])) {
     </div>
     
     
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const cells = document.querySelectorAll(".editable-cell");
-        
-        cells.forEach(cell => {
-          cell.addEventListener("click", function () {
-            const horasId = this.dataset.horasId; // Obtener horas_id
-            const diasId = this.dataset.diaId;   // Obtener dias_id
-            
-            // Asignar valores al formulario del modal
-            document.getElementById("hora").value = horasId;
-            document.getElementById("dia").value = diasId;
-            
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById("infoModal"));
-            modal.show();
-          });
-        });
-        
-    // Enviar el formulario del modal
-    document.getElementById("horarioForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      
-      const formData = new FormData(this);
-      fetch("/guardar_horario.php", {
-            method: "POST",
-            body: formData
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              alert("Horario guardado con éxito.");
-              location.reload(); // Refrescar la página para actualizar la tabla
-            } else {
-              alert("Error al guardar el horario.");
-            }
-          });
-        });
-});
-
-</script>
-
+  
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let myModal;
@@ -402,6 +370,51 @@ if (isset($_POST['logout'])) {
               });
             });
     </script>
+
+<script>
+async function filtrarHorario() {
+    const periodo = document.getElementById('periodo').value;
+    const usuarioId = document.getElementById('usuario_usuario_id').value;
+    const carrera = document.getElementById('carrera').value;
+
+    // Validar que los campos obligatorios no estén vacíos
+    if (!periodo || !usuarioId || !carrera) {
+        console.error('Faltan campos obligatorios');
+        return;
+    }
+
+    try {
+        // Hacer la solicitud al servidor con POST
+        const response = await fetch('../../models/cargar_horario.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ periodo, usuarioId, carrera })
+        });
+
+        // Verificar si la respuesta es exitosa
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        // Leer la respuesta como JSON
+        const data = await response.json();
+
+        if (data.error) {
+            console.error('Error en la respuesta del servidor:', data.error);
+        } else {
+            console.log('Datos recibidos:', data);
+            // Aquí puedes actualizar el DOM con los datos obtenidos
+        }
+    } catch (error) {
+        console.error('Error al filtrar el horario:', error);
+    }
+}
+
+</script>
+
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>

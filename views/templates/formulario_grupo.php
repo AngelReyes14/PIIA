@@ -484,7 +484,7 @@ document.getElementById('carrera').addEventListener('change', function() {
         // Limpiar las opciones actuales del semestre
         semestreSelect.innerHTML = '<option value="">Selecciona un semestre</option>';
 
-        fetch("../../models/consultarSemestres.php?carrera_id=${carreraId}", {
+        fetch("../../models/consultarSpemestres.ph?carrera_id=${carreraId}", {
     method: "POST",
     headers: {
         "Content-Type": "application/x-www-form-urlencoded", // Cambiar a formulario codificado
