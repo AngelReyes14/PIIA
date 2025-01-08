@@ -257,6 +257,7 @@ if (isset($_POST['logout'])) {
     </table>
 </div>
 
+
               </div>
             </div>
           </div>
@@ -285,6 +286,7 @@ if (isset($_POST['logout'])) {
                 </div>
                 <div class="modal-body">
                     <p id="modalContent">Día y hora seleccionados.</p>
+
 
                     <input type="hidden" id="hora" name="hora"> <!-- Campo oculto para horas_id -->
                     <input type="hidden" id="dia" name="dia">   <!-- Campo oculto para dias_id -->
@@ -332,6 +334,7 @@ if (isset($_POST['logout'])) {
                             </div>
                         </div>
                     </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="closeModalBtn" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
