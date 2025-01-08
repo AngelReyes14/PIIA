@@ -9,34 +9,47 @@ class Consultas {
     }
     
     // Método para obtener el horario filtrado por periodo, usuarioId y carrera
-public function obtenerHorario($periodo, $usuarioId, $carrera) {
-    try {
-        $sql = "SELECT h.horas_horas_id, ho.descripcion AS hora, d.dias_id, di.descripcion AS dia,
-                       m.materia_id AS materia, g.grupo_id AS grupo, s.salon_id AS salon
-                FROM horario h
-                LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
-                LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
-                LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
-                LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
-                LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
-                WHERE h.periodo_periodo_id = :periodo 
-                  AND h.usuario_usuario_id = :usuarioId 
-                  AND h.carrera_carrera_id = :carrera
-                ORDER BY h.horas_horas_id, d.dias_id";
-
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
-        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
-        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
-        $stmt->execute();
-
-        // Retorna los resultados como un array asociativo
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Error al obtener horario: " . $e->getMessage());
-        return []; // Retorna un arreglo vacío en caso de error
+    public function obtenerHorario($periodo, $usuarioId, $carrera) {
+        try {
+            // SQL con los LEFT JOIN, manteniendo las ID y añadiendo las descripciones
+            $sql = "SELECT h.horas_horas_id, ho.horas_id, ho.descripcion AS hora, 
+                           d.dias_id, d.descripcion AS dia,
+                           m.materia_id, m.descripcion AS materia, 
+                           g.grupo_id, g.descripcion AS grupo, 
+                           s.salon_id, s.descripcion AS salon
+                    FROM horario h
+                    LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
+                    LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
+                    LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
+                    LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                    LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
+                    WHERE h.periodo_periodo_id = :periodo
+                      AND h.usuario_usuario_id = :usuarioId
+                      AND h.carrera_carrera_id = :carrera
+                    ORDER BY h.horas_horas_id, d.dias_id;";
+    
+            // Preparar la consulta
+            $stmt = $this->conn->prepare($sql);
+    
+            // Enlazar los parámetros
+            $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+            $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+    
+            // Ejecutar la consulta
+            $stmt->execute();
+    
+            // Retornar los resultados como un arreglo asociativo
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        } catch (PDOException $e) {
+            // Manejo de errores
+            error_log("Error al obtener horario: " . $e->getMessage());
+            return []; // Retorna un arreglo vacío en caso de error
+        }
     }
-}
+    
+    
 
     
     public function obtenerIncidencias() {

@@ -2,11 +2,13 @@
 require_once '../controllers/db.php';
 require_once '../models/consultas.php';
 
-header('Content-Type: application/json; charset=utf-8'); // Asegura el tipo de contenido
+header('Content-Type: application/json; charset=utf-8');
 
-if (isset($_POST['periodo']) && isset($_POST['usuarioId']) && isset($_POST['carrera'])) {
+// Verificar que los parámetros necesarios estén presentes y válidos
+if (isset($_POST['periodo'], $_POST['usuarioId'], $_POST['carrera']) &&
+    is_numeric($_POST['periodo']) && is_numeric($_POST['usuarioId']) && is_numeric($_POST['carrera'])) {
+    
     try {
-        // Recibir los parámetros de los filtros
         $periodo = intval($_POST['periodo']);
         $usuarioId = intval($_POST['usuarioId']);
         $carrera = intval($_POST['carrera']);
@@ -14,19 +16,18 @@ if (isset($_POST['periodo']) && isset($_POST['usuarioId']) && isset($_POST['carr
         // Crear instancia de la clase Consultas
         $consultas = new Consultas($conn);
 
-        // Obtener el horario filtrado por los parámetros recibidos
+        // Obtener el horario
         $horario = $consultas->obtenerHorario($periodo, $usuarioId, $carrera);
 
+        // Validar si hay resultados
         if (!empty($horario)) {
-            echo json_encode($horario);  // Retorna los datos del horario en formato JSON
+            echo json_encode($horario);
         } else {
             echo json_encode(['error' => 'No se encontraron resultados para los filtros dados.']);
         }
-
     } catch (Exception $e) {
         echo json_encode(['error' => 'Error en la consulta: ' . $e->getMessage()]);
     }
 } else {
-    echo json_encode(['error' => 'Faltan parámetros para realizar la consulta.']);
+    echo json_encode(['error' => 'Faltan parámetros o los valores no son válidos para realizar la consulta.']);
 }
-?>

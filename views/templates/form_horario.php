@@ -197,63 +197,6 @@ if (isset($_POST['logout'])) {
               <div class="schedule-container">
               <div class="table-responsive">
               <table class="table table-borderless table-striped">
-        <thead>
-            <tr>
-                <th>Hora</th>
-                <th>Lunes</th>
-                <th>Martes</th>
-                <th>Miércoles</th>
-                <th>Jueves</th>
-                <th>Viernes</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            // Definir las horas con sus IDs
-            $horas = [
-                ['id' => 1, 'descripcion' => '07:00 - 08:00'],
-                ['id' => 2, 'descripcion' => '08:00 - 09:00'],
-                ['id' => 3, 'descripcion' => '09:00 - 10:00'],
-                ['id' => 4, 'descripcion' => '10:00 - 11:00'],
-                ['id' => 5, 'descripcion' => '11:00 - 12:00'],
-                ['id' => 6, 'descripcion' => '12:00 - 13:00'],
-                ['id' => 7, 'descripcion' => '13:00 - 14:00'],
-                ['id' => 8, 'descripcion' => '14:00 - 15:00'],
-                ['id' => 9, 'descripcion' => '15:00 - 16:00'],
-                ['id' => 10, 'descripcion' => '16:00 - 17:00'],
-                ['id' => 11, 'descripcion' => '17:00 - 18:00'],
-                ['id' => 12, 'descripcion' => '18:00 - 19:00'],
-                ['id' => 13, 'descripcion' => '19:00 - 20:00'],
-                ['id' => 14, 'descripcion' => '20:00 - 21:00'],
-            ];
-
-            // Definir los días con sus IDs
-            $dias = [
-                ['id' => 1, 'descripcion' => 'Lunes'],
-                ['id' => 2, 'descripcion' => 'Martes'],
-                ['id' => 3, 'descripcion' => 'Miércoles'],
-                ['id' => 4, 'descripcion' => 'Jueves'],
-                ['id' => 5, 'descripcion' => 'Viernes'],
-            ];
-
-            // Crear filas dinámicamente
-            foreach ($horas as $hora) {
-                echo "<tr>";
-                echo "<td>{$hora['descripcion']}</td>";
-
-                foreach ($dias as $dia) {
-                    $celda = isset($horario_data[$hora['id']][$dia['id']])
-                        ? "{$horario_data[$hora['id']][$dia['id']]['materia']}<br>
-                           {$horario_data[$hora['id']][$dia['id']]['grupo']}<br>
-                           {$horario_data[$hora['id']][$dia['id']]['salon']}"
-                        : ""; // Si no hay datos, la celda estará vacía
-                    echo "<td class='editable-cell' data-horas-id='{$hora['id']}' data-dia-id='{$dia['id']}'>$celda</td>";
-                }
-
-                echo "</tr>";
-            }
-            ?>
-        </tbody>
     </table>
 </div>
 
@@ -380,39 +323,133 @@ async function filtrarHorario() {
     const usuarioId = document.getElementById('usuario_usuario_id').value;
     const carrera = document.getElementById('carrera').value;
 
-    // Validar que los campos obligatorios no estén vacíos
     if (!periodo || !usuarioId || !carrera) {
-        console.error('Faltan campos obligatorios');
+        alert('Por favor, completa todos los filtros.');
         return;
     }
 
     try {
-        // Hacer la solicitud al servidor con POST
-        const response = await fetch('../../models/cargar_horario.php', {
+        const response = await fetch(`../../models/cargar_horario.php`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ periodo, usuarioId, carrera })
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ periodo, usuarioId, carrera }),
         });
 
-        // Verificar si la respuesta es exitosa
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
-        // Leer la respuesta como JSON
         const data = await response.json();
 
         if (data.error) {
-            console.error('Error en la respuesta del servidor:', data.error);
-        } else {
-            console.log('Datos recibidos:', data);
-            // Aquí puedes actualizar el DOM con los datos obtenidos
+            alert(data.error);
+            return;
         }
+
+        // Define las horas y días
+        const horas = [
+            { id: 1, descripcion: '07:00 - 08:00' },
+            { id: 2, descripcion: '08:00 - 09:00' },
+            { id: 3, descripcion: '09:00 - 10:00' },
+            { id: 4, descripcion: '10:00 - 11:00' },
+            { id: 5, descripcion: '11:00 - 12:00' },
+            { id: 6, descripcion: '12:00 - 13:00' },
+            { id: 7, descripcion: '13:00 - 14:00' },
+            { id: 8, descripcion: '14:00 - 15:00' },
+            { id: 9, descripcion: '15:00 - 16:00' },
+            { id: 10, descripcion: '16:00 - 17:00' },
+            { id: 11, descripcion: '17:00 - 18:00' },
+            { id: 12, descripcion: '18:00 - 19:00' },
+            { id: 13, descripcion: '19:00 - 20:00' },
+            { id: 14, descripcion: '20:00 - 21:00' },
+        ];
+
+        const dias = [
+            { id: 1, descripcion: 'Lunes' },
+            { id: 2, descripcion: 'Martes' },
+            { id: 3, descripcion: 'Miércoles' },
+            { id: 4, descripcion: 'Jueves' },
+            { id: 5, descripcion: 'Viernes' },
+        ];
+
+        // Obtener el contenedor de la tabla
+        const tablaContenedor = document.querySelector('.schedule-container .table-responsive');
+        if (!tablaContenedor) {
+            console.error('No se encontró el contenedor de la tabla.');
+            return;
+        }
+
+        // Construir la tabla HTML
+        let tablaHTML = `
+            <table class="table table-borderless table-striped">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        horas.forEach(hora => {
+            tablaHTML += `<tr>`;
+            tablaHTML += `<td>${hora.descripcion}</td>`;
+
+            dias.forEach(dia => {
+                const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
+                const contenido = evento
+                    ? `${evento.materia}<br>${evento.grupo}<br>${evento.salon}`
+                    : '';
+                tablaHTML += `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}">${contenido}</td>`;
+            });
+
+            tablaHTML += `</tr>`;
+        });
+
+        tablaHTML += `
+                </tbody>
+            </table>`;
+
+        // Actualizar el contenido del contenedor
+        tablaContenedor.innerHTML = tablaHTML;
+
+        // Agregar eventos de clic a las celdas generadas
+        agregarEventosCeldas();
+
     } catch (error) {
         console.error('Error al filtrar el horario:', error);
+        alert('Ocurrió un error al intentar filtrar el horario.');
     }
+}
+
+// Función para agregar los eventos de clic a las celdas
+function agregarEventosCeldas() {
+    const cells = document.querySelectorAll(".editable-cell");
+
+    if (cells.length === 0) {
+        console.warn("No se encontraron celdas con la clase 'editable-cell'.");
+        return;
+    }
+
+    cells.forEach((cell) => {
+        cell.addEventListener("click", function () {
+            const horaId = this.dataset.horasId; // ID de la hora
+            const diaId = this.dataset.diaId;   // ID del día
+
+            const diaTexto = document.querySelector(`thead th:nth-child(${parseInt(diaId) + 1})`).innerText; // Día desde el encabezado
+            const horaTexto = this.parentElement.querySelector("td:first-child").innerText; // Hora desde la fila
+
+            // Actualizar el contenido del modal
+            document.getElementById("modalContent").innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
+            document.getElementById("hora").value = horaId; // Asignar hora ID al campo oculto
+            document.getElementById("dia").value = diaId;   // Asignar día ID al campo oculto
+
+            // Mostrar el modal
+            let myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+            myModal.show();
+        });
+    });
 }
 
 </script>
