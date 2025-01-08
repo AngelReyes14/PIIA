@@ -22,6 +22,7 @@ try {
     $materias = $consultas->verMaterias();
     $grupos = $consultas->obtenerGrupos();
     $salones = $consultas->obtenerSalon();
+
 } catch (Exception $e) {
     // Si falla la conexión, retorna un error
     $response['message'] = 'Error al conectar con la base de datos: ' . $e->getMessage();
@@ -33,6 +34,9 @@ if (isset($_POST['logout'])) {
     $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 ?>
+
+
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -150,7 +154,7 @@ if (isset($_POST['logout'])) {
             </div>
             <div class="form-group">
                 <label for="periodo" class="form-label-custom">Periodo:</label>
-                <select class="form-control" id="periodo" name="periodo" required>
+                <select class="form-control" id="periodo" name="periodo" required onchange="filtrarHorario()">
                   <option value="">Selecciona un periodo</option>
                   <?php foreach ($periodos as $periodo): ?>
                     <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
@@ -164,7 +168,7 @@ if (isset($_POST['logout'])) {
  <div class="col-md-6">
         <div class="form-group mt-2">
     <label for="usuario_usuario_id">Docente:</label>
-    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required>
+    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarHorario()">
         <option value="">Seleccione un usuario</option>
         <?php foreach ($usuarios as $usuario): ?>
             <option value="<?php echo $usuario['usuario_id']; ?>">
@@ -177,7 +181,7 @@ if (isset($_POST['logout'])) {
 <div class="col-md-6">
         <div class="form-group  mt-2">
               <label for="carrera" class="form-label">Carrera:</label>
-              <select class="form-control" id="carrera" name="carrera" required>
+              <select class="form-control" id="carrera" name="carrera" required onchange="filtrarHorario()">
                 <option value="">Selecciona una carrera</option>
                 <?php foreach ($carreras as $carrera): ?>
                   <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
@@ -192,59 +196,7 @@ if (isset($_POST['logout'])) {
             <div class="col-12 mb-0">
               <div class="schedule-container">
               <div class="table-responsive">
-    <table class="table table-borderless table-striped">
-        <thead>
-            <tr>
-                <th>Hora</th>
-                <th>Lunes</th>
-                <th>Martes</th>
-                <th>Miércoles</th>
-                <th>Jueves</th>
-                <th>Viernes</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            // Definir las horas con sus IDs
-            $horas = [
-                ['id' => 1, 'descripcion' => '07:00 - 08:00'],
-                ['id' => 2, 'descripcion' => '08:00 - 09:00'],
-                ['id' => 3, 'descripcion' => '09:00 - 10:00'],
-                ['id' => 4, 'descripcion' => '10:00 - 11:00'],
-                ['id' => 5, 'descripcion' => '11:00 - 12:00'],
-                ['id' => 6, 'descripcion' => '12:00 - 13:00'],
-                ['id' => 7, 'descripcion' => '13:00 - 14:00'],
-                ['id' => 8, 'descripcion' => '14:00 - 15:00'],
-                ['id' => 9, 'descripcion' => '15:00 - 16:00'],
-                ['id' => 10, 'descripcion' => '16:00 - 17:00'],
-                ['id' => 11, 'descripcion' => '17:00 - 18:00'],
-                ['id' => 12, 'descripcion' => '18:00 - 19:00'],
-                ['id' => 13, 'descripcion' => '19:00 - 20:00'],
-                ['id' => 14, 'descripcion' => '20:00 - 21:00'],
-            ];
-
-            // Definir los días con sus IDs
-            $dias = [
-                ['id' => 1, 'descripcion' => 'Lunes'],
-                ['id' => 2, 'descripcion' => 'Martes'],
-                ['id' => 3, 'descripcion' => 'Miércoles'],
-                ['id' => 4, 'descripcion' => 'Jueves'],
-                ['id' => 5, 'descripcion' => 'Viernes'],
-            ];
-
-            // Crear filas dinámicamente
-            foreach ($horas as $hora) {
-                echo "<tr>";
-                echo "<td>{$hora['descripcion']}</td>";
-
-                foreach ($dias as $dia) {
-                    echo "<td class='editable-cell' data-horas-id='{$hora['id']}' data-dia-id='{$dia['id']}'></td>";
-                }
-
-                echo "</tr>";
-            }
-            ?>
-        </tbody>
+              <table class="table table-borderless table-striped">
     </table>
 </div>
 
@@ -339,48 +291,7 @@ if (isset($_POST['logout'])) {
     </div>
     
     
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const cells = document.querySelectorAll(".editable-cell");
-        
-        cells.forEach(cell => {
-          cell.addEventListener("click", function () {
-            const horasId = this.dataset.horasId; // Obtener horas_id
-            const diasId = this.dataset.diaId;   // Obtener dias_id
-            
-            // Asignar valores al formulario del modal
-            document.getElementById("hora").value = horasId;
-            document.getElementById("dia").value = diasId;
-            
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById("infoModal"));
-            modal.show();
-          });
-        });
-        
-    // Enviar el formulario del modal
-    document.getElementById("horarioForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      
-      const formData = new FormData(this);
-      fetch("/guardar_horario.php", {
-            method: "POST",
-            body: formData
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              alert("Horario guardado con éxito.");
-              location.reload(); // Refrescar la página para actualizar la tabla
-            } else {
-              alert("Error al guardar el horario.");
-            }
-          });
-        });
-});
-
-</script>
-
+  
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let myModal;
@@ -405,6 +316,145 @@ if (isset($_POST['logout'])) {
               });
             });
     </script>
+
+<script>
+async function filtrarHorario() {
+    const periodo = document.getElementById('periodo').value;
+    const usuarioId = document.getElementById('usuario_usuario_id').value;
+    const carrera = document.getElementById('carrera').value;
+
+    if (!periodo || !usuarioId || !carrera) {
+        alert('Por favor, completa todos los filtros.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`../../models/cargar_horario.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ periodo, usuarioId, carrera }),
+        });
+
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        // Define las horas y días
+        const horas = [
+            { id: 1, descripcion: '07:00 - 08:00' },
+            { id: 2, descripcion: '08:00 - 09:00' },
+            { id: 3, descripcion: '09:00 - 10:00' },
+            { id: 4, descripcion: '10:00 - 11:00' },
+            { id: 5, descripcion: '11:00 - 12:00' },
+            { id: 6, descripcion: '12:00 - 13:00' },
+            { id: 7, descripcion: '13:00 - 14:00' },
+            { id: 8, descripcion: '14:00 - 15:00' },
+            { id: 9, descripcion: '15:00 - 16:00' },
+            { id: 10, descripcion: '16:00 - 17:00' },
+            { id: 11, descripcion: '17:00 - 18:00' },
+            { id: 12, descripcion: '18:00 - 19:00' },
+            { id: 13, descripcion: '19:00 - 20:00' },
+            { id: 14, descripcion: '20:00 - 21:00' },
+        ];
+
+        const dias = [
+            { id: 1, descripcion: 'Lunes' },
+            { id: 2, descripcion: 'Martes' },
+            { id: 3, descripcion: 'Miércoles' },
+            { id: 4, descripcion: 'Jueves' },
+            { id: 5, descripcion: 'Viernes' },
+        ];
+
+        // Obtener el contenedor de la tabla
+        const tablaContenedor = document.querySelector('.schedule-container .table-responsive');
+        if (!tablaContenedor) {
+            console.error('No se encontró el contenedor de la tabla.');
+            return;
+        }
+
+        // Construir la tabla HTML
+        let tablaHTML = `
+            <table class="table table-borderless table-striped">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        horas.forEach(hora => {
+            tablaHTML += `<tr>`;
+            tablaHTML += `<td>${hora.descripcion}</td>`;
+
+            dias.forEach(dia => {
+                const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
+                const contenido = evento
+                    ? `${evento.materia}<br>${evento.grupo}<br>${evento.salon}`
+                    : '';
+                tablaHTML += `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}">${contenido}</td>`;
+            });
+
+            tablaHTML += `</tr>`;
+        });
+
+        tablaHTML += `
+                </tbody>
+            </table>`;
+
+        // Actualizar el contenido del contenedor
+        tablaContenedor.innerHTML = tablaHTML;
+
+        // Agregar eventos de clic a las celdas generadas
+        agregarEventosCeldas();
+
+    } catch (error) {
+        console.error('Error al filtrar el horario:', error);
+        alert('Ocurrió un error al intentar filtrar el horario.');
+    }
+}
+
+// Función para agregar los eventos de clic a las celdas
+function agregarEventosCeldas() {
+    const cells = document.querySelectorAll(".editable-cell");
+
+    if (cells.length === 0) {
+        console.warn("No se encontraron celdas con la clase 'editable-cell'.");
+        return;
+    }
+
+    cells.forEach((cell) => {
+        cell.addEventListener("click", function () {
+            const horaId = this.dataset.horasId; // ID de la hora
+            const diaId = this.dataset.diaId;   // ID del día
+
+            const diaTexto = document.querySelector(`thead th:nth-child(${parseInt(diaId) + 1})`).innerText; // Día desde el encabezado
+            const horaTexto = this.parentElement.querySelector("td:first-child").innerText; // Hora desde la fila
+
+            // Actualizar el contenido del modal
+            document.getElementById("modalContent").innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
+            document.getElementById("hora").value = horaId; // Asignar hora ID al campo oculto
+            document.getElementById("dia").value = diaId;   // Asignar día ID al campo oculto
+
+            // Mostrar el modal
+            let myModal = new bootstrap.Modal(document.getElementById("infoModal"));
+            myModal.show();
+        });
+    });
+}
+
+</script>
+
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>

@@ -184,7 +184,7 @@ if (isset($_POST['logout'])) {
     </div>
 
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="turno" class="form-label">Turno:</label>
                 <select class="form-control" id="turno" name="turno" required>
@@ -197,7 +197,7 @@ if (isset($_POST['logout'])) {
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="periodo" class="form-label">Periodo:</label>
                 <select class="form-control" id="periodo" name="periodo" required>
@@ -210,7 +210,7 @@ if (isset($_POST['logout'])) {
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="form-group">
                 <label for="salon" class="form-label">Salon:</label>
                 <select class="form-control" id="salon" name="salon" required>
@@ -219,14 +219,6 @@ if (isset($_POST['logout'])) {
                         <option value="<?php echo $salon['salon_id']; ?>"><?php echo htmlspecialchars($salon['descripcion']); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="cantidad_alumnos" class="form-label">No. Alumnos</label>
-                <input class="form-control" id="cantidad_alumnos" name="cantidad_alumnos" type="text" required>
                 <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
         </div>
@@ -239,13 +231,13 @@ if (isset($_POST['logout'])) {
           </form>
 
 
-            <!-- Modal  yea-->
+            <!-- Modal -->
             <!-- Modal -->
           </div> <!-- /.card-body -->
         </div> <!-- /.card -->
       </div>
 
-      <div class="container-fluid">
+<div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-12">
       <div class="d-flex justify-content-center align-items-center mb-3 col">
@@ -264,21 +256,21 @@ if (isset($_POST['logout'])) {
                     <th>Semestre</th>
                     <th>Turno</th>
                     <th>Periodo</th>
-                    <th>Salón</th>
-                    <th>No. Alumnos</th> <!-- Nueva columna -->
+                    <th>Salón</th> <!-- Nueva columna para el salón -->
                   </tr>
                 </thead>
                 <tbody>
                 <?php foreach ($grupos as $grupo): ?>
-                  <tr>
-                    <td><?php echo htmlspecialchars($grupo['descripcion']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombre_semestre']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombre_turno']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombre_periodo']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['nombre_salon']); ?></td>
-                    <td><?php echo htmlspecialchars($grupo['cantidad_alumnos']); ?></td> <!-- Nueva columna -->
-                  </tr>
-                <?php endforeach; ?>
+        <tr>
+            <td><?php echo $grupo['descripcion']; ?></td>
+            <td><?php echo $grupo['nombre_semestre']; ?></td>
+            <td><?php echo $grupo['nombre_turno']; ?></td>
+            <td><?php echo $grupo['nombre_periodo']; ?></td>
+            <td><?php echo $grupo['nombre_salon']; ?></td> <!-- Información del salón -->
+        </tr>
+        <?php endforeach; ?>
+
+
                 </tbody>
               </table>
             </div>
@@ -288,7 +280,6 @@ if (isset($_POST['logout'])) {
     </div> <!-- .col-12 -->
   </div> <!-- .row -->
 </div> <!-- .container-fluid -->
-
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-sm" role="document">
