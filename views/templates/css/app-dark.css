@@ -12752,12 +12752,7 @@ a.uppy-Dashboard-poweredBy {
 
 /* Estilos del horario en modo oscuro */
 /* General */
-body {
-  font-family: 'Overpass', sans-serif;
-  background-color: #1e1e1e; /* Negro profundo */
-  color: #d4d4d4;
-  margin: 0;
-}
+
 
 /* Logo Institucional */
 .logo-container {
