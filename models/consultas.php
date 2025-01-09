@@ -1647,60 +1647,70 @@ class UsuarioGrupo {
 class Horario {
     private $conn;
 
-    // Constructor de la clase, se pasa la conexión a la base de datos
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
 
-    // Método para gestionar la inserción de datos en la tabla horario
     public function gestionarHorario() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Verificar los datos recibidos
+            echo "<pre>";
+            print_r($_POST);
+            echo "</pre>";
+
+            // Validar que los campos obligatorios no estén vacíos
+            $requiredFields = ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id', 'dias_dias_id', 'horas_horas_id', 'salones_salon_id', 'grupo_grupo_id', 'materia_materia_id'];
+
+            // Extraer datos
             $periodoId = $_POST['periodo_periodo_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
             $carreraId = $_POST['carrera_carrera_id'];
-            $diasId = $_POST['dias_dias_id'];
-            $horasId = $_POST['horas_horas_id'];
-            $salonId = $_POST['salones_salon_id'];
+            $diaId = $_POST['dias_dias_id'];
+            $horaId = $_POST['horas_horas_id'];
+            $salonId = $_POST['salon_salon_id'];
             $grupoId = $_POST['grupo_grupo_id'];
             $materiaId = $_POST['materia_materia_id'];
 
-            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diasId, $horasId, $salonId, $grupoId, $materiaId);
+            // Llamar al método para insertar en la base de datos
+            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
         }
     }
 
-    // Método privado para insertar el horario en la base de datos
-    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diasId, $horasId, $salonId, $grupoId, $materiaId) {
-        $sql = "INSERT INTO horario 
-                (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, 
-                 salones_salon_id, grupo_grupo_id, materia_materia_id) 
-                VALUES 
-                (:periodoId, :usuarioId, :carreraId, :diasId, :horasId, :salonId, :grupoId, :materiaId)";
+    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "INSERT INTO horario (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, salones_salon_id, grupo_grupo_id, materia_materia_id) 
+                VALUES (:periodoId, :usuarioId, :carreraId, :diaId, :horaId, :salonId, :grupoId, :materiaId)";
 
-        // Preparar la sentencia SQL
         $stmt = $this->conn->prepare($sql);
-        
-        // Vincular los parámetros
         $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
         $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
         $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
-        $stmt->bindParam(':diasId', $diasId, PDO::PARAM_INT);
-        $stmt->bindParam(':horasId', $horasId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
         $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
         $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
         $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
 
         try {
-            // Ejecutar la sentencia SQL
             $stmt->execute();
-            header("Location: ../views/templates/form_horario.php?success=true");
-            exit;
+            $this->mostrarAlerta('Éxito', 'Datos insertados correctamente.', 'success');
         } catch (PDOException $e) {
-            error_log("Error al insertar en horario: " . $e->getMessage());
-            $_SESSION['error_message'] = "Error: " . $e->getMessage();
-            header("Location: ../views/templates/form_horario.php?success=false");
-            exit;
+            $this->mostrarAlerta('Error', 'Error en la consulta: ' . $e->getMessage(), 'error');
         }
     }
+
+    private function mostrarAlerta($titulo, $mensaje, $tipo) {
+        echo "
+            <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+            <script>
+                Swal.fire({
+                    title: '$titulo',
+                    text: '$mensaje',
+                    icon: '$tipo',
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    window.location.href = '../views/templates/form_horario.php';
+                });
+            </script>
+        ";
+    }
 }
-
-

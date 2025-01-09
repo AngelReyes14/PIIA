@@ -152,9 +152,12 @@ if (isset($_POST['logout'])) {
             <div class="titulo-container">
                 <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
             </div>
+            <form method="POST" action="../../models/insert.php">
+                    <input type="hidden" name="form_type" value="horario"> <!-- Indicamos el tipo de formulario -->
+
             <div class="form-group">
-                <label for="periodo" class="form-label-custom">Periodo:</label>
-                <select class="form-control" id="periodo" name="periodo" required onchange="filtrarHorario()">
+                <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+                <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
                   <option value="">Selecciona un periodo</option>
                   <?php foreach ($periodos as $periodo): ?>
                     <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
@@ -181,8 +184,8 @@ if (isset($_POST['logout'])) {
 </div>
 <div class="col-md-6">
         <div class="form-group  mt-2">
-              <label for="carrera" class="form-label">Carrera:</label>
-              <select class="form-control" id="carrera" name="carrera" required onchange="filtrarHorario()">
+              <label for="carrera_carrera_id" class="form-label">Carrera:</label>
+              <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarHorario()">
                 <option value="">Selecciona una carrera</option>
                 <?php foreach ($carreras as $carrera): ?>
                   <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
@@ -236,10 +239,11 @@ if (isset($_POST['logout'])) {
                 <!-- Formulario dentro del modal -->
                 <form method="POST" action="../../models/insert.php">
                     <input type="hidden" name="form_type" value="horario"> <!-- Indicamos el tipo de formulario -->
-
-                    <!-- Campos ocultos para enviar los valores de hora y día -->
-                    <input type="hidden" id="hora" name="horas_horas_id">
+                    <input type="hidden" id="periodo" name="periodo_periodo_id">
+                    <input type="hidden" id="docente" name="usuario_usuario_id">
+                    <input type="hidden" id="carrera" name="carrera_carrera_id">
                     <input type="hidden" id="dia" name="dias_dias_id">
+                    <input type="hidden" id="hora" name="horas_horas_id">
 
                     <!-- Selección de Materia -->
                     <div class="row">
@@ -290,28 +294,30 @@ if (isset($_POST['logout'])) {
 
                     <!-- Aquí puedes agregar más campos si es necesario (por ejemplo, Carrera, Usuario, etc.) -->
 
-                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="submit" class="btn btn-primary" form="formHorario">Guardar</button>
+                <button type="submit" class="btn btn-success">Asignar</button>
+                
             </div>
+            <form>
         </div>
     </div>
 </div>
   
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Detectar cambios en los selectores de filtros
-    document.getElementById('periodo').addEventListener('change', filtrarHorario);
+    document.getElementById('periodo_periodo_id').addEventListener('change', filtrarHorario);
     document.getElementById('usuario_usuario_id').addEventListener('change', filtrarHorario);
-    document.getElementById('carrera').addEventListener('change', filtrarHorario);
+    document.getElementById('carrera_carrera_id').addEventListener('change', filtrarHorario);
 
     // Función para filtrar el horario
     async function filtrarHorario() {
-        const periodo = document.getElementById('periodo').value;
+        const periodo = document.getElementById('periodo_periodo_id').value;
         const usuarioId = document.getElementById('usuario_usuario_id').value;
-        const carrera = document.getElementById('carrera').value;
+        const carrera = document.getElementById('carrera_carrera_id').value;
 
         if (!periodo || !usuarioId || !carrera) {
             alert('Por favor, completa todos los filtros.');
@@ -466,25 +472,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para agregar los eventos de clic a las celdas
     function agregarEventosCeldas() {
-        const cells = document.querySelectorAll(".editable-cell");
+    const cells = document.querySelectorAll('.editable-cell');
 
-        cells.forEach(cell => {
-            cell.addEventListener("click", function() {
-                const horaId = this.dataset.horasId;
-                const diaId = this.dataset.diaId;
-                const diaTexto = document.querySelector(`thead th:nth-child(${parseInt(diaId) + 1})`).innerText;
-                const horaTexto = this.parentElement.querySelector("td:first-child").innerText;
+    cells.forEach(cell => {
+        cell.addEventListener('click', function () {
+            console.log("Celda clickeada:", this); // Verifica que se detecta el clic
+            const horaId = this.dataset.horasId;
+            const diaId = this.dataset.diaId;
 
-                document.getElementById("modalContent").innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
-                document.getElementById("hora").value = horaId;
-                document.getElementById("dia").value = diaId;
+            const diaTexto = document.querySelector(`thead th:nth-child(${parseInt(diaId) + 1})`).innerText;
+            const horaTexto = this.parentElement.querySelector('td:first-child').innerText;
 
-                const myModal = new bootstrap.Modal(document.getElementById('infoModal'));
-                myModal.show();
-            });
+            // Actualizar contenido del modal
+            document.getElementById('modalContent').innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
+            console.log("Contenido del modal actualizado");
+
+            // Asignar valores a los inputs ocultos del modal
+            document.getElementById('periodo').value = document.getElementById('periodo_periodo_id').value;
+            document.getElementById('docente').value = document.getElementById('usuario_usuario_id').value;
+            document.getElementById('carrera').value = document.getElementById('carrera_carrera_id').value;
+            document.getElementById('hora').value = horaId;
+            document.getElementById('dia').value = diaId;
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+            modal.show();
         });
-    }
+    });
+}
+
+
 });
+
 
 </script>
 
