@@ -1650,64 +1650,67 @@ class Horario {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+
     public function gestionarHorario() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $diaId = $_POST['dia'] ?? null;
-            $horaId = $_POST['hora'] ?? null;
-            $materiaId = $_POST['materia_materia_id'] ?? null;
-            $grupoId = $_POST['grupo_grupo_id'] ?? null;
-            $salonId = $_POST['salon_salon_id'] ?? null;
-            $periodoId = $_POST['periodo_id'] ?? null;
-            $usuarioId = $_POST['usuario_usuario_id'] ?? null;
-            $carreraId = $_POST['carrera_id'] ?? null;
-    
-            // Validar datos
-            if ($diaId && $horaId && $materiaId && $grupoId && $salonId && $periodoId && $usuarioId && $carreraId) {
-                $response = $this->insertarHorario(
-                    $diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId
-                );
-                echo json_encode($response);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Datos incompletos'
-                ]);
-            }
-            exit;
+            // Verificar los datos recibidos
+            echo "<pre>";
+            print_r($_POST);
+            echo "</pre>";
+
+            // Validar que los campos obligatorios no estén vacíos
+            $requiredFields = ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id', 'dias_dias_id', 'horas_horas_id', 'salones_salon_id', 'grupo_grupo_id', 'materia_materia_id'];
+
+            // Extraer datos
+            $periodoId = $_POST['periodo_periodo_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $carreraId = $_POST['carrera_carrera_id'];
+            $diaId = $_POST['dias_dias_id'];
+            $horaId = $_POST['horas_horas_id'];
+            $salonId = $_POST['salon_salon_id'];
+            $grupoId = $_POST['grupo_grupo_id'];
+            $materiaId = $_POST['materia_materia_id'];
+
+            // Llamar al método para insertar en la base de datos
+            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
         }
     }
-    
-    private function insertarHorario($diaId, $horaId, $materiaId, $grupoId, $salonId, $periodoId, $usuarioId, $carreraId) {
-        $sql = "INSERT INTO horario (dias_dias_id, horas_horas_id, materia_materia_id, grupo_grupo_id, salones_salon_id, periodo_periodo_id, usuario_usuario_id, carrera_carrera_id) 
-                VALUES (:diaId, :horaId, :materiaId, :grupoId, :salonId, :periodoId, :usuarioId, :carreraId)";
+
+    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "INSERT INTO horario (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, salones_salon_id, grupo_grupo_id, materia_materia_id) 
+                VALUES (:periodoId, :usuarioId, :carreraId, :diaId, :horaId, :salonId, :grupoId, :materiaId)";
+
         $stmt = $this->conn->prepare($sql);
-    
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
         try {
-            $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
-            $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
-            $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
-            $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
-            $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
-            $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
-            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
-            $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
-    
             $stmt->execute();
-    
-            // Respuesta para actualizar la tabla
-            return [
-                'success' => true,
-                'diaId' => $diaId,
-                'horaId' => $horaId,
-                'materiaDescripcion' => "Materia: $materiaId, Grupo: $grupoId, Salón: $salonId"
-            ];
+            $this->mostrarAlerta('Éxito', 'Datos insertados correctamente.', 'success');
         } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'message' => 'Error al insertar: ' . $e->getMessage()
-            ];
+            $this->mostrarAlerta('Error', 'Error en la consulta: ' . $e->getMessage(), 'error');
         }
+    }
+
+    private function mostrarAlerta($titulo, $mensaje, $tipo) {
+        echo "
+            <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+            <script>
+                Swal.fire({
+                    title: '$titulo',
+                    text: '$mensaje',
+                    icon: '$tipo',
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    window.location.href = '../views/templates/form_horario.php';
+                });
+            </script>
+        ";
     }
 }
-    
-
