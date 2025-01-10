@@ -217,7 +217,7 @@ if (isset($_POST['logout'])) {
     </div>
 
     <div class="pdf-container no-print">
-        <button id="downloadPDF">Descargar como PDF</button>
+    <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
     </div>
 <!-- Modal -->
 <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
@@ -455,49 +455,103 @@ function agregarEventosCeldas() {
 </script>
 
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-  document.getElementById("downloadPDF").addEventListener("click", () => {
-    const button = document.querySelector('.pdf-container');
-    button.style.display = 'none';
-    
-    const element = document.getElementById("contenedor");
-    
+document.getElementById("downloadPDF").addEventListener("click", () => {
+  
+  function generatePDF() {
+    // Selecciona el contenedor de firmas
+    const firmasContainer = document.querySelector('.firmas');
+    const scheduleContainer = document.querySelector('.schedule-container');
+
+    // Almacenamos los estilos originales
+    const originalFirmasClass = firmasContainer.className;
+    const originalScheduleStyles = {
+      backgroundColor: scheduleContainer.style.backgroundColor,
+      color: scheduleContainer.style.color
+    };
+    const originalCellsStyles = [];
+
+    // Aplicar el modo claro solo para el PDF
+    firmasContainer.classList.add('pdf-mode');
+    scheduleContainer.style.backgroundColor = "#ffffff";
+    scheduleContainer.style.color = "#333333";
+    const cells = scheduleContainer.querySelectorAll('td');
+    cells.forEach(cell => {
+      originalCellsStyles.push({
+        backgroundColor: cell.style.backgroundColor,
+        color: cell.style.color
+      });
+      cell.style.backgroundColor = "#f9f9f9";
+      cell.style.color = "#555555";
+    });
+
     // Configuración del PDF
-    const options = {
-      margin: 0.5,
-      filename: 'horario_isc.pdf',
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: {
-        scale: 3, // Alta resolución
-        scrollY: 0,
-        useCORS: true, // Permitir imágenes externas
-      },
-      jsPDF: {
-        unit: 'px', // Usar píxeles para precisión
-        format: [element.scrollWidth, element.scrollHeight], // Tamaño dinámico basado en el contenido
-        orientation: 'portrait', // Orientación vertical
-        },
+    const pdfOptions = {
+      margin: [10, 10, 10, 10],
+      filename: 'documento.pdf',
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     };
 
-    // Ajustar temporalmente el tamaño del contenedor para que encaje en una sola hoja
-    const originalStyle = element.getAttribute("style");
-    element.style.width = "100%"; // Ajuste dinámico del ancho
-    element.style.overflow = "hidden"; // Evitar desbordes
-
-    // Generar el PDF
     html2pdf()
-        .set(options)
-        .from(element)
-        .save()
-        .finally(() => {
-            // Restaurar estilos originales
-            element.setAttribute("style", originalStyle || "");
-            button.style.display = 'block';
+      .set(pdfOptions)
+      .from(document.body) // O selecciona un contenedor específico
+      .save()
+      .then(() => {
+        // Restaurar estilos después de generar el PDF
+        firmasContainer.className = originalFirmasClass;
+        scheduleContainer.style.backgroundColor = originalScheduleStyles.backgroundColor;
+        scheduleContainer.style.color = originalScheduleStyles.color;
+        
+        cells.forEach((cell, index) => {
+          cell.style.backgroundColor = originalCellsStyles[index].backgroundColor;
+          cell.style.color = originalCellsStyles[index].color;
         });
+      });
+  }
+
+  const button = document.querySelector('.pdf-container');
+  button.style.display = 'none';
+  
+  const element = document.getElementById("contenedor");
+  
+  // Configuración del PDF
+  const options = {
+    margin: 0.5,
+    filename: 'horario_isc.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 3, // Alta resolución
+      scrollY: 0,
+      useCORS: true, // Permitir imágenes externas
+    },
+    jsPDF: {
+      unit: 'px', // Usar píxeles para precisión
+      format: [element.scrollWidth, element.scrollHeight], // Tamaño dinámico basado en el contenido
+      orientation: 'portrait', // Orientación vertical
+    },
+  };
+
+  // Ajustar temporalmente el tamaño del contenedor para que encaje en una sola hoja
+  const originalStyle = element.getAttribute("style");
+  element.style.width = "100%"; // Ajuste dinámico del ancho
+  element.style.overflow = "hidden"; // Evitar desbordes
+
+  // Generar el PDF
+  html2pdf()
+    .set(options)
+    .from(element)
+    .save()
+    .finally(() => {
+      // Restaurar estilos originales
+      element.setAttribute("style", originalStyle || "");
+      button.style.display = 'block';
+    });
 });
+
 </script>
+
 
         <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-sm" role="document">
