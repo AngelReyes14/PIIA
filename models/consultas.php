@@ -1692,25 +1692,11 @@ class Horario {
 
         try {
             $stmt->execute();
-            $this->mostrarAlerta('Éxito', 'Datos insertados correctamente.', 'success');
+            header("Location: ../views/templates/form_horario.php?status=success");
+            exit();
         } catch (PDOException $e) {
-            $this->mostrarAlerta('Error', 'Error en la consulta: ' . $e->getMessage(), 'error');
+            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
+            exit();
         }
-    }
-
-    private function mostrarAlerta($titulo, $mensaje, $tipo) {
-        echo "
-            <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-            <script>
-                Swal.fire({
-                    title: '$titulo',
-                    text: '$mensaje',
-                    icon: '$tipo',
-                    confirmButtonText: 'Aceptar'
-                }).then(() => {
-                    window.location.href = '../views/templates/form_horario.php';
-                });
-            </script>
-        ";
     }
 }
