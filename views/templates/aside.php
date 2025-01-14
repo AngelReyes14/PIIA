@@ -14,7 +14,9 @@ $menuItems = [
         'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
         'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
-        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php'],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
     ],
 
     2 => [
@@ -24,7 +26,9 @@ $menuItems = [
             'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php']
         ],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
-        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php'],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
     ],
 
     3 => [
@@ -34,9 +38,13 @@ $menuItems = [
             'Registro de usuarios' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_usuario.php'],
             'Registro de incidencias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_incidencias.php'],
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
+
+
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php'],
             'Grupos con carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
             'Registro de Escenario' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
+
+
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
         ]
        ],
@@ -48,7 +56,9 @@ $menuItems = [
             'Registro de materias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_materia.php'],
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php']
-        ]
+       ],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
        ],
        
     5 => [

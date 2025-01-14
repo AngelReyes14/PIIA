@@ -19487,3 +19487,178 @@ input.form-control {
 .status-color-gray {
   background-color: gray;
 }
+
+/* Estilos del horario en modo claro */
+/* General */
+body {
+  font-family: 'Overpass', sans-serif;
+  background-color: #f9f9f9; /* Fondo gris claro */
+  color: #333333;
+  margin: 0;
+  line-height: 1.6;
+}
+/* Logo Institucional */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #ffffff;
+  border-bottom: 5px solid #06753e; /* Verde principal */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container img {
+  max-width: 100px;
+  height: auto;
+}
+
+.titulo-container h1,
+.titulo-container h2 {
+  margin: 0;
+  text-align: center;
+  color: #333333;
+  font-weight: bold;
+  font-size: 1.8rem;
+}
+
+.periodo-container p {
+  font-weight: bold;
+  color: #06753e;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* Estilo del horario */
+.schedule-container {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin: 20px auto;
+  border: 1px solid #dcdcdc;
+  overflow: hidden;
+}
+
+.schedule-container table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.schedule-container th {
+  background-color: #06753e; /* Verde principal */
+  color: #ffffff;
+  text-transform: uppercase;
+  padding: 14px;
+  font-size: 16px;
+  border: 1px solid #ffffff;
+  letter-spacing: 1px;
+}
+
+/* Estilo de celdas con hover */
+.schedule-container td {
+  text-align: center;
+  padding: 14px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #555555;
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Transición para fondo y borde */
+}
+
+.schedule-container tr:nth-child(odd) {
+  background-color: #f9f9f9; /* Blanco suave */
+}
+
+.schedule-container tr:nth-child(even) {
+  background-color: #f2f2f2; /* Gris claro */
+}
+
+.schedule-container tr:hover {
+  background-color: #d4edda; /* Verde claro */
+  cursor: pointer;
+  color: #06753e;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .schedule-container table {
+    font-size: 12px;
+  }
+
+  .schedule-container th,
+  .schedule-container td {
+    padding: 8px;
+  }
+
+  .titulo-container h1,
+  .titulo-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .logo-container img {
+    max-width: 70px;
+  }
+}
+
+/* Botón */
+button#downloadPDF {
+  background-color: #06753e;
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  display: block;
+  margin: 20px auto;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+button#downloadPDF:hover {
+  background-color: #04552b; /* Verde oscuro */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Firmas */
+.firmas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.firma p {
+  text-align: center;
+  margin: 5px 0;
+  font-weight: bold;
+  color: #333333;
+}
+
+/* Efecto hover sobre las celdas */
+.schedule-container tr:hover td {
+  background-color: #e7f5e7; /* Verde claro suave */
+  border-color: #06753e; /* Verde principal */
+}
+
+/* Bordes verdes en las celdas al hacer hover */
+.schedule-container td:hover {
+  border: 2px solid #06753e; /* Borde verde completo al hacer hover */
+}
+
+/* Fondo de celdas con verde suave al ser activado por una clase */
+.schedule-container td.green-background {
+  background-color: #c8f4c8; /* Verde suave claro */
+  color: #06753e; /* Verde principal */
+}
+
+.schedule-container td.green-background:hover {
+  background-color: #b3e2b3; /* Verde más suave */
+}

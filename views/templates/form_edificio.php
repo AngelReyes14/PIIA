@@ -6,6 +6,8 @@ include('aside.php');
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -56,7 +58,6 @@ if (isset($_POST['logout'])) {
   <!-- Incluir SweetAlert CSS y JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="css/daterangepicker.css">
   <!-- App CSS -->
@@ -78,12 +79,12 @@ if (isset($_POST['logout'])) {
 
 
 
-
 </head>
 
 <body class="vertical  light  ">
   <div class="wrapper">
   <nav class="topnav navbar navbar-light">
+
       <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
       </button>
@@ -109,14 +110,14 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
-          </a>
+        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+                <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                    alt="Avatar del usuario" 
+                    class="avatar-img rounded-circle" 
+                    style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+            </span>
+        </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
@@ -126,7 +127,6 @@ if (isset($_POST['logout'])) {
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
             </form>
           </div>
-
         </li>
       </ul>
     </nav>

@@ -48,7 +48,6 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase IncidenciaUsuario
         $incidenciaUsuario = new ActualizarEstado($conn);
         $incidenciaUsuario->handleForm();  // Método para procesar el formulario de incidencia-usuario
-    
     } elseif ($form_type === 'edificio') {
         // Crear una instancia de la clase Edificio
         $edificio = new Edificio($conn);
@@ -63,7 +62,12 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase UsuarioGrupo
         $usuarioGrupo = new UsuarioGrupo($conn);
         $usuarioGrupo->gestionarUsuarioGrupo();  // Método para procesar el formulario de usuario-grupo
-
+        
+    } elseif ($form_type === 'horario') {
+        // Crear una instancia de la clase Horario
+        $horario = new Horario($conn);
+        $horario->gestionarHorario();  // Método para procesar el formulario de horarios
+        
         
     } else {
         // Manejar otros formularios o enviar un mensaje de error
