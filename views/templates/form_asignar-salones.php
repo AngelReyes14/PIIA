@@ -124,7 +124,7 @@ if (isset($_POST['logout'])) {
         <div class="row mb-3">
           <div class="col-md-4">
             <div class="form-group">
-              <label for="usuario" class="form-label">Grupo:</label>
+              <label for="usuario" class="form-label">Docente:</label>
               <select class="form-control" id="usuario" name="usuario" required>
                 <option value="">Selecciona un Grupo</option>
                 <?php foreach ($usuarios as $usuario): ?>
@@ -199,7 +199,7 @@ if (isset($_POST['logout'])) {
                 <table class="table datatables" id="dataTable-1">
                   <thead>
                     <tr>
-                      <th>Grupo</th>
+                      <th>Docente</th>
                       <th>Edificio</th>
                       <th>Salon</th>
                       <th>Periodo</th>
