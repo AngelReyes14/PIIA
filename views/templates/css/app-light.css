@@ -19558,13 +19558,14 @@ body {
   letter-spacing: 1px;
 }
 
+/* Estilo de celdas con hover */
 .schedule-container td {
   text-align: center;
   padding: 14px;
   border: 1px solid #e0e0e0;
   font-size: 14px;
   color: #555555;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Transición para fondo y borde */
 }
 
 .schedule-container tr:nth-child(odd) {
@@ -19642,5 +19643,23 @@ button#downloadPDF:hover {
   color: #333333;
 }
 
+/* Efecto hover sobre las celdas */
+.schedule-container tr:hover td {
+  background-color: #e7f5e7; /* Verde claro suave */
+  border-color: #06753e; /* Verde principal */
+}
 
+/* Bordes verdes en las celdas al hacer hover */
+.schedule-container td:hover {
+  border: 2px solid #06753e; /* Borde verde completo al hacer hover */
+}
 
+/* Fondo de celdas con verde suave al ser activado por una clase */
+.schedule-container td.green-background {
+  background-color: #c8f4c8; /* Verde suave claro */
+  color: #06753e; /* Verde principal */
+}
+
+.schedule-container td.green-background:hover {
+  background-color: #b3e2b3; /* Verde más suave */
+}
