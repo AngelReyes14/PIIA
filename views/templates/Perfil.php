@@ -277,9 +277,6 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                 <strong class="name-line text-start">Foto del Docente:</strong>
                 <br>
                 <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
-                <div class="mt-3">
-                  <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
               </div>
 
 
