@@ -12754,6 +12754,8 @@ a.uppy-Dashboard-poweredBy {
 /* General */
 
 
+/* Estilos del horario en modo oscuro */
+/* General */
 /* Logo Institucional */
 .logo-container {
   display: flex;
@@ -12926,4 +12928,3 @@ button#downloadPDF:hover {
 button#downloadPDF {
   padding: 10px 20px;
   font-size: 13px;
-}
