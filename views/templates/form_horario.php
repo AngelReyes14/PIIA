@@ -307,206 +307,174 @@ if (isset($_POST['logout'])) {
   
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Detectar cambios en los selectores de filtros
-    document.getElementById('periodo_periodo_id').addEventListener('change', filtrarHorario);
-    document.getElementById('usuario_usuario_id').addEventListener('change', filtrarHorario);
-    document.getElementById('carrera_carrera_id').addEventListener('change', filtrarHorario);
+document.addEventListener('DOMContentLoaded', function () {
+        const horas = [
+            { id: 1, descripcion: '07:00 - 08:00' },
+            { id: 2, descripcion: '08:00 - 09:00' },
+            { id: 3, descripcion: '09:00 - 10:00' },
+            { id: 4, descripcion: '10:00 - 11:00' },
+            { id: 5, descripcion: '11:00 - 12:00' },
+            { id: 6, descripcion: '12:00 - 13:00' },
+            { id: 7, descripcion: '13:00 - 14:00' },
+            { id: 8, descripcion: '14:00 - 15:00' },
+            { id: 9, descripcion: '15:00 - 16:00' },
+            { id: 10, descripcion: '16:00 - 17:00' },
+            { id: 11, descripcion: '17:00 - 18:00' },
+            { id: 12, descripcion: '18:00 - 19:00' },
+            { id: 13, descripcion: '19:00 - 20:00' },
+            { id: 14, descripcion: '20:00 - 21:00' },
+        ];
 
-    // Función para filtrar el horario
+        const dias = [
+            { id: 1, descripcion: 'Lunes' },
+            { id: 2, descripcion: 'Martes' },
+            { id: 3, descripcion: 'Miércoles' },
+            { id: 4, descripcion: 'Jueves' },
+            { id: 5, descripcion: 'Viernes' },
+        ];
+
+// Detectar cambios en los selectores de filtros
+['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id'].forEach(id =>
+        document.getElementById(id).addEventListener('change', filtrarHorario)
+    );
+
     async function filtrarHorario() {
-        const periodo = document.getElementById('periodo_periodo_id').value;
-        const usuarioId = document.getElementById('usuario_usuario_id').value;
-        const carrera = document.getElementById('carrera_carrera_id').value;
+      const periodo = document.getElementById('periodo_periodo_id').value;
+    const usuarioId = document.getElementById('usuario_usuario_id').value;
+    const carrera = document.getElementById('carrera_carrera_id').value;
 
-        if (!periodo || !usuarioId || !carrera) {
-            alert('Por favor, completa todos los filtros.');
-            return;
-        }
+    // Validar si todos los filtros están seleccionados
+    if (!periodo || !usuarioId || !carrera) {
+        return; // Salir de la función sin mostrar alerta
+    }
 
-        try {
-            const response = await fetch(`../../models/cargar_horario.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ periodo, usuarioId, carrera }),
+    try {
+        const response = await fetch('../../models/cargar_horario.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ periodo, usuarioId, carrera }),
+        });
+
+        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        const data = await response.json();
+
+        if (data.length === 0) {
+            // Mostrar SweetAlert si no hay datos
+            Swal.fire({
+                title: 'Error al filtrar el horario:',
+                text: 'La tabla está disponible para registrar.',
+                icon: 'info',
+                confirmButtonText: 'Aceptar',
             });
-
-            const data = await response.json();
-            mostrarTabla(data);
-
-        } catch (error) {
-            console.error('Error al filtrar el horario:', error);
-            alert('No se encontraron datos, pero la tabla está disponible para registrar.');
             mostrarTablaVacia();
+        } else {
+            mostrarTabla(data);
         }
-    }
-
-    // Función para mostrar la tabla con los datos filtrados
-    function mostrarTabla(data) {
-        const horas = [
-            { id: 1, descripcion: '07:00 - 08:00' },
-            { id: 2, descripcion: '08:00 - 09:00' },
-            { id: 3, descripcion: '09:00 - 10:00' },
-            { id: 4, descripcion: '10:00 - 11:00' },
-            { id: 5, descripcion: '11:00 - 12:00' },
-            { id: 6, descripcion: '12:00 - 13:00' },
-            { id: 7, descripcion: '13:00 - 14:00' },
-            { id: 8, descripcion: '14:00 - 15:00' },
-            { id: 9, descripcion: '15:00 - 16:00' },
-            { id: 10, descripcion: '16:00 - 17:00' },
-            { id: 11, descripcion: '17:00 - 18:00' },
-            { id: 12, descripcion: '18:00 - 19:00' },
-            { id: 13, descripcion: '19:00 - 20:00' },
-            { id: 14, descripcion: '20:00 - 21:00' },
-        ];
-
-        const dias = [
-            { id: 1, descripcion: 'Lunes' },
-            { id: 2, descripcion: 'Martes' },
-            { id: 3, descripcion: 'Miércoles' },
-            { id: 4, descripcion: 'Jueves' },
-            { id: 5, descripcion: 'Viernes' },
-        ];
-
-        const tablaContenedor = document.querySelector('.schedule-container .table-responsive');
-        if (!tablaContenedor) return;
-
-        let tablaHTML = `
-            <table class="table table-borderless table-striped">
-                <thead>
-                    <tr>
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        horas.forEach(hora => {
-            tablaHTML += `<tr>`;
-            tablaHTML += `<td>${hora.descripcion}</td>`;
-
-            dias.forEach(dia => {
-                const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
-                const contenido = evento ? `${evento.materia}<br>${evento.grupo}<br>${evento.salon}` : '';
-
-                tablaHTML += `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}">${contenido}</td>`;
-            });
-
-            tablaHTML += `</tr>`;
+    } catch (error) {
+        console.error('Error al filtrar el horario:', error);
+        Swal.fire({
+            title: 'No se encontraron datos',
+            text: 'La tabla está disponible para registrar.',
+            icon: 'info',
+            confirmButtonText: 'Aceptar',
         });
-
-        tablaHTML += `
-                </tbody>
-            </table>`;
-
-        tablaContenedor.innerHTML = tablaHTML;
-        agregarEventosCeldas();
+        mostrarTablaVacia();
     }
-
-    // Función para mostrar la tabla vacía (sin datos)
-    function mostrarTablaVacia() {
-        const tablaContenedor = document.querySelector('.schedule-container .table-responsive');
-        if (!tablaContenedor) return;
-
-        const horas = [
-            { id: 1, descripcion: '07:00 - 08:00' },
-            { id: 2, descripcion: '08:00 - 09:00' },
-            { id: 3, descripcion: '09:00 - 10:00' },
-            { id: 4, descripcion: '10:00 - 11:00' },
-            { id: 5, descripcion: '11:00 - 12:00' },
-            { id: 6, descripcion: '12:00 - 13:00' },
-            { id: 7, descripcion: '13:00 - 14:00' },
-            { id: 8, descripcion: '14:00 - 15:00' },
-            { id: 9, descripcion: '15:00 - 16:00' },
-            { id: 10, descripcion: '16:00 - 17:00' },
-            { id: 11, descripcion: '17:00 - 18:00' },
-            { id: 12, descripcion: '18:00 - 19:00' },
-            { id: 13, descripcion: '19:00 - 20:00' },
-            { id: 14, descripcion: '20:00 - 21:00' },
-        ];
-
-        const dias = [
-            { id: 1, descripcion: 'Lunes' },
-            { id: 2, descripcion: 'Martes' },
-            { id: 3, descripcion: 'Miércoles' },
-            { id: 4, descripcion: 'Jueves' },
-            { id: 5, descripcion: 'Viernes' },
-        ];
-
-        let tablaHTML = `
-            <table class="table table-borderless table-striped">
-                <thead>
-                    <tr>
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        horas.forEach(hora => {
-            tablaHTML += `<tr>`;
-            tablaHTML += `<td>${hora.descripcion}</td>`;
-
-            dias.forEach(dia => {
-                tablaHTML += `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}"></td>`;
-            });
-
-            tablaHTML += `</tr>`;
-        });
-
-        tablaHTML += `
-                </tbody>
-            </table>`;
-
-        tablaContenedor.innerHTML = tablaHTML;
-        agregarEventosCeldas();
-    }
-
-    // Función para agregar los eventos de clic a las celdas
-    function agregarEventosCeldas() {
-    const cells = document.querySelectorAll('.editable-cell');
-
-    cells.forEach(cell => {
-        cell.addEventListener('click', function () {
-            console.log("Celda clickeada:", this); // Verifica que se detecta el clic
-            const horaId = this.dataset.horasId;
-            const diaId = this.dataset.diaId;
-
-            const diaTexto = document.querySelector(`thead th:nth-child(${parseInt(diaId) + 1})`).innerText;
-            const horaTexto = this.parentElement.querySelector('td:first-child').innerText;
-
-            // Actualizar contenido del modal
-            document.getElementById('modalContent').innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
-            console.log("Contenido del modal actualizado");
-
-            // Asignar valores a los inputs ocultos del modal
-            document.getElementById('periodo').value = document.getElementById('periodo_periodo_id').value;
-            document.getElementById('docente').value = document.getElementById('usuario_usuario_id').value;
-            document.getElementById('carrera').value = document.getElementById('carrera_carrera_id').value;
-            document.getElementById('hora').value = horaId;
-            document.getElementById('dia').value = diaId;
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('infoModal'));
-            modal.show();
-        });
-    });
 }
 
+    function generarTablaHTML(data) {
+        return `
+            <table class="table table-borderless table-striped">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        ${dias.map(d => `<th>${d.descripcion}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${horas
+                        .map(hora => `
+                        <tr>
+                            <td>${hora.descripcion}</td>
+                            ${dias
+                                .map(dia => {
+                                    const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
+                                    const contenido = evento
+                                        ? `${evento.materia}<br>${evento.grupo}<br>${evento.salon}`
+                                        : '';
+                                    return `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}">${contenido}</td>`;
+                                })
+                                .join('')}
+                        </tr>`)
+                        .join('')}
+                </tbody>
+            </table>`;
+    }
 
+    function mostrarTabla(data) {
+        const tablaContenedor = document.querySelector('.schedule-container .table-responsive');
+        if (tablaContenedor) tablaContenedor.innerHTML = generarTablaHTML(data);
+        agregarEventosCeldas();
+    }
+
+    function mostrarTablaVacia() {
+        mostrarTabla([]);
+    }
+
+    function agregarEventosCeldas() {
+        document.querySelectorAll('.editable-cell').forEach(cell => {
+            cell.addEventListener('click', function () {
+                const horaId = this.dataset.horasId;
+                const diaId = this.dataset.diaId;
+
+                const diaTexto = dias.find(d => d.id == diaId).descripcion;
+                const horaTexto = horas.find(h => h.id == horaId).descripcion;
+
+                document.getElementById('modalContent').innerText = `Día: ${diaTexto}\nHora: ${horaTexto}`;
+                document.getElementById('periodo').value = document.getElementById('periodo_periodo_id').value;
+                document.getElementById('docente').value = document.getElementById('usuario_usuario_id').value;
+                document.getElementById('carrera').value = document.getElementById('carrera_carrera_id').value;
+                document.getElementById('hora').value = horaId;
+                document.getElementById('dia').value = diaId;
+
+                const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+                modal.show();
+            });
+        });
+    }
 });
-
 
 </script>
 
+<?php
+if (isset($_GET['status'])) {
+    $status = $_GET['status'];
+    $message = isset($_GET['message']) ? urldecode($_GET['message']) : '';
+?>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Mostrar la alerta en base al resultado
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if ($status === 'success'): ?>
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'El horario se ha gestionado correctamente.',
+                confirmButtonText: 'Aceptar'
+            });
+        <?php elseif ($status === 'error'): ?>
+            Swal.fire({
+                icon: 'error',
+                title: '¡Error!',
+                text: '<?php echo $message; ?>',
+                confirmButtonText: 'Aceptar'
+            });
+        <?php endif; ?>
+    });
+</script>
+
+<?php } ?>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
