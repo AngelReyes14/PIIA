@@ -6,6 +6,8 @@ include('aside.php');
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
