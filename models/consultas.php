@@ -8,6 +8,50 @@ class Consultas {
         $this->conn = $dbConnection;
     }
     
+    // Método para obtener el horario filtrado por periodo, usuarioId y carrera
+    public function obtenerHorario($periodo, $usuarioId, $carrera) {
+        try {
+            // SQL con los LEFT JOIN, manteniendo las ID y añadiendo las descripciones
+            $sql = "SELECT h.horas_horas_id, ho.horas_id, ho.descripcion AS hora, 
+                           d.dias_id, d.descripcion AS dia,
+                           m.materia_id, m.descripcion AS materia, 
+                           g.grupo_id, g.descripcion AS grupo, 
+                           s.salon_id, s.descripcion AS salon
+                    FROM horario h
+                    LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
+                    LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
+                    LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
+                    LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                    LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
+                    WHERE h.periodo_periodo_id = :periodo
+                      AND h.usuario_usuario_id = :usuarioId
+                      AND h.carrera_carrera_id = :carrera
+                    ORDER BY h.horas_horas_id, d.dias_id;";
+    
+            // Preparar la consulta
+            $stmt = $this->conn->prepare($sql);
+    
+            // Enlazar los parámetros
+            $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+            $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+    
+            // Ejecutar la consulta
+            $stmt->execute();
+    
+            // Retornar los resultados como un arreglo asociativo
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        } catch (PDOException $e) {
+            // Manejo de errores
+            error_log("Error al obtener horario: " . $e->getMessage());
+            return []; // Retorna un arreglo vacío en caso de error
+        }
+    }
+    
+    
+
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -44,6 +88,31 @@ class Consultas {
 
     public function verUsuariosCarreras(){
         $query = "SELECT * FROM vista_usuario_carrera";  // Cambia el nombre de la vista
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+
+
+    public function verUsuariosGrupos(){
+        $query = "SELECT 
+        u.nombre_usuario,
+        g.descripcion AS nombre_grupo,
+        m.descripcion AS nombre_materia
+        FROM 
+        usuario_has_grupo ug
+        JOIN 
+        usuario u ON ug.usuario_usuario_id = u.usuario_id
+        JOIN 
+        grupo g ON ug.grupo_grupo_id = g.grupo_id
+        JOIN 
+        vista_materias m ON ug.materia_materia_id = m.materia_id;
+";  // Cambia el nombre de la vista
         $stmt = $this->conn->prepare($query);
         try {
             $stmt->execute();
@@ -429,9 +498,9 @@ public function obtenerEdificio() {
     }
 
 public function obtenerSalones() {
-    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio 
+    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio, s.capacidad
             FROM salones s 
-            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id";
+            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id;";
     $stmt = $this->conn->query($sql);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -727,21 +796,22 @@ class Grupo {
         session_start(); // Iniciar la sesión
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar que los campos no estén vacíos
+            // Obtener y validar los campos del formulario
             $descripcion = trim($_POST['grupo']);
             $semestre_id = intval($_POST['semestre']);
             $turno_id = intval($_POST['turno']);
             $periodo_id = intval($_POST['periodo']);
             $salon_id = intval($_POST['salon']);
+            $cantidad_alumnos = intval($_POST['cantidad_alumnos']); // Nuevo campo
 
-            // Validar los campos
-            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id)) {
+            // Validar que los campos no estén vacíos
+            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id) || empty($cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?error=campos_vacios");
                 exit();
             }
 
             // Si todos los campos son válidos, insertar el grupo en la base de datos
-            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id)) {
+            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?success=true");
                 exit();
             } else {
@@ -751,9 +821,9 @@ class Grupo {
         }
     }
 
-    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id) {
-        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones) 
-                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id)";
+    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos) {
+        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones, cantidad_alumnos) 
+                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id, :cantidad_alumnos)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
@@ -761,6 +831,7 @@ class Grupo {
         $stmt->bindParam(':idturno', $turno_id, PDO::PARAM_INT);
         $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
         $stmt->bindParam(':salon_id', $salon_id, PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad_alumnos', $cantidad_alumnos, PDO::PARAM_INT);
 
         try {
             $stmt->execute();
@@ -774,6 +845,7 @@ class Grupo {
         }
     }
 }
+
 
 
 
@@ -1473,43 +1545,6 @@ class Edificio {
         $this->conn = $dbConnection;
     }
 
-    public function handleFormSubmission() {
-        session_start(); // Iniciar la sesión
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
-
-            // Registrar los datos para depuración
-            error_log("Descripción: $descripcion");
-
-            // Validar que el campo no esté vacío
-            if (empty($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
-                exit();
-            }
-
-            // Insertar el edificio en la base de datos
-            if ($this->insertarEdificio($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?success=true");
-                exit();
-            } else {
-                header("Location: ../views/templates/form_edificio.php?error=insert");
-                exit();
-            }
-        } else {
-            // Si no es una solicitud POST, redirigir o manejar el error
-            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
-            exit();
-        }
-    }
-
-class Edificio {
-    private $conn;
-
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
-    }
-
     public function gestionarEdificio() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
@@ -1533,7 +1568,6 @@ class Edificio {
         }
     }
 }
-
 class Salon {
     private $conn;
 
@@ -1545,17 +1579,20 @@ class Salon {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
             $edificioId = $_POST['edificios_id_edificio'];
+            $capacidad = $_POST['capacidad']; // Nuevo campo capacidad
 
-            $this->insertarSalon($descripcion, $edificioId);
+            $this->insertarSalon($descripcion, $edificioId, $capacidad);
         }
     }
 
-    private function insertarSalon($descripcion, $edificioId) {
-        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio) VALUES (:descripcion, :edificioId)";
+    private function insertarSalon($descripcion, $edificioId, $capacidad) {
+        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio, capacidad) 
+                VALUES (:descripcion, :edificioId, :capacidad)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion);
         $stmt->bindParam(':edificioId', $edificioId);
+        $stmt->bindParam(':capacidad', $capacidad);
 
         try {
             $stmt->execute();
@@ -1565,7 +1602,8 @@ class Salon {
             header("Location: ../views/templates/form_salon.php?success=false");
         }
     }
-}   
+}
+
 
 class UsuarioGrupo {
     private $conn;
@@ -1606,3 +1644,59 @@ class UsuarioGrupo {
     }
 }
 
+class Horario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarHorario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Verificar los datos recibidos
+            echo "<pre>";
+            print_r($_POST);
+            echo "</pre>";
+
+            // Validar que los campos obligatorios no estén vacíos
+            $requiredFields = ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id', 'dias_dias_id', 'horas_horas_id', 'salones_salon_id', 'grupo_grupo_id', 'materia_materia_id'];
+
+            // Extraer datos
+            $periodoId = $_POST['periodo_periodo_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $carreraId = $_POST['carrera_carrera_id'];
+            $diaId = $_POST['dias_dias_id'];
+            $horaId = $_POST['horas_horas_id'];
+            $salonId = $_POST['salon_salon_id'];
+            $grupoId = $_POST['grupo_grupo_id'];
+            $materiaId = $_POST['materia_materia_id'];
+
+            // Llamar al método para insertar en la base de datos
+            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+        }
+    }
+
+    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "INSERT INTO horario (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, salones_salon_id, grupo_grupo_id, materia_materia_id) 
+                VALUES (:periodoId, :usuarioId, :carreraId, :diaId, :horaId, :salonId, :grupoId, :materiaId)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_horario.php?status=success");
+            exit();
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
+            exit();
+        }
+    }
+}
