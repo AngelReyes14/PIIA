@@ -171,22 +171,54 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
             </div>
           </div>
         </div>
-        <div class="conteiner p-4 mb-4 box-shadow-div form-group mb-3">
-          <div class="form-group mb-3">
-            <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
-            <select class="form-control" id="incidencias" name="incidencias" required>
-              <option value="" disabled selected>Selecciona una incidencia</option>
-              <?php foreach ($incidencias as $incidencia): ?>
-                <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
-                  <?php echo htmlspecialchars($incidencia['descripcion']); // Solo la descripción 
-                  ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-            <div class="invalid-feedback">Este campo es obligatorio.</div>
-          </div>
+        <div class="row">
+  <div class="col-md-6 mb-3">
+    <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
+    <select class="form-control" id="incidencias" name="incidencias" required onchange="toggleCampos()">
+      <option value="" disabled selected>Selecciona una incidencia</option>
+      <?php foreach ($incidencias as $incidencia): ?>
+        <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
+          <?php echo htmlspecialchars($incidencia['descripcion']); ?>
+        </option>
+      <?php endforeach; ?>
+    </select>
+    <div class="invalid-feedback">Este campo es obligatorio.</div>
+  </div>
 
-        </div>
+  <div class="col-md-6 mb-3">
+    <label for="otro">Otro</label>
+    <input class="form-control" id="otro" name="otro" type="text" required disabled>
+    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+  </div>
+</div>
+
+<script>
+function toggleCampos() {
+  var selectElement = document.getElementById('incidencias');
+  var otroInput = document.getElementById('otro');
+  var archivoInput = document.getElementById('documentInput');
+  var selectedValue = selectElement.value;
+
+  
+  if (selectedValue == "7") {
+    otroInput.disabled = false; 
+  } else {
+    otroInput.disabled = true;  
+    otroInput.value = "";       
+  }
+
+  if (selectedValue == "1") {
+    archivoInput.disabled = false; 
+  } else {
+    archivoInput.disabled = true;  
+    archivoInput.value = "";       
+  }
+}
+</script>
+
+
+
+
 
         <div class="conteiner p-3 box-shadow-div">
           <div class="form-group mb-3">
@@ -194,6 +226,16 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
             <input class="form-control" id="motivo" name="motivo" type="text" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
           </div>
+
+          <form id="uploadDocumentForm" action="subir_archivo.php" method="POST" enctype="multipart/form-data">
+                        
+                        <div class="mb-3">
+                            <label for="documentInput" class="form-label">Selecciona un documento (PDF, DOCX)</label>
+                            <input class="form-control" type="file" name="documento" id="documentInput" accept=".pdf,.doc,.docx" required>
+                        </div>
+                    </form>
+
+
 
           <div class="d-flex flex-wrap mb-3">
             <div class="form-group mr-3 flex-fill mb-3">
