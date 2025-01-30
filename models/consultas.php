@@ -1292,6 +1292,7 @@ class IncidenciaUsuario {
             $incidenciaId = $_POST['incidencias'];
             $usuarioId = $_POST['usuario-servidor-publico']; 
             $fechaSolicitada = $_POST['fecha'];
+            $otro = $_POST['otro'];
             $motivo = $_POST['motivo'];
             $horarioInicio = $_POST['start-time'];
             $horarioTermino = $_POST['end-time'];
@@ -1307,11 +1308,11 @@ class IncidenciaUsuario {
             }
 
             // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
         }
     }
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
         $validacionDivicionAcademica = 3;
         $validacionSubdireccion = 3;
         $validacionRH = 3;
@@ -1320,6 +1321,7 @@ class IncidenciaUsuario {
                     incidencia_incidenciaid,
                     usuario_usuario_id,
                     fecha_solicitada,
+                    otro,
                     motivo,
                     horario_inicio,
                     horario_termino,
@@ -1334,6 +1336,7 @@ class IncidenciaUsuario {
                     :incidencia_id,
                     :usuario_id,
                     :fecha_solicitada,
+                    :otro,
                     :motivo,
                     :horario_inicio,
                     :horario_termino,
@@ -1350,6 +1353,7 @@ class IncidenciaUsuario {
         $stmt->bindParam(':incidencia_id', $incidenciaId);
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':otro', $otro);
         $stmt->bindParam(':motivo', $motivo);
         $stmt->bindParam(':horario_inicio', $horarioInicio);
         $stmt->bindParam(':horario_termino', $horarioTermino);
