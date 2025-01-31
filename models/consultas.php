@@ -1700,3 +1700,49 @@ class Horario {
         }
     }
 }
+
+class CertificacionUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarCertificacionUsuario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $certificacionId = $_POST['certificaciones_certificaciones_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $url = $_POST['url'];
+            $tipoCertificadoId = $_POST['tipo_certificado_tipo_certificado_id'];
+            $descripcion = $_POST['descripcion'];
+
+            $this->insertarCertificacionUsuario($certificacionId, $usuarioId, $url, $tipoCertificadoId, $descripcion);
+        }
+    }
+
+    private function insertarCertificacionUsuario($certificacionId, $usuarioId, $url, $tipoCertificadoId, $descripcion) {
+        $sql = "INSERT INTO certificaciones_has_usuario 
+                (certificaciones_certificaciones_id, usuario_usuario_id, url, tipo_certificado_tipo_certificado_id, descripcion) 
+                VALUES (:certificacionId, :usuarioId, :url, :tipoCertificadoId, :descripcion)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':certificacionId', $certificacionId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':url', $url, PDO::PARAM_STR);
+        $stmt->bindParam(':tipoCertificadoId', $tipoCertificadoId, PDO::PARAM_INT);
+        $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_certificacion_usuario.php?success=true");
+            exit;
+        } catch (PDOException $e) {
+            error_log("Error al insertar en certificaciones_has_usuario: " . $e->getMessage());
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/form_certificacion_usuario.php?success=false");
+            exit;
+        }
+    }
+}
+
+
