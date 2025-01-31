@@ -1300,29 +1300,66 @@ class IncidenciaUsuario {
             $diaIncidencia = $_POST['dia-incidencia']; 
             $carreraId = $_POST['area'];
             $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
-
+    
             // Validar los datos (ejemplo básico, se puede expandir)
             if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
                 echo "Por favor, completa todos los campos requeridos.";
                 return;
             }
-
-            // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
+    
+            // Manejo de archivo (documento)
+            $filePath = null; // Inicializar en null
+            if (isset($_FILES['documento']) && $_FILES['documento']['error'] === UPLOAD_ERR_OK) {
+                // Obtener detalles del archivo
+                $fileTmpPath = $_FILES['documento']['tmp_name'];
+                $fileName = $_FILES['documento']['name'];
+                $fileSize = $_FILES['documento']['size'];
+                $fileType = $_FILES['documento']['type'];
+    
+                // Obtener la extensión del archivo
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = $fileInfo['extension']; // Extensión del archivo
+    
+                // Generar una ruta de archivo única dentro de la estructura de directorios solicitada
+                $uploadDir = __DIR__ . '/../views/templates/assets/doc_medicos/'; // Carpeta dentro del proyecto
+                $filePath = $this->generateUniqueFileName('cita-medica', $fileExtension, $uploadDir);
+    
+                // Verificar si la carpeta existe y tiene permisos adecuados
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true); // Crear la carpeta si no existe
+                }
+    
+                // Mover el archivo a la carpeta de destino
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
+                    echo "El archivo se ha subido correctamente.";
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+    
+            // Si no se sube archivo, se deja en null
+            $relativeFilePath = $filePath ? '../views/templates/assets/doc_medicos/' . $filePath : null;
+    
+            // Insertar los datos en la base de datos, incluyendo la ruta del archivo
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $relativeFilePath);
         }
     }
+    
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $filePath) {
         $validacionDivicionAcademica = 3;
         $validacionSubdireccion = 3;
         $validacionRH = 3;
 
+        // Inserción en la base de datos, incluyendo la ruta del archivo
         $query = "INSERT INTO incidencia_has_usuario (
                     incidencia_incidenciaid,
                     usuario_usuario_id,
                     fecha_solicitada,
                     otro,
                     motivo,
+                    doc_medico,
                     horario_inicio,
                     horario_termino,
                     horario_incidencia,
@@ -1338,6 +1375,7 @@ class IncidenciaUsuario {
                     :fecha_solicitada,
                     :otro,
                     :motivo,
+                    :doc_medico,
                     :horario_inicio,
                     :horario_termino,
                     :horario_incidencia,
@@ -1355,6 +1393,7 @@ class IncidenciaUsuario {
         $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
         $stmt->bindParam(':otro', $otro);
         $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':doc_medico', $filePath); // Aquí guardamos la ruta relativa del archivo
         $stmt->bindParam(':horario_inicio', $horarioInicio);
         $stmt->bindParam(':horario_termino', $horarioTermino);
         $stmt->bindParam(':horario_incidencia', $horario_incidencia);
@@ -1375,7 +1414,22 @@ class IncidenciaUsuario {
             exit();
         }
     }
+
+    // Generar un nombre único para el archivo con formato cita-medica-(numero).pdf
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        // Verificar si el archivo ya existe, incrementar el contador si es necesario
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
 }
+
+
+
 
 class CarreraManager
 {

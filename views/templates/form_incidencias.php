@@ -171,72 +171,49 @@ $servidorPublico = $usuarioManager->obtenerServidorPublicoPorUsuario($idusuario)
             </div>
           </div>
         </div>
-        <div class="row">
-  <div class="col-md-6 mb-3">
-    <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
-    <select class="form-control" id="incidencias" name="incidencias" required onchange="toggleCampos()">
-      <option value="" disabled selected>Selecciona una incidencia</option>
-      <?php foreach ($incidencias as $incidencia): ?>
-        <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
-          <?php echo htmlspecialchars($incidencia['descripcion']); ?>
-        </option>
-      <?php endforeach; ?>
-    </select>
-    <div class="invalid-feedback">Este campo es obligatorio.</div>
-  </div>
 
-  <div class="col-md-6 mb-3">
-    <label for="otro">Otro</label>
-    <input class="form-control" id="otro" name="otro" type="text" required disabled>
-    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-  </div>
+
+
+
+  <div class="card p-4 mb-4 box-shadow-div form-group mb-3">
+    <div class="row">
+    <div class="col-md-12 mb-3" id="incidenciasDiv">
+  <label for="incidencias" class="form-label">Selecciona una Incidencia:</label>
+  <select class="form-control" id="incidencias" name="incidencias" required onchange="toggleCampos()">
+    <option value="" disabled selected>Selecciona una incidencia</option>
+    <?php foreach ($incidencias as $incidencia): ?>
+      <option value="<?php echo htmlspecialchars($incidencia['incidenciaid']); ?>">
+        <?php echo htmlspecialchars($incidencia['descripcion']); ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+  <div class="invalid-feedback">Este campo es obligatorio.</div>
 </div>
 
-<script>
-function toggleCampos() {
-  var selectElement = document.getElementById('incidencias');
-  var otroInput = document.getElementById('otro');
-  var archivoInput = document.getElementById('documentInput');
-  var selectedValue = selectElement.value;
-
-  
-  if (selectedValue == "7") {
-    otroInput.disabled = false; 
-  } else {
-    otroInput.disabled = true;  
-    otroInput.value = "";       
-  }
-
-  if (selectedValue == "1") {
-    archivoInput.disabled = false; 
-  } else {
-    archivoInput.disabled = true;  
-    archivoInput.value = "";       
-  }
-}
-</script>
+<div class="col-md-6 mb-3" id="otroDiv" style="display: none;">
+  <label for="otro">Otro</label>
+  <input class="form-control" id="otro" name="otro" type="text" required disabled>
+  <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+</div>
 
 
+  </div>
+  </div>
 
 
-
-        <div class="conteiner p-3 box-shadow-div">
+        <div class="card p-3 box-shadow-div">
           <div class="form-group mb-3">
             <label for="motivo">Motivo</label>
             <input class="form-control" id="motivo" name="motivo" type="text" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
           </div>
 
-          <form id="uploadDocumentForm" action="subir_archivo.php" method="POST" enctype="multipart/form-data">
-                        
-                        <div class="mb-3">
-                            <label for="documentInput" class="form-label">Selecciona un documento (PDF, DOCX)</label>
-                            <input class="form-control" type="file" name="documento" id="documentInput" accept=".pdf,.doc,.docx" required>
-                        </div>
-                    </form>
-
-
-
+ <div class="mb-3" id="documentDiv" style="display: none;">
+            <label for="documentInput">Selecciona un documento</label>
+            <input class="form-control" id="documentInput" name="documento" type="file" required disabled>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+        
           <div class="d-flex flex-wrap mb-3">
             <div class="form-group mr-3 flex-fill mb-3">
               <label for="start-time" class="horario-label me-2">Horario entrada:</label>
@@ -311,6 +288,45 @@ function toggleCampos() {
       </div>
   </div>
   </main>
+
+  <script>
+function toggleCampos() {
+  var selectElement = document.getElementById('incidencias');
+  var incidenciasDiv = document.getElementById('incidenciasDiv');
+  var otroDiv = document.getElementById('otroDiv');
+  var otroInput = document.getElementById('otro');
+  var documentDiv = document.getElementById('documentDiv');
+  var archivoInput = document.getElementById('documentInput');
+  var selectedValue = selectElement.value;
+
+  // Manejo del campo "Otro"
+  if (selectedValue == "7") {
+    incidenciasDiv.classList.remove("col-md-12");
+    incidenciasDiv.classList.add("col-md-6");
+    otroDiv.style.display = "block";
+    otroInput.disabled = false;
+  } else {
+    incidenciasDiv.classList.remove("col-md-6");
+    incidenciasDiv.classList.add("col-md-12");
+    otroDiv.style.display = "none";
+    otroInput.disabled = true;
+    otroInput.value = "";
+  }
+
+  // Manejo del campo "Seleccionar documento"
+  if (selectedValue == "1") {
+    documentDiv.style.display = "block";
+    archivoInput.disabled = false;
+  } else {
+    documentDiv.style.display = "none";
+    archivoInput.disabled = true;
+    archivoInput.value = "";
+  }
+}
+
+
+</script>
+
 
 
   <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
