@@ -42,6 +42,8 @@ function filtrarHorario() {
     }
 }
 
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const horas = [
         { id: 1, descripcion: '07:00 - 08:00' },
@@ -284,3 +286,61 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
       });
   });
   
+  $(document).ready(function() {
+    $('form').submit(function(event) {
+        event.preventDefault(); // Evitar recargar la página
+
+        var $form = $(this);  // Almacenar la referencia del formulario
+        var formData = $form.serialize();  // Serializar los datos del formulario
+
+        // Validación previa antes de enviar
+        if (!$form[0].checkValidity()) {
+            // Si el formulario no es válido
+            return;
+        }
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                console.log("Respuesta del servidor:", response); // Depuración
+
+                if (response && response.status === 'success') {
+                    actualizarVista(response);
+                } else {
+                    mostrarError(response?.message || 'Hubo un error inesperado.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log("Error en AJAX:", xhr.responseText); // Mostrar el error exacto
+                if (xhr.status === 500) {
+                    mostrarError('Hubo un error interno en el servidor.');
+                } else {
+                    mostrarError('Error al asignar el horario. Verifica la consola.');
+                }
+            }
+        });
+    });
+
+    // Función para actualizar la vista
+    function actualizarVista(response) {
+        $('#tabla-horarios').replaceWith(response.updatedTable); // Reemplazar solo la tabla
+        Swal.fire({
+            title: 'Éxito',
+            text: 'El horario ha sido asignado correctamente.',
+            icon: 'success',
+        });
+    }
+
+    // Función para mostrar un mensaje de error
+    function mostrarError(mensaje) {
+        Swal.fire({
+            title: 'Error',
+            text: mensaje,
+            icon: 'error',
+        });
+    }
+});
+
