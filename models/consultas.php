@@ -71,6 +71,22 @@ public function obtenerHorario($periodo, $usuarioId, $carrera) {
         return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve el primer registro que coincida
     }
 
+    public function obtenerCertificacionPorFiltros($certificacion_id, $usuario_id, $tipo_certificado_id) {
+        $query = "SELECT url 
+                  FROM certificaciones_has_usuario
+                  WHERE certificaciones_certificaciones_id = :certificacion_id
+                    AND usuario_usuario_id = :usuario_id
+                    AND tipo_certificado_tipo_certificado_id = :tipo_certificado_id";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_id', $certificacion_id, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->bindParam(':tipo_certificado_id', $tipo_certificado_id, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve el primer registro que coincida
+    }
+    
     
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
@@ -1903,5 +1919,97 @@ class BorrarHorario {
         }
     }
 }
+
+class CertificacionUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $certificacionId = $_POST['certificaciones_certificaciones_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $tipoCertificadoId = $_POST['tipo_certificado_id'];
+
+            // Manejo de archivo
+            $filePath = null;
+            if (isset($_FILES['certificado']) && $_FILES['certificado']['error'] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $_FILES['certificado']['tmp_name'];
+                $fileName = $_FILES['certificado']['name'];
+                $fileSize = $_FILES['certificado']['size'];
+                $fileType = $_FILES['certificado']['type'];
+
+                // Obtener la extensión del archivo
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = strtolower($fileInfo['extension']);
+
+                // Directorio de subida
+                $uploadDir = __DIR__ . '/../views/templates/assets/certificados/';
+                $filePath = $this->generateUniqueFileName('certificado', $fileExtension, $uploadDir);
+
+                // Verificar si la carpeta existe
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Mover el archivo al destino
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
+                    echo "Archivo subido correctamente.";
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+
+            // Insertar en la base de datos
+            $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
+            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $relativeFilePath, $tipoCertificadoId);
+        }
+    }
+
+    private function insertCertificacionUsuario($certificacionId, $usuarioId, $filePath, $tipoCertificadoId) {
+        $query = "INSERT INTO piia.certificaciones_has_usuario (
+                    certificaciones_certificaciones_id,
+                    usuario_usuario_id,
+                    url,
+                    tipo_certificado_tipo_certificado_id
+                  ) VALUES (
+                    :certificacion_id,
+                    :usuario_id,
+                    :url,
+                    :tipo_certificado_id
+                  )";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_id', $certificacionId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':url', $filePath);
+        $stmt->bindParam(':tipo_certificado_id', $tipoCertificadoId);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_certificaciones.php?success=true");
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error: " . $e->getMessage());
+            echo "Ocurrió un error al procesar la solicitud.";
+            exit();
+        }
+    }
+
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
+}
+
 
 
