@@ -8,48 +8,68 @@ class Consultas {
         $this->conn = $dbConnection;
     }
     
-    // Método para obtener el horario filtrado por periodo, usuarioId y carrera
-    public function obtenerHorario($periodo, $usuarioId, $carrera) {
-        try {
-            // SQL con los LEFT JOIN, manteniendo las ID y añadiendo las descripciones
-            $sql = "SELECT h.horas_horas_id, ho.horas_id, ho.descripcion AS hora, 
-                           d.dias_id, d.descripcion AS dia,
-                           m.materia_id, m.descripcion AS materia, 
-                           g.grupo_id, g.descripcion AS grupo, 
-                           s.salon_id, s.descripcion AS salon
-                    FROM horario h
-                    LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
-                    LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
-                    LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
-                    LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
-                    LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
-                    WHERE h.periodo_periodo_id = :periodo
-                      AND h.usuario_usuario_id = :usuarioId
-                      AND h.carrera_carrera_id = :carrera
-                    ORDER BY h.horas_horas_id, d.dias_id;";
-    
-            // Preparar la consulta
-            $stmt = $this->conn->prepare($sql);
-    
-            // Enlazar los parámetros
-            $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
-            $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
-            $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
-    
-            // Ejecutar la consulta
-            $stmt->execute();
-    
-            // Retornar los resultados como un arreglo asociativo
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-        } catch (PDOException $e) {
-            // Manejo de errores
-            error_log("Error al obtener horario: " . $e->getMessage());
-            return []; // Retorna un arreglo vacío en caso de error
-        }
+// Método para obtener el horario filtrado por periodo, usuarioId y carrera
+public function obtenerHorario($periodo, $usuarioId, $carrera) {
+    try {
+        // SQL con los LEFT JOIN, manteniendo las ID y añadiendo las descripciones
+        $sql = "SELECT h.horario_id, h.horas_horas_id, ho.horas_id, ho.descripcion AS hora, 
+                       d.dias_id, d.descripcion AS dia,
+                       m.materia_id, m.descripcion AS materia, 
+                       g.grupo_id, g.descripcion AS grupo, 
+                       s.salon_id, s.descripcion AS salon
+                FROM horario h
+                LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
+                LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
+                LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
+                LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
+                WHERE h.periodo_periodo_id = :periodo
+                  AND h.usuario_usuario_id = :usuarioId
+                  AND h.carrera_carrera_id = :carrera
+                ORDER BY h.horas_horas_id, d.dias_id;";
+
+        // Preparar la consulta
+        $stmt = $this->conn->prepare($sql);
+
+        // Enlazar los parámetros
+        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+
+        // Ejecutar la consulta
+        $stmt->execute();
+
+        // Retornar los resultados como un arreglo asociativo
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        // Manejo de errores
+        error_log("Error al obtener horario: " . $e->getMessage());
+        return []; // Retorna un arreglo vacío en caso de error
     }
-    
-    
+}
+
+
+     // Método para obtener horario filtrado por periodo, carrera y usuario
+     public function obtenerHorarioPorFiltros($periodo_id, $carrera_id, $docente_id, $dia_id, $hora_id) {
+        $query = "SELECT materia_materia_id, grupo_grupo_id, salones_salon_id 
+                  FROM horario
+                  WHERE periodo_periodo_id = :periodo_id
+                    AND carrera_carrera_id = :carrera_id
+                    AND usuario_usuario_id = :docente_id
+                    AND dias_dias_id = :dia_id
+                    AND horas_horas_id = :hora_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->bindParam(':docente_id', $docente_id, PDO::PARAM_INT);
+        $stmt->bindParam(':dia_id', $dia_id, PDO::PARAM_INT);
+        $stmt->bindParam(':hora_id', $hora_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve el primer registro que coincida
+    }
 
     
     public function obtenerIncidencias() {
@@ -520,6 +540,26 @@ public function obtenerSalones() {
                     imagen_url
                   FROM usuario
                   WHERE tipo_usuario_tipo_usuario_id = 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerUsuariosJefesdeDivision() {
+        $query = "SELECT 
+                    usuario_id, 
+                    nombre_usuario, 
+                    apellido_p, 
+                    apellido_m, 
+                    edad, 
+                    correo, 
+                    fecha_contratacion, 
+                    numero_empleado, 
+                    grado_academico, 
+                    cedula, 
+                    imagen_url
+                  FROM usuario
+                  WHERE tipo_usuario_tipo_usuario_id = 2";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1252,6 +1292,7 @@ class IncidenciaUsuario {
             $incidenciaId = $_POST['incidencias'];
             $usuarioId = $_POST['usuario-servidor-publico']; 
             $fechaSolicitada = $_POST['fecha'];
+            $otro = $_POST['otro'];
             $motivo = $_POST['motivo'];
             $horarioInicio = $_POST['start-time'];
             $horarioTermino = $_POST['end-time'];
@@ -1259,28 +1300,66 @@ class IncidenciaUsuario {
             $diaIncidencia = $_POST['dia-incidencia']; 
             $carreraId = $_POST['area'];
             $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
-
+    
             // Validar los datos (ejemplo básico, se puede expandir)
             if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
                 echo "Por favor, completa todos los campos requeridos.";
                 return;
             }
-
-            // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
+    
+            // Manejo de archivo (documento)
+            $filePath = null; // Inicializar en null
+            if (isset($_FILES['documento']) && $_FILES['documento']['error'] === UPLOAD_ERR_OK) {
+                // Obtener detalles del archivo
+                $fileTmpPath = $_FILES['documento']['tmp_name'];
+                $fileName = $_FILES['documento']['name'];
+                $fileSize = $_FILES['documento']['size'];
+                $fileType = $_FILES['documento']['type'];
+    
+                // Obtener la extensión del archivo
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = $fileInfo['extension']; // Extensión del archivo
+    
+                // Generar una ruta de archivo única dentro de la estructura de directorios solicitada
+                $uploadDir = __DIR__ . '/../views/templates/assets/doc_medicos/'; // Carpeta dentro del proyecto
+                $filePath = $this->generateUniqueFileName('cita-medica', $fileExtension, $uploadDir);
+    
+                // Verificar si la carpeta existe y tiene permisos adecuados
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true); // Crear la carpeta si no existe
+                }
+    
+                // Mover el archivo a la carpeta de destino
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
+                    echo "El archivo se ha subido correctamente.";
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+    
+            // Si no se sube archivo, se deja en null
+            $relativeFilePath = $filePath ? '../views/templates/assets/doc_medicos/' . $filePath : null;
+    
+            // Insertar los datos en la base de datos, incluyendo la ruta del archivo
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $relativeFilePath);
         }
     }
+    
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $filePath) {
         $validacionDivicionAcademica = 3;
         $validacionSubdireccion = 3;
         $validacionRH = 3;
 
+        // Inserción en la base de datos, incluyendo la ruta del archivo
         $query = "INSERT INTO incidencia_has_usuario (
                     incidencia_incidenciaid,
                     usuario_usuario_id,
                     fecha_solicitada,
+                    otro,
                     motivo,
+                    doc_medico,
                     horario_inicio,
                     horario_termino,
                     horario_incidencia,
@@ -1294,7 +1373,9 @@ class IncidenciaUsuario {
                     :incidencia_id,
                     :usuario_id,
                     :fecha_solicitada,
+                    :otro,
                     :motivo,
+                    :doc_medico,
                     :horario_inicio,
                     :horario_termino,
                     :horario_incidencia,
@@ -1310,7 +1391,9 @@ class IncidenciaUsuario {
         $stmt->bindParam(':incidencia_id', $incidenciaId);
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':otro', $otro);
         $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':doc_medico', $filePath); // Aquí guardamos la ruta relativa del archivo
         $stmt->bindParam(':horario_inicio', $horarioInicio);
         $stmt->bindParam(':horario_termino', $horarioTermino);
         $stmt->bindParam(':horario_incidencia', $horario_incidencia);
@@ -1331,7 +1414,22 @@ class IncidenciaUsuario {
             exit();
         }
     }
+
+    // Generar un nombre único para el archivo con formato cita-medica-(numero).pdf
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        // Verificar si el archivo ya existe, incrementar el contador si es necesario
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
 }
+
+
+
 
 class CarreraManager
 {
@@ -1644,6 +1742,7 @@ class UsuarioGrupo {
     }
 }
 
+
 class Horario {
     private $conn;
 
@@ -1653,15 +1752,7 @@ class Horario {
 
     public function gestionarHorario() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar los datos recibidos
-            echo "<pre>";
-            print_r($_POST);
-            echo "</pre>";
-
-            // Validar que los campos obligatorios no estén vacíos
-            $requiredFields = ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id', 'dias_dias_id', 'horas_horas_id', 'salones_salon_id', 'grupo_grupo_id', 'materia_materia_id'];
-
-            // Extraer datos
+            // Extraer datos del formulario
             $periodoId = $_POST['periodo_periodo_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
             $carreraId = $_POST['carrera_carrera_id'];
@@ -1671,15 +1762,42 @@ class Horario {
             $grupoId = $_POST['grupo_grupo_id'];
             $materiaId = $_POST['materia_materia_id'];
 
-            // Llamar al método para insertar en la base de datos
-            $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+            // Verificar si el horario ya existe
+            if ($this->existeHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId)) {
+                // Si el horario ya existe, actualizamos los campos necesarios
+                $this->actualizarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+            } else {
+                // Si el horario no existe, insertamos uno nuevo
+                $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+            }
         }
+
+    }
+
+    private function existeHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId) {
+        // Verificar si existe un horario con los mismos datos (sin contar el horario_id)
+        $sql = "SELECT COUNT(*) FROM horario 
+                WHERE periodo_periodo_id = :periodoId 
+                  AND usuario_usuario_id = :usuarioId
+                  AND carrera_carrera_id = :carreraId
+                  AND dias_dias_id = :diaId 
+                  AND horas_horas_id = :horaId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0; // Devuelve true si existe un registro
     }
 
     private function insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
         $sql = "INSERT INTO horario (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, salones_salon_id, grupo_grupo_id, materia_materia_id) 
                 VALUES (:periodoId, :usuarioId, :carreraId, :diaId, :horaId, :salonId, :grupoId, :materiaId)";
-
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
         $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
@@ -1692,11 +1810,98 @@ class Horario {
 
         try {
             $stmt->execute();
-            header("Location: ../views/templates/form_horario.php?status=success");
-            exit();
+            header("Location: ../views/templates/form_horario.php?status=success&action=insert");
+exit();
         } catch (PDOException $e) {
             header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
             exit();
         }
     }
+
+    private function actualizarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "UPDATE horario 
+                SET salones_salon_id = :salonId, 
+                    grupo_grupo_id = :grupoId, 
+                    materia_materia_id = :materiaId 
+                WHERE periodo_periodo_id = :periodoId 
+                  AND usuario_usuario_id = :usuarioId 
+                  AND carrera_carrera_id = :carreraId
+                  AND dias_dias_id = :diaId 
+                  AND horas_horas_id = :horaId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_horario.php?status=success&action=update");
+            exit();;
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
+            exit();
+        }
+    }
+
 }
+
+
+class BorrarHorario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function eliminarHorario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Mostrar los datos recibidos para depuración
+            var_dump($_POST);
+            
+            // Obtener el ID del horario desde el formulario
+            $horarioId = $_POST['horario_id'] ?? null;
+    
+            // Depuración: Mostrar el valor recibido de horario_id
+            error_log("Valor de horario_id recibido: " . var_export($horarioId, true));
+    
+            // Verificar que el ID sea válido
+            if (empty($horarioId) || !is_numeric($horarioId)) {
+                error_log("Error: ID de horario no válido. Valor recibido: " . var_export($horarioId, true));
+                die("Error: ID de horario no válido.");
+            }
+    
+            // Verificar si el ID de horario existe en la base de datos antes de eliminarlo
+            $sqlCheck = "SELECT * FROM horario WHERE horario_id = :horarioId";
+            $stmtCheck = $this->conn->prepare($sqlCheck);
+            $stmtCheck->bindParam(':horarioId', $horarioId, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            
+            if ($stmtCheck->rowCount() == 0) {
+                die("Error: El ID de horario no existe en la base de datos.");
+            }
+    
+            // Si el ID existe, proceder con la eliminación
+            $sql = "DELETE FROM horario WHERE horario_id = :horarioId";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':horarioId', $horarioId, PDO::PARAM_INT);
+    
+            try {
+                $stmt->execute();
+                error_log("Horario con ID $horarioId eliminado exitosamente.");
+                header("Location: ../views/templates/form_horario.php?status=success&action=delete");
+                exit();
+            } catch (PDOException $e) {
+                error_log("Error al intentar eliminar el horario: " . $e->getMessage());
+                die("Error al eliminar: " . $e->getMessage());
+            }
+        }
+    }
+}
+
+

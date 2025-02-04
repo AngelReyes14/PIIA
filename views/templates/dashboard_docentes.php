@@ -266,6 +266,44 @@ $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
         </div>
       </div>
       <script>
+function toggleCampos() {
+  var selectElement = document.getElementById('incidencias');
+  var incidenciasDiv = document.getElementById('incidenciasDiv');
+  var otroDiv = document.getElementById('otroDiv');
+  var otroInput = document.getElementById('otro');
+  var documentDiv = document.getElementById('documentDiv');
+  var archivoInput = document.getElementById('documentInput');
+  var selectedValue = selectElement.value;
+
+  // Manejo del campo "Otro"
+  if (selectedValue == "7") {
+    incidenciasDiv.classList.remove("col-md-12");
+    incidenciasDiv.classList.add("col-md-6");
+    otroDiv.style.display = "block";
+    otroInput.disabled = false;
+  } else {
+    incidenciasDiv.classList.remove("col-md-6");
+    incidenciasDiv.classList.add("col-md-12");
+    otroDiv.style.display = "none";
+    otroInput.disabled = true;
+    otroInput.value = "";
+  }
+
+  // Manejo del campo "Seleccionar documento"
+  if (selectedValue == "1") {
+    documentDiv.style.display = "block";
+    archivoInput.disabled = false;
+  } else {
+    documentDiv.style.display = "none";
+    archivoInput.disabled = true;
+    archivoInput.value = "";
+  }
+}
+
+
+</script>
+
+      <script>
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
 

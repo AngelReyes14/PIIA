@@ -4,7 +4,7 @@ include('../../controllers/db.php'); // Asegúrate de que este archivo incluya l
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-
+ 
 if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
@@ -145,7 +145,6 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
     </nav>
 
     <main role="main" class="main-content">
-
       <div class="container-fluid px-0">
         <div class="card w-100" style="border:none;">
           <div class="card-header" style="border:none;">
@@ -219,13 +218,73 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años" readonly>
                   </div>
                 </div>
-              </div>
-              
+                
+                <div class="container-fluid px-0">
+                  
+                          <h2>Subir Documentos</h2>
+                      </div>
+                      <div class="card-body">
+                          <div class="row">
+                              <div class="col-md-5 col-xl-3 text-center">
+                                  <strong class="name-line text-start">Selecciona un Documento:</strong>
+                                  <br>
+                                  <form id="uploadDocumentForm" action="subir_documento.php" method="POST" enctype="multipart/form-data">
+                                      <div class="mb-3">
+                                          <label for="documentType" class="form-label">Tipo de documento</label>
+                                          <select class="form-control" name="tipo_documento" id="documentType" required>
+                                              <option value="">Seleccione el tipo</option>
+                                              <option value="Curriculum">Curriculum</option>
+                                              <option value="Certificación">Certificación</option>
+                                              <option value="Contrato">Contrato</option>
+                                              <option value="Otro">Otro</option>
+                                          </select>
+                                      </div>
+                                      <div class="mb-3">
+                                          <label for="documentInput" class="form-label">Selecciona un archivo</label>
+                                          <input class="form-control" type="file" name="documento" id="documentInput" accept=".pdf,.doc,.docx" required>
+                                      </div>
+                                      <button type="submit" class="btn btn-primary">Subir Documento</button>
+                                  </form>
+                              </div>
 
+                              <div class="col-md-5 filter-container">
+                                  <h5>Documentos Subidos</h5>
+                                  <ul class="list-group">
+                                      <?php
+                                      $rutaDocumentos = "./assets/documents/";
+                                      $archivos = scandir($rutaDocumentos);
+                                      foreach ($archivos as $archivo) {
+                                          if ($archivo !== '.' && $archivo !== '..') {
+                                              echo "<li class='list-group-item d-flex justify-content-between align-items-center'>
+                                                      $archivo 
+                                                      <div>
+                                                          <a href='$rutaDocumentos$archivo' target='_blank' class='btn btn-sm btn-info'>Ver</a>
+                                                          <a href='$rutaDocumentos$archivo' download class='btn btn-sm btn-success'>Descargar</a>
+                                                          <form action='eliminar_documento.php' method='POST' style='display:inline;'>
+                                                              <input type='hidden' name='archivo' value='$archivo'>
+                                                              <button type='submit' class='btn btn-sm btn-danger' onclick='return confirm(\"¿Estás seguro de eliminar este documento?\");'>Borrar</button>
+                                                          </form>
+                                                      </div>
+                                                    </li>";
+                                          }
+                                      }
+                                      ?>
+                                  </ul>
+                              </div>
+                          </div>
+                      
+                </div>
+
+              </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      
+
+
       <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
       <div class="container-fluid px-0">
           <div id="cardProfesores" class="card text-center" style="border: none; ">
@@ -277,9 +336,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                 <strong class="name-line text-start">Foto del Docente:</strong>
                 <br>
                 <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
-                <div class="mt-3">
-                  <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
+
               </div>
 
 
