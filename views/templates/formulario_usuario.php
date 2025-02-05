@@ -455,7 +455,6 @@ try {
                             <th>Número de Empleado</th>
                             <th>Grado Académico</th>
                             <th>Cédula</th>
-                            <th>Imagen</th>
                             <th>Sexo ID</th>
                             <th>Status ID</th>
                             <th>Tipo Usuario ID</th>
@@ -477,7 +476,6 @@ try {
                               <td><?php echo $usuario['numero_empleado']; ?></td>
                               <td><?php echo $usuario['grado_academico']; ?></td>
                               <td><?php echo $usuario['cedula']; ?></td>
-                              <td><img src="<?php echo $usuario['imagen_url']; ?>" alt="Imagen de <?php echo $usuario['nombre_usuario']; ?>" style="width: 50px; height: 50px;" /></td>
                               <td><?php echo $usuario['sexo']; ?></td>
                               <td><?php echo $usuario['status']; ?></td>
                               <td><?php echo $usuario['tipo_usuario']; ?></td>

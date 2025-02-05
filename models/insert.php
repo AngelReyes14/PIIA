@@ -67,7 +67,13 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase Horario
         $horario = new Horario($conn);
         $horario->gestionarHorario();  // Método para procesar el formulario de horarios
-        
+    } elseif ($form_type === 'borrar-horario') {
+        // Crear una instancia de la clase BorrarHorario
+        $borrarHorario = new BorrarHorario($conn);
+        $borrarHorario->eliminarHorario(); // Método para manejar el formulario de borrado de horarios
+    } elseif ($form_type === 'certificacion-usuario') {
+        $certificacionUsuario = new CertificacionUsuario($conn);
+        $certificacionUsuario->handleRequest(); // Nuevo método para manejar certificaciones
         
     } else {
         // Manejar otros formularios o enviar un mensaje de error

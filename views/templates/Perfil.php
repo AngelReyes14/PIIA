@@ -145,7 +145,6 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
     </nav>
 
     <main role="main" class="main-content">
-
       <div class="container-fluid px-0">
         <div class="card w-100" style="border:none;">
           <div class="card-header" style="border:none;">
@@ -225,6 +224,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
             </div>
           </div>
         </div>
+        
       </div>
       <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
       <div class="container-fluid px-0">
@@ -394,7 +394,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
         <?php endif; ?>
         
       </div>
-
+    </main>
       <!-- Contenido de la página -->
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
@@ -640,10 +640,10 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
         }, cb);
         cb(start, end);
         $('.input-placeholder').mask("00/00/0000", {
-          placeholder: "__/__/____"
+          placeholder: "_//_"
         });
         $('.input-zip').mask('00000-000', {
-          placeholder: "____-___"
+          placeholder: "_-__"
         });
         $('.input-money').mask("#.##0,00", {
           reverse: true
@@ -657,7 +657,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
               optional: true
             }
           },
-          placeholder: "___.___.___.___"
+          placeholder: "_._._._"
         });
         // editor
         var editor = document.getElementById('editor');
