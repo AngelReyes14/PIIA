@@ -75,6 +75,11 @@ if (isset($_POST['form_type'])) {
         $certificacionUsuario = new CertificacionUsuario($conn);
         $certificacionUsuario->handleRequest(); // Nuevo método para manejar certificaciones
         
+    } elseif ($form_type === 'eliminar-certificacion-usuario') {
+        // Crear una instancia de la clase CertificacionUsuarioUpdate para actualizar certificaciones
+    $certificacionUsuarioDelete = new BorrarCertificacion($conn);
+    $certificacionUsuarioDelete->eliminarCertificacion();
+
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
