@@ -317,7 +317,16 @@ if (isset($_POST['logout'])) {
                                             </td>
                                             <td class="text-center">
                                                 <!-- Botón de actualizar certificado -->
-                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateCertificacionModal" data-id="<?php echo $certificacionusuario['certificaciones_certificaciones_id']; ?>" data-nombre="<?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?>" data-url="<?php echo $certificacionusuario['url']; ?>" data-descripcion="<?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?>">Actualizar</button>
+    <button class="btn btn-sm btn-warning update-cert-btn" 
+            data-bs-toggle="modal" 
+            data-bs-target="#updateCertificacionModal"
+            data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+            data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+            data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+            data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+        Actualizar
+    </button>
+
 
                                                 <!-- Botón de eliminar certificado -->
                                             
@@ -401,6 +410,42 @@ if (isset($_POST['logout'])) {
 
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-bs-target='#updateCertificacionModal']").forEach(button => {
+        button.addEventListener("click", function () {
+// Obtener el modal
+            let modalElement = document.getElementById('updateCertificacionModal');
+            let modal = new bootstrap.Modal(modalElement);
+            modal.show(); // Mostrar el modal manualmente
+
+            // Obtener datos del botón
+            let certificacionId = this.getAttribute("data-certificacion-id") || "";
+            let certificacionesId = this.getAttribute("data-certificaciones-id") || "";
+            let nombreCertificado = this.getAttribute("data-nombre-certificado") || "";
+            let urlAntigua = this.getAttribute("data-url-antigua") || "";
+
+            // Asignar valores a los campos del modal
+            document.getElementById("certificacion_usuario_id").value = certificacionId;
+            document.getElementById("nombre_certificado").value = nombreCertificado;
+            document.getElementById("url_antigua").value = urlAntigua;
+
+            // Seleccionar la certificación correspondiente en el <select>
+            let selectCertificaciones = document.getElementById("certificaciones_certificaciones_id");
+            if (selectCertificaciones) {
+                for (let option of selectCertificaciones.options) {
+                    if (option.value === certificacionesId) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+        });
+    });
+});
+
+</script>
+
+<script>
 document.addEventListener('DOMContentLoaded', function () {
     var deleteButtons = document.querySelectorAll('.btn-danger'); // Asegúrate de que el botón de eliminar tenga esta clase
 
@@ -417,9 +462,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <?php endif; ?>
 
-
-
-        
       </div>
 
       <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
