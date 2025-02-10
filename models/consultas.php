@@ -2072,7 +2072,7 @@ class CertificacionUsuario {
             // Ejecutar la consulta
             $stmt->execute();
             // Redirigir a la página de perfil con un mensaje de éxito
-            header("Location: ../views/templates/Perfil.php?success=true");
+            header("Location: ../views/templates/Perfil.php?status=success&action=insert");
             exit();
         } catch (PDOException $e) {
             // Manejar errores y mostrar detalles para depuración
@@ -2182,7 +2182,7 @@ class ActualizarCertificacionUsuario {
         try {
             $stmt->execute();
             // Redirigir a la página de perfil con un mensaje de éxito
-            header("Location: ../views/templates/Perfil.php?success=true&action=update");
+            header("Location: ../views/templates/Perfil.php?status=success&action=update");
             exit();
         } catch (PDOException $e) {
             error_log("Error en la BD: " . $e->getMessage());

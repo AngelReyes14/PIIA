@@ -285,7 +285,7 @@ if (isset($_POST['logout'])) {
     <div class="card shadow mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-center align-items-center mb-3 col">
-                <p class="titulo-grande"><strong>Certificaciones del Usuario</strong></p>
+                <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
             </div>
             <div class="row my-4">
                 <div class="col-md-12">
@@ -652,6 +652,54 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
                 });
               </script>
       </div>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get("status");
+        const action = urlParams.get("action");
+
+        if (status === "success") {
+            let message = "";
+            let title = "¡Éxito!";
+            let icon = "success";
+
+            switch (action) {
+                case "insert":
+                    message = "La certificación ha sido añadida correctamente.";
+                    break;
+                case "update":
+                    message = "La certificación ha sido actualizada con éxito.";
+                    break;
+                case "delete":
+                    message = "La certificación ha sido eliminada exitosamente.";
+                    break;
+                default:
+                    message = "Operación completada con éxito.";
+                    break;
+            }
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: icon,
+                confirmButtonText: "OK"
+            }).then(() => {
+                // Limpiar la URL después de mostrar el mensaje
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        } else if (status === "error") {
+            Swal.fire({
+                title: "¡Error!",
+                text: "Hubo un problema con la operación.",
+                icon: "error",
+                confirmButtonText: "OK"
+            }).then(() => {
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        }
+    });
+</script>
 
     </main>
       <!-- Contenido de la página -->
