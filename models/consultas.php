@@ -514,6 +514,31 @@ return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un a
 return ['error' => 'Error en la consulta: ' . $e->getMessage()]; // Devolvemos el error
 }
 }
+
+public function obtenerEvaluacionesPorDocenteYPeriodo($usuario_id, $periodo_id) {
+    // Consulta para obtener las evaluaciones de un docente en un periodo específico
+    $query = "SELECT 
+                evaluacion_tecnm, 
+                evaluacion_estudiantil
+              FROM 
+                evaluaciones
+              WHERE 
+                usuario_usuario_id = :usuario_id
+              AND 
+                periodo_periodo_id = :periodo_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+    $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+    try {
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna los resultados como un array asociativo
+    } catch (PDOException $e) {
+        return ['error' => 'Error en la consulta: ' . $e->getMessage()];
+    }
+}
+
+
     
     public function obtenerTodosLosUsuarios() {
         $sql = "SELECT * FROM vista_usuarios";
