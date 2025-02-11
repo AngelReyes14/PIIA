@@ -478,7 +478,42 @@ public function obtenerCarreraPorUsuario($idusuario) {
         }
     }
     
-    
+        
+    public function obtenerDocentesPorCarrera($carrera_id) {
+        // Consulta para obtener usuarios asociados a una carrera específica
+        $query = "SELECT 
+        u.usuario_id,
+        CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo,
+        u.edad,
+        u.correo,
+        u.fecha_contratacion,
+        u.numero_empleado,
+        u.grado_academico,
+        u.cedula,
+        u.imagen_url,
+        u.sexo_sexo_id,
+        u.status_status_id,
+        u.tipo_usuario_tipo_usuario_id,
+        u.cuerpo_colegiado_cuerpo_colegiado_id,
+        u.carrera_carrera_id,
+        c.carrera_id,
+        c.nombre_carrera 
+      FROM 
+        vista_usuarios u
+      JOIN 
+        carrera c ON u.carrera_carrera_id = c.carrera_id
+      WHERE 
+        c.carrera_id = :carrera_id AND u.tipo_usuario_tipo_usuario_id = 1"; // Filtra por tipo_usuario = 1 (docente)
+
+$stmt = $this->conn->prepare($query);
+$stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
+try {
+$stmt->execute(); // Ejecutamos la consulta
+return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
+} catch (PDOException $e) {
+return ['error' => 'Error en la consulta: ' . $e->getMessage()]; // Devolvemos el error
+}
+}
     
     public function obtenerTodosLosUsuarios() {
         $sql = "SELECT * FROM vista_usuarios";
@@ -2263,6 +2298,111 @@ class BorrarCertificacion {
                 error_log("Error al intentar eliminar la certificación: " . $e->getMessage());
                 die("Error al eliminar: " . $e->getMessage());
             }
+        }
+    }
+}
+
+
+class EvaluacionDocentes {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarEvaluacion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $evaluacionTecnm = $_POST['evaluacionTECNM'];
+            $evaluacionEstudiantil = $_POST['evaluacionEstudiantil'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $periodoId = $_POST['periodo_periodo_id'];
+
+            // Verificamos si ya existen evaluaciones para ese usuario y periodo
+            if ($this->existeEvaluacion($usuarioId, $periodoId)) {
+                // Si existen, actualizamos la evaluación
+                $this->actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            } else {
+                // Si no existen, insertamos una nueva evaluación
+                $this->insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            }
+
+            // Redirigimos a la página de éxito
+            header("Location: ../views/templates/dashboard_carreras.php?success=true");
+        }
+    }
+
+    private function insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "INSERT INTO evaluacion_docentes (evaluacionTECNM, evaluacionEstudiantil, usuario_usuario_id, periodo_periodo_id) 
+                VALUES (:evaluacionTecnm, :evaluacionEstudiantil, :usuarioId, :periodoId)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+        }
+    }
+
+    private function actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "UPDATE evaluacion_docentes 
+                SET evaluacionTECNM = :evaluacionTecnm, evaluacionEstudiantil = :evaluacionEstudiantil 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+        }
+    }
+
+    // Método para verificar si ya existe una evaluación para el docente en el periodo
+    private function existeEvaluacion($usuarioId, $periodoId) {
+        $sql = "SELECT 1 FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            // Si existe un resultado, retornamos true
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+
+    // Método para obtener las evaluaciones de un docente por su usuario_id y periodo_id
+    public function obtenerEvaluaciones($usuarioId, $periodoId) {
+        $sql = "SELECT evaluacionTECNM, evaluacionEstudiantil 
+                FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna la evaluación del docente
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
         }
     }
 }

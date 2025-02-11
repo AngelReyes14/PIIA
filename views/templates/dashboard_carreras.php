@@ -27,7 +27,8 @@ $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
 $maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
-
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
 // Get the count of women in the carrera
 if ($carreraId) {
   $mujeres = $consultas->mujeresCarrera($carreraId);
@@ -448,100 +449,112 @@ if ($carreraId) {
               <div class="row">
                 <!-- Tabla de Promedio de Calificaciones -->
                 <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Docentes</th>
-                          <th>Evaluación Estudiantil</th>
-                          <th>Evaluación TECNM</th>
-                          <th>Promedio por semestre</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                        </tr>
-                        <tr>
-                          <td>Edwin Luna Castillo</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                        </tr>
-                        <tr>
-                          <td>Alfredo Olivas Ruiz</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                        </tr>
-                        <tr>
-                          <td>Cosme Tadeo Lopez Varela</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                        </tr>
-                        <tr>
-                          <td>Virlán García Nuñez</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                        </tr>
-                        <tr>
-                          <td>Cornelio Vega Chairez</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                        </tr>
-                        <tr>
-                          <td>Julion Alvarez Buendla</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                        </tr>
-                        <tr>
-                          <td>Ariel Camacho Torres</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                        </tr>
-                        <tr>
-                          <td>Amanda Rivera de Miguel</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                        </tr>
-                        <tr>
-                          <td>Jenifer Espinoza German</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+    <div class="form-group">
+        <label for="carrera_carrera_id">Selecciona una carrera:</label>
+        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" onchange="filtrarUsuariosPorCarrera()" required>
+            <option value="">Seleccione una carrera</option>
+            <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>">
+                    <?php echo $carrera['nombre_carrera']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    
+
+    <div class="table-responsive">
+    <table class="table table-bordered" id="docentes-table">
+        <thead>
+            <tr>
+                <th>Nombre del Docente</th>
+                <th>Evaluación TECNM</th>
+                <th>Evaluación Estudiantil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="docentes-table-body">
+    <!-- Las filas se llenan dinámicamente -->
+</tbody>
+    </table>
+</div>
+
+
                 </div> <!-- /.col -->
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
+          <script>
+function filtrarUsuariosPorCarrera() {
+    var carrera_id = document.getElementById("carrera_carrera_id").value;
 
+    if (carrera_id === "") {
+        document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
+        return;
+    }
+
+    fetch('../../models/obtener_docentes.php', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `carrera_id=${carrera_id}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        var tbody = document.querySelector("#docentes-table-body");
+        tbody.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4">${data.error}</td></tr>`;
+            return;
+        }
+
+        data.forEach(docente => {
+            var row = `
+<tr>
+    <td>${docente.nombre_completo}</td>
+    <td>
+        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="00.0" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="00.0" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
+            <input type="hidden" name="form_type" value="evaluacion-docente">
+            <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
+            <input type="hidden" class="input-tecnm" name="evaluacionTECNM">
+            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil">
+            <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
+        </form>
+    </td>
+</tr>
+`;
+            tbody.innerHTML += row;
+        });
+    })
+    .catch(error => console.error("Error al obtener docentes:", error));
+}
+
+function actualizarInputs(btn) {
+    var row = btn.closest("tr");
+    var periodoValue = document.getElementById("periodo_periodo_id").value; // Captura el valor del select de periodo
+    row.querySelector("#periodo_periodo_id_value").value = periodoValue; // Asigna el valor al input hidden del periodo
+    row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
+    row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
+}
+</script>
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
