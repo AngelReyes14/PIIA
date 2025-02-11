@@ -442,106 +442,122 @@ if ($carreraId) {
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
-          <div class="container-fluid mt-5 box-shadow-div p-5">
-              <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-                  Promedio de Calificaciones
-              </div>
-              <div class="container-fluid p-3">
-                  <div class="row">
-                      <!-- Tabla de Promedio de Calificaciones -->
-                      <div class="col-md-12 carta_Informacion">
-                          <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                              <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                                  <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                              </div>
 
-                              <!-- Select de Carrera -->
-                              <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarUsuariosPorCarrera()">
-                                  <option value="">Selecciona una carrera</option>
-                                  <?php foreach ($carreras as $carrera): ?>
-                                      <option value="<?php echo $carrera['carrera_id']; ?>">
-                                          <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
-                                      </option>
-                                  <?php endforeach; ?>
-                              </select>
-                              <div class="form-group">
-                                <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
-                                  <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
-                                      <option value="">Selecciona un periodo</option>
-                                      <?php foreach ($periodos as $periodo): ?>
-                                          <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
-                                      <?php endforeach; ?>
-                                  </select>
-                              </div>
+          <div class="container-fluid mt-5  box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              Promedio de Calificaciones
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
+                <!-- Tabla de Promedio de Calificaciones -->
+                <div class="col-md-12 carta_Informacion">
+    <div class="form-group">
+        <label for="carrera_carrera_id">Selecciona una carrera:</label>
+        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" onchange="filtrarUsuariosPorCarrera()" required>
+            <option value="">Seleccione una carrera</option>
+            <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>">
+                    <?php echo $carrera['nombre_carrera']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
 
-                              <!-- Tabla de Docentes -->
-                              <table class="table table-striped carta_Informacion mt-3" id="docentes-table">
-              <thead>
-                  <tr>
-                      <th>Docentes</th>
-                      <th>Evaluación Estudiantil</th>
-                      <th>Evaluación TECNM</th>
-                      <th>Acciones</th>
-                  </tr>
-              </thead>
-              <tbody></tbody>
-          </table>
+    <div class="form-group">
+        <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    
 
-<script>
-    function filtrarUsuariosPorCarrera() {
-        const carreraId = document.getElementById('carrera_carrera_id').value;
+    <div class="table-responsive">
+    <table class="table table-bordered" id="docentes-table">
+        <thead>
+            <tr>
+                <th>Nombre del Docente</th>
+                <th>Evaluación TECNM</th>
+                <th>Evaluación Estudiantil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="docentes-table-body">
+    <!-- Las filas se llenan dinámicamente -->
+</tbody>
+    </table>
+</div>
 
-        if (!carreraId) {
-            alert('Selecciona una carrera');
+
+                </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
+          <script>
+function filtrarUsuariosPorCarrera() {
+    var carrera_id = document.getElementById("carrera_carrera_id").value;
+
+    if (carrera_id === "") {
+        document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
+        return;
+    }
+
+    fetch('../../models/obtener_docentes.php', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `carrera_id=${carrera_id}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        var tbody = document.querySelector("#docentes-table-body");
+        tbody.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4">${data.error}</td></tr>`;
             return;
         }
 
-        fetch('../../models/obtener_docentes.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `carrera=${encodeURIComponent(carreraId)}`
-        })
-        .then(response => response.text())
-        .then(text => {
-            console.log('Respuesta del servidor:', text);
-            try {
-                const docentes = JSON.parse(text);
-                if (docentes.error) {
-                    alert(docentes.error);
-                } else {
-                    const tbody = document.querySelector('#docentes-table tbody');
-                    tbody.innerHTML = ''; // Limpiar tabla
+        data.forEach(docente => {
+            var row = `
+<tr>
+    <td>${docente.nombre_completo}</td>
+    <td>
+        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="00.0" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="00.0" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
+            <input type="hidden" name="form_type" value="evaluacion-docente">
+            <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
+            <input type="hidden" class="input-tecnm" name="evaluacionTECNM">
+            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil">
+            <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
+        </form>
+    </td>
+</tr>
+`;
+            tbody.innerHTML += row;
+        });
+    })
+    .catch(error => console.error("Error al obtener docentes:", error));
+}
 
-                    docentes.forEach(docente => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${docente.nombre_usuario} ${docente.apellido_p} ${docente.apellido_m}</td>
-                            <td><input type="number" value="1" min="0" max="100" step="0.1"></td>
-                            <td><input type="number" value="1" min="0" max="100" step="0.1"></td>
-                            <td>
-                                <button class="btn btn-success btn-sm" onclick="guardarCalificaciones('${docente.nombre_usuario}')">
-                                    Guardar
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                }
-            } catch (error) {
-                console.error('Error al parsear JSON:', error, text);
-            }
-        })
-        .catch(error => console.error('Error en la solicitud:', error));
-    }
 
-    function guardarCalificaciones(docenteNombre) {
-        alert(`Guardando calificaciones para: ${docenteNombre}`);
-    }
+function actualizarInputs(btn) {
+    var row = btn.closest("tr");
+    var periodoValue = document.getElementById("periodo_periodo_id").value; // Captura el valor del select de periodo
+    row.querySelector("#periodo_periodo_id_value").value = periodoValue; // Asigna el valor al input hidden del periodo
+    row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
+    row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
+}
 </script>
-
-
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
