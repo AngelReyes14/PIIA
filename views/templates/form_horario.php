@@ -236,7 +236,7 @@ if (isset($_POST['logout'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p id="modalContent">Día y hora seleccionados.</p>
+                <p id="modalContent" class="modal-info">Día y hora seleccionados.</p>
 
                 <!-- Formulario para asignar horario -->
                 <form method="POST" action="../../models/insert.php">
@@ -250,7 +250,7 @@ if (isset($_POST['logout'])) {
                     
 
                     <!-- Selección de Materia -->
-                    <div class="row">
+                    <div class="row info-modal">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="materia_materia_id">Materia:</label>

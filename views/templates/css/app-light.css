@@ -19662,3 +19662,13 @@ button#downloadPDF:hover {
 .schedule-container td.green-background:hover {
   background-color: #b3e2b3; /* Verde más suave */
 }
+
+.modal-info {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
