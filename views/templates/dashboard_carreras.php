@@ -27,6 +27,8 @@ $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
 $maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
 
 // Get the count of women in the carrera
 if ($carreraId) {
@@ -108,9 +110,9 @@ if ($carreraId) {
           </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
-            <a class="dropdown-item" href="#">Activities</a>
+            <a class="dropdown-item" href="Perfil.php">Perfil</a>
+            <a class="dropdown-item" href="#">Ajustes</a>
+            <a class="dropdown-item" href="#">ACtividades</a>
             <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
@@ -440,107 +442,105 @@ if ($carreraId) {
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
-          <div class="container-fluid mt-5  box-shadow-div p-5">
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Promedio de Calificaciones
-            </div>
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Tabla de Promedio de Calificaciones -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Docentes</th>
-                          <th>Evaluación Estudiantil</th>
-                          <th>Evaluación TECNM</th>
-                          <th>Promedio por semestre</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                        </tr>
-                        <tr>
-                          <td>Edwin Luna Castillo</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                        </tr>
-                        <tr>
-                          <td>Alfredo Olivas Ruiz</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                        </tr>
-                        <tr>
-                          <td>Cosme Tadeo Lopez Varela</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                        </tr>
-                        <tr>
-                          <td>Virlán García Nuñez</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                        </tr>
-                        <tr>
-                          <td>Cornelio Vega Chairez</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                        </tr>
-                        <tr>
-                          <td>Julion Alvarez Buendla</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                        </tr>
-                        <tr>
-                          <td>Ariel Camacho Torres</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                        </tr>
-                        <tr>
-                          <td>Amanda Rivera de Miguel</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                        </tr>
-                        <tr>
-                          <td>Jenifer Espinoza German</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
+          <div class="container-fluid mt-5 box-shadow-div p-5">
+              <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+                  Promedio de Calificaciones
+              </div>
+              <div class="container-fluid p-3">
+                  <div class="row">
+                      <!-- Tabla de Promedio de Calificaciones -->
+                      <div class="col-md-12 carta_Informacion">
+                          <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                              <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                                  <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
+                              </div>
+
+                              <!-- Select de Carrera -->
+                              <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarUsuariosPorCarrera()">
+                                  <option value="">Selecciona una carrera</option>
+                                  <?php foreach ($carreras as $carrera): ?>
+                                      <option value="<?php echo $carrera['carrera_id']; ?>">
+                                          <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
+                                      </option>
+                                  <?php endforeach; ?>
+                              </select>
+                              <div class="form-group">
+                                <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+                                  <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
+                                      <option value="">Selecciona un periodo</option>
+                                      <?php foreach ($periodos as $periodo): ?>
+                                          <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+                                      <?php endforeach; ?>
+                                  </select>
+                              </div>
+
+                              <!-- Tabla de Docentes -->
+                              <table class="table table-striped carta_Informacion mt-3" id="docentes-table">
+              <thead>
+                  <tr>
+                      <th>Docentes</th>
+                      <th>Evaluación Estudiantil</th>
+                      <th>Evaluación TECNM</th>
+                      <th>Acciones</th>
+                  </tr>
+              </thead>
+              <tbody></tbody>
+          </table>
+
+<script>
+    function filtrarUsuariosPorCarrera() {
+        const carreraId = document.getElementById('carrera_carrera_id').value;
+
+        if (!carreraId) {
+            alert('Selecciona una carrera');
+            return;
+        }
+
+        fetch('../../models/obtener_docentes.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `carrera=${encodeURIComponent(carreraId)}`
+        })
+        .then(response => response.text())
+        .then(text => {
+            console.log('Respuesta del servidor:', text);
+            try {
+                const docentes = JSON.parse(text);
+                if (docentes.error) {
+                    alert(docentes.error);
+                } else {
+                    const tbody = document.querySelector('#docentes-table tbody');
+                    tbody.innerHTML = ''; // Limpiar tabla
+
+                    docentes.forEach(docente => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${docente.nombre_usuario} ${docente.apellido_p} ${docente.apellido_m}</td>
+                            <td><input type="number" value="1" min="0" max="100" step="0.1"></td>
+                            <td><input type="number" value="1" min="0" max="100" step="0.1"></td>
+                            <td>
+                                <button class="btn btn-success btn-sm" onclick="guardarCalificaciones('${docente.nombre_usuario}')">
+                                    Guardar
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al parsear JSON:', error, text);
+            }
+        })
+        .catch(error => console.error('Error en la solicitud:', error));
+    }
+
+    function guardarCalificaciones(docenteNombre) {
+        alert(`Guardando calificaciones para: ${docenteNombre}`);
+    }
+</script>
+
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
