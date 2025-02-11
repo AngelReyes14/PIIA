@@ -2072,7 +2072,7 @@ class CertificacionUsuario {
             // Ejecutar la consulta
             $stmt->execute();
             // Redirigir a la página de perfil con un mensaje de éxito
-            header("Location: ../views/templates/Perfil.php?success=true");
+            header("Location: ../views/templates/Perfil.php?status=success&action=insert");
             exit();
         } catch (PDOException $e) {
             // Manejar errores y mostrar detalles para depuración
@@ -2093,6 +2093,118 @@ class CertificacionUsuario {
         return $newFileName;
     }
 }
+
+class ActualizarCertificacionUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener datos del formulario
+            $certificacionUsuarioId = $_POST['certificacion_usuario_id'];
+            $certificacionId = $_POST['certificaciones_certificaciones_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $nombreCertificado = $_POST['nombre_certificado'];
+            $urlAntigua = $_POST['url_antigua']; // URL previa del archivo
+
+            // Mantener la URL antigua por defecto
+            $filePath = $urlAntigua;
+
+            // Si se sube un nuevo archivo
+            if (isset($_FILES['certificado']) && $_FILES['certificado']['error'] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $_FILES['certificado']['tmp_name'];
+                $fileName = $_FILES['certificado']['name'];
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = strtolower($fileInfo['extension']);
+
+                // Verificar que el archivo sea un PDF
+                if ($fileExtension !== 'pdf') {
+                    echo "El archivo debe ser un PDF.";
+                    return;
+                }
+
+                // Directorio de subida
+                $uploadDir = __DIR__ . '/../views/templates/assets/certificados/';
+
+                // Mantener el mismo nombre del archivo anterior si existe, sino generar uno nuevo
+                if (!empty($urlAntigua)) {
+                    $newFileName = basename($urlAntigua); // Mantiene el mismo nombre de archivo
+                } else {
+                    $newFileName = $this->generateUniqueFileName('certificado', $fileExtension, $uploadDir);
+                }
+
+                $filePath = '../views/templates/assets/certificados/' . $newFileName;
+
+                // Crear directorio si no existe
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Mover el archivo al destino y reemplazar el anterior
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $newFileName)) {
+                    echo "Archivo actualizado correctamente.";
+
+                    // Eliminar el archivo anterior si existe y si el nombre es diferente
+                    $oldFilePath = __DIR__ . '/../' . $urlAntigua;
+                    if (!empty($urlAntigua) && file_exists($oldFilePath) && basename($urlAntigua) !== $newFileName) {
+                        unlink($oldFilePath);
+                    }
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+
+            // Actualizar la base de datos con la nueva información
+            $this->updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $nombreCertificado, $filePath);
+        }
+    }
+
+    private function updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $nombreCertificado, $filePath) {
+        // Consulta para actualizar los datos
+        $query = "UPDATE piia.certificaciones_has_usuario 
+                  SET certificaciones_certificaciones_id = :certificacion_id,
+                      usuario_usuario_id = :usuario_id,
+                      nombre_certificado = :nombre_certificado,
+                      url = :url
+                  WHERE certificados_id = :certificacion_usuario_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_usuario_id', $certificacionUsuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':certificacion_id', $certificacionId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':nombre_certificado', $nombreCertificado, PDO::PARAM_STR);
+        $stmt->bindParam(':url', $filePath, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+            // Redirigir a la página de perfil con un mensaje de éxito
+            header("Location: ../views/templates/Perfil.php?status=success&action=update");
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error en la BD: " . $e->getMessage());
+            echo "Ocurrió un error al actualizar la certificación.";
+            exit();
+        }
+    }
+
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+
+        // Generar un nombre único si ya existe el archivo
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
+}
+
+
 
 class BorrarCertificacion {
     private $conn;

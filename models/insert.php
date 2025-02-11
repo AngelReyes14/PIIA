@@ -75,6 +75,13 @@ if (isset($_POST['form_type'])) {
         $certificacionUsuario = new CertificacionUsuario($conn);
         $certificacionUsuario->handleRequest(); // Nuevo método para manejar certificaciones
         
+    } elseif ($form_type === 'actualizar-certificacion-usuario') {
+        // Crear una instancia de la clase ActualizarCertificacionUsuario para actualizar certificación
+        $actualizarCertificacionUsuario = new ActualizarCertificacionUsuario($conn);
+        $actualizarCertificacionUsuario->handleRequest(); // Método para actualizar la certificación
+
+    
+        
     } elseif ($form_type === 'eliminar-certificacion-usuario') {
         // Crear una instancia de la clase CertificacionUsuarioUpdate para actualizar certificaciones
     $certificacionUsuarioDelete = new BorrarCertificacion($conn);
