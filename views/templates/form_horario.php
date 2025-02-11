@@ -297,8 +297,13 @@ if (isset($_POST['logout'])) {
                     </div>
 
                     <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
     <button type="submit" class="btn btn-success" name="action" value="asignar">Asignar</button>
+    </form>
+                <form method="POST" action="../../models/insert.php">
+    <input type="hidden" name="form_type" value="borrar-horario">
+    <input type="hidden" name="horario_id" id="horario_id">
+    <button type="submit" class="btn btn-danger" name="action" value="eliminar" style="display: none;">Eliminar</button>
+</form>
 </div>
 
                 </form>
