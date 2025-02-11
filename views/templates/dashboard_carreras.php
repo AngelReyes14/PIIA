@@ -29,6 +29,7 @@ $maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
 $periodos = $consultas->obtenerPeriodo();
 $carreras = $consultas->obtenerCarreras();
+
 // Get the count of women in the carrera
 if ($carreraId) {
   $mujeres = $consultas->mujeresCarrera($carreraId);
@@ -109,9 +110,9 @@ if ($carreraId) {
           </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
-            <a class="dropdown-item" href="#">Activities</a>
+            <a class="dropdown-item" href="Perfil.php">Perfil</a>
+            <a class="dropdown-item" href="#">Ajustes</a>
+            <a class="dropdown-item" href="#">ACtividades</a>
             <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
@@ -441,6 +442,7 @@ if ($carreraId) {
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
+
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
               Promedio de Calificaciones
@@ -551,6 +553,7 @@ function filtrarUsuariosPorCarrera() {
     })
     .catch(error => console.error("Error al obtener docentes:", error));
 }
+
 
 function actualizarInputs(btn) {
     var row = btn.closest("tr");
