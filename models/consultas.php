@@ -2337,8 +2337,12 @@ class EvaluacionDocentes {
 
     public function gestionarEvaluacion() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $evaluacionTecnm = $_POST['evaluacionTECNM'];
-            $evaluacionEstudiantil = $_POST['evaluacionEstudiantil'];
+            $evaluacionTecnm = floatval($_POST['evaluacionTECNM']);
+            $evaluacionEstudiantil = floatval($_POST['evaluacionEstudiantil']);
+            
+            if ($evaluacionTecnm < 0 || $evaluacionTecnm > 100 || $evaluacionEstudiantil < 0 || $evaluacionEstudiantil > 100) {
+                die("Error: Las calificaciones deben estar entre 0 y 100.");
+            }
             $usuarioId = $_POST['usuario_usuario_id'];
             $periodoId = $_POST['periodo_periodo_id'];
 

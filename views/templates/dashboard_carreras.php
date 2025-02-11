@@ -562,6 +562,8 @@ function actualizarInputs(btn) {
     row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
     row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
 }
+
+
 </script>
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
@@ -766,6 +768,7 @@ function actualizarInputs(btn) {
     </div>
     </main> <!-- main -->
   </div> <!-- .wrapper -->
+  
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
