@@ -139,11 +139,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             <td>${hora.descripcion}</td>
                             ${dias
                                 .map(dia => {
-                                  const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
+const evento = data.find(item => item.horas_horas_id == hora.id && item.dias_id == dia.id);
 const contenido = evento ? `${evento.materia}<br>${evento.grupo}<br>${evento.salon}` : '';
 const horarioId = evento ? evento.horario_id : ''; // Obtener horario_id
 
-return `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}" data-horario-id="${horarioId}">${contenido}</td>`;
+return `<td class="editable-cell" data-horas-id="${hora.id}" data-dia-id="${dia.id}" data-horario-id="${horarioId}">
+            ${contenido}
+        </td>`;
+
 
                                 })
                                 .join('')}
@@ -284,3 +287,38 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
       });
   });
   
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelector('.schedule-container').addEventListener('click', function (event) {
+        const cell = event.target.closest('.editable-cell');
+        if (!cell) return;
+
+        const horarioId = cell.dataset.horarioId;
+        document.getElementById('horario_id').value = horarioId || '';
+
+        if (horarioId) {
+            document.querySelector('.btn-danger[name="action"][value="eliminar"]').style.display = 'block';
+        } else {
+            document.querySelector('.btn-danger[name="action"][value="eliminar"]').style.display = 'none';
+        }
+    });
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#infoModal .btn-close");
+    const closeFooterButton = document.querySelector("#infoModal .btn-secondary"); // Botón en el footer
+    const modal = document.getElementById("infoModal");
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve la clase 'modal-backdrop' de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+    }
+
+    closeModalButton.addEventListener("click", cerrarModal);
+    closeFooterButton.addEventListener("click", cerrarModal);
+});

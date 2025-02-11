@@ -220,28 +220,7 @@ if (isset($_POST['logout'])) {
               </div>
             </div>
           </div>
-<!-- Jefe de division  -->
-          <div class="firmas">
-        <div class="firma">       
-    <label for="usuario_usuario_id">Jefe de Division:</label>
-    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" >
-        <option value="">Seleccione un usuario</option>
-        <?php foreach ($jefes as $jefe): ?>
-            <option value="<?php echo $jefe['usuario_id']; ?>">
-                <?php echo $jefe['nombre_usuario'] . ' ' . $jefe['apellido_p'] . ' ' . $jefe['apellido_m']; ?>
-            </option>
-        <?php endforeach; ?>
-    </select>    
-            <br>
-            <p>_____________________________________</p>
-        </div>
-        <div class="firma">
-          <br>
-            <p>MTRA. MICOL EDITH GENIS LÓPEZ</p>
-            <br>
-            <p>__________________________</p>
-        </div>
-    </div>
+
 
     <div class="pdf-container no-print">
     <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
@@ -326,7 +305,7 @@ if (isset($_POST['logout'])) {
                 <form method="POST" action="../../models/insert.php">
     <input type="hidden" name="form_type" value="borrar-horario">
     <input type="hidden" name="horario_id" id="horario_id">
-    <button type="submit" class="btn btn-danger" name="action" value="eliminar">Eliminar</button>
+    <button type="submit" class="btn btn-danger" name="action" value="eliminar" style="display: none;">Eliminar</button>
 </form>
 
             </div>
