@@ -465,7 +465,7 @@ if ($carreraId) {
 
     <div class="form-group">
         <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
-        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarHorario()">
+        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarUsuariosPorCarrera()">
             <option value="">Selecciona un periodo</option>
             <?php foreach ($periodos as $periodo): ?>
                 <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
@@ -498,8 +498,9 @@ if ($carreraId) {
           <script>
 function filtrarUsuariosPorCarrera() {
     var carrera_id = document.getElementById("carrera_carrera_id").value;
+    var periodo_id = document.getElementById("periodo_periodo_id").value; // Obtener el valor del periodo
 
-    if (carrera_id === "") {
+    if (carrera_id === "" || periodo_id === "") {
         document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
         return;
     }
@@ -509,7 +510,7 @@ function filtrarUsuariosPorCarrera() {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: `carrera_id=${carrera_id}`
+        body: `carrera_id=${carrera_id}&periodo_id=${periodo_id}` // Incluye el periodo en la solicitud
     })
     .then(response => response.json())
     .then(data => {
@@ -522,22 +523,26 @@ function filtrarUsuariosPorCarrera() {
         }
 
         data.forEach(docente => {
+            // Obtener las evaluaciones previas (si existen)
+            var evaluacionTecnm = docente.evaluacion_tecnm || "00.0";
+            var evaluacionEstudiantil = docente.evaluacion_estudiantil || "00.0";
+
             var row = `
 <tr>
     <td>${docente.nombre_completo}</td>
     <td>
-        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="00.0" min="0" max="100" step="0.1" required>
+        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="${evaluacionTecnm}" min="0" max="100" step="0.1" required>
     </td>
     <td>
-        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="00.0" min="0" max="100" step="0.1" required>
+        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="${evaluacionEstudiantil}" min="0" max="100" step="0.1" required>
     </td>
     <td>
         <form method="POST" action="../../models/insert.php">
             <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
             <input type="hidden" name="form_type" value="evaluacion-docente">
             <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
-            <input type="hidden" class="input-tecnm" name="evaluacionTECNM">
-            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil">
+            <input type="hidden" class="input-tecnm" name="evaluacionTECNM" value="${evaluacionTecnm}">
+            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil" value="${evaluacionEstudiantil}">
             <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
         </form>
     </td>
@@ -557,7 +562,10 @@ function actualizarInputs(btn) {
     row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
     row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
 }
+
+
 </script>
+
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
@@ -760,6 +768,7 @@ function actualizarInputs(btn) {
     </div>
     </main> <!-- main -->
   </div> <!-- .wrapper -->
+  
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
