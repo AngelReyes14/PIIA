@@ -19682,52 +19682,37 @@ button#downloadPDF:hover {
   text-transform: uppercase;
 }
 
-/* Contenedor de la imagen */
-.contenedor-img {
+/* Contenedor principal del docente */
+.docente-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  width: 100%;
+  text-align: center;
+  padding: 15px;
 }
 
-.img-fluid.tamanoImg {
-  display: block;
-  margin: auto;
-  transform: translateX(20px);
-  width: 140px;
-  height: 180px;
-  border-radius: 8px;
-  border: 3px solid #27ae60;
-}
-
-/* Botón de registro */
-button.btn-primary {
-  background: #27ae60;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
+/* Texto del título */
+.docente-container .name-line {
+  margin-bottom: 8px;
   font-weight: bold;
-  transition: 0.3s;
-  display: block;
-  margin: 0 auto;
 }
 
-button.btn-primary:hover {
-  background: #1e8449;
+/* Imagen del docente */
+.docente-img {
+  max-width: 12rem; /* Ajusta el tamaño de la imagen */
+  height: 13rem;
 }
 
-/* Tabla responsiva */
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+/*
+
+
+
 
 /* Estilos de la tabla */
 #dataTable-certificaciones {
   background: #f9f9f9;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
   width: 100%;
-  min-width: 800px;
   margin-bottom: 20px;
   font-family: 'Arial', sans-serif;
 }
@@ -19752,13 +19737,41 @@ button.btn-primary:hover {
 }
 
 /* Botones en la tabla */
-#dataTable-certificaciones a, .btn-warning, .btn-danger {
-  padding: 8px 15px;
-  border-radius: 25px;
+#dataTable-certificaciones a, 
+#dataTable-certificaciones .btn-warning, 
+#dataTable-certificaciones .btn-danger, 
+#dataTable-certificaciones form button { 
+  padding: 8px 15px; /* Espaciado uniforme */
+  border-radius: 8px; /* Bordes redondeados */
   font-weight: 500;
-  transition: 0.3s;
+  transition: all 0.3s ease-in-out;
+  display: inline-block; /* Evita estiramientos */
+  text-align: center;
+  min-width: 120px; /* Asegura tamaño uniforme */
+  height: 38px; /* Mantiene la misma altura */
+  line-height: 1.2;
 }
 
+/* Asegurar que el botón dentro del formulario se vea igual */
+#dataTable-certificaciones form {
+  display: inline-block;
+  margin: 0; /* Elimina márgenes extras */
+}
+
+/* Espaciado entre los botones */
+#dataTable-certificaciones .btn-warning,
+#dataTable-certificaciones form {
+  margin-right: 1rem; /* Espacio entre botones */
+}
+
+/* Efecto hover */
+#dataTable-certificaciones .btn-warning:hover,
+#dataTable-certificaciones .btn-danger:hover {
+  opacity: 0.8;
+  transform: scale(1.05); /* Efecto ligero */
+}
+
+/* Estilo para el botón "Ver Certificado" */
 #dataTable-certificaciones a {
   background: #27ae60;
   color: white;
@@ -19768,44 +19781,5 @@ button.btn-primary:hover {
   background: #1e8449;
 }
 
-.btn-warning {
-  background: #f39c12;
-  color: white;
-}
 
-.btn-warning:hover {
-  background: #e67e22;
-}
 
-.btn-danger {
-  background: #e74c3c;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c0392b;
-}
-
-/* Responsividad */
-@media (max-width: 1024px) {
-  #dataTable-certificaciones {
-    min-width: 100%;
-  }
-  #dataTable-certificaciones th, #dataTable-certificaciones td {
-    padding: 10px;
-    font-size: 14px;
-  }
-  .btn-warning, .btn-danger {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-}
-
-@media (max-width: 767px) {
-  #dataTable-certificaciones {
-    min-width: 600px;
-  }
-  #dataTable-certificaciones td {
-    font-size: 14px;
-  }
-}
