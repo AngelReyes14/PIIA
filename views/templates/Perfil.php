@@ -18,7 +18,6 @@ $consultas = new Consultas($conn);
 // Obtener la imagen del usuario
 $imgUser = $consultas->obtenerImagen($idusuario);
 $certificaciones = $consultas->obtenerCertificaciones();
-$meses = $consultas->obtenerMes();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
 $meses = $consultas->obtenerMeses();
 
@@ -282,13 +281,12 @@ if (isset($_POST['logout'])) {
         </div>
 
         <!-- Nombre del Certificado -->
-
         <div class="col-md-3">
-
             <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
             <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
+
 
         <!-- Selección de archivo PDF -->
         <div class="col-md-3" id="documentDiv">
@@ -314,7 +312,6 @@ if (isset($_POST['logout'])) {
             <div class="d-flex justify-content-center align-items-center mb-3">
                 <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
             </div>
-
             <div class="table-responsive">
                 <table class="table datatables" id="dataTable-certificaciones">
                     <thead>
@@ -326,14 +323,12 @@ if (isset($_POST['logout'])) {
                             <th>Acciones</th>
                         </tr>
                     </thead>
-
                                 <tbody>
                                     <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
-
                                             <td class="text-center">
                                                 <?php if (!empty($certificacionusuario['url'])): ?>
                                                     <?php 
@@ -727,7 +722,27 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
 
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
+    const modal = document.getElementById("changeImageModal");
 
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
 </script>
 
 

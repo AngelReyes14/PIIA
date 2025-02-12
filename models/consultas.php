@@ -212,19 +212,6 @@ LIMIT 0, 1000;
     
 
 
-    public function obtenerMes() {
-        $query = "SELECT mes_id, descripcion FROM mes";
-        $result = $this->conn->query($query);
-    
-        $mes = [];
-        if ($result) {
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                $meses[] = $row;
-            }
-        }
-        return $meses;
-    }
-
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -2150,7 +2137,6 @@ class CertificacionUsuario {
             $usuarioId = $_POST['usuario_usuario_id'];
             $mesesId = $_POST['meses_meses_id']; // Nuevo campo
             $nombreCertificado = $_POST['nombre_certificado'];
-            $nombreMes = $_POST['mes_mes_id'];
 
             // Manejo de archivo
             $filePath = null;
@@ -2188,27 +2174,23 @@ class CertificacionUsuario {
 
             // Insertar en la base de datos
             $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
-
             $this->insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $relativeFilePath);
         }
     }
 
     private function insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
-
         // Consulta para insertar los datos
         $query = "INSERT INTO piia.certificaciones_has_usuario (
                     certificaciones_certificaciones_id,
                     usuario_usuario_id,
                     meses_meses_id,
                     nombre_certificado,
-                    mes_id,
                     url
                   ) VALUES (
                     :certificacion_id,
                     :usuario_id,
                     :meses_id,
                     :nombre_certificado,
-                    :mes_id,
                     :url
                   )";
     
@@ -2217,14 +2199,13 @@ class CertificacionUsuario {
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->bindParam(':meses_id', $mesesId);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado);
-        $stmt->bindParam(':mes_id', $nombreMes);
         $stmt->bindParam(':url', $filePath);
     
         try {
             // Ejecutar la consulta
             $stmt->execute();
             // Redirigir a la página de perfil con un mensaje de éxito
-            header("Location: ../views/templates/Perfil.php?success=true");
+            header("Location: ../views/templates/Perfil.php?status=success&action=insert");
             exit();
         } catch (PDOException $e) {
             // Manejar errores y mostrar detalles para depuración
@@ -2244,21 +2225,7 @@ class CertificacionUsuario {
         }
         return $newFileName;
     }
-
-    public function obtenerMes() {
-        $query = "SELECT mes_id, descripcion FROM mes";
-        $result = $this->conn->query($query);
-    
-        $mes = [];
-        if ($result) {
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                $meses[] = $row;
-            }
-        }
-        return $meses;
-    }
 }
-
 
 
 class ActualizarCertificacionUsuario {
