@@ -29,6 +29,7 @@ $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
+
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
     header("Location: ?idusuario=1");
@@ -93,6 +94,12 @@ $stmt = $conn->prepare($query);
 $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
+
+// Crea una instancia de la clase
+$evaluacionDocente = new EvaluacionDocente2($conn);
+
+// Llama al método
+$resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
 
 ?>
 
@@ -594,39 +601,109 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
       </div>
 
       <div class="container-fluid">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-          DESARROLLO ACADÉMICO
-        </div>
-        <div class="card box-shadow-div p-4">
-          <h2 class="text-center">Evaluación Docente</h2>
-          <div class="row justify-content-center my-2">
-            <div class="col-auto ml-auto">
-              <form class="form-inline">
-                <div class="form-group">
-                  <label for="reportrange" class="sr-only">Date Ranges</label>
-                  <div id="reportrange" class="px-2 py-2 text-muted">
-                    <i class="fe fe-calendar fe-16 mx-2"></i>
-                    <span class="small"></span>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <button type="button" class="btn btn-sm"><span
-                      class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
-                  <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
-                </div>
-              </form>
+      <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+      DESARROLLO ACADÉMICO
+    </div>
+    <div class="card box-shadow-div p-4">
+      <h2 class="text-center">Evaluación Docente</h2>
+      <div class="row justify-content-center my-2">
+        <div class="col-auto ml-auto">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="reportrange" class="sr-only">Date Ranges</label>
+              <div id="reportrange" class="px-2 py-2 text-muted">
+                <i class="fe fe-calendar fe-16 mx-2"></i>
+                <span class="small"></span>
+              </div>
             </div>
-          </div>
-          <!-- charts-->
-          <div class="container-fluid">
-            <div class="row my-4">
-              <div class="col-md-12">
-                <div class="chart-box rounded">
-                  <div id="columnChart"></div>
-                </div>
-              </div> <!-- .col -->
-            </div> <!-- end section -->
-          </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+              <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Contenedor del gráfico -->
+      <div class="my-4">
+        <canvas id="evaluacionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+
+  <script>
+    // Convertir el JSON de PHP a un objeto JavaScript
+    const datosEvaluacion = <?php echo json_encode($resultados); ?>;
+
+    // Verificar en la consola los datos recibidos
+    console.log('Datos de evaluación:', datosEvaluacion);
+
+    // Extraer los valores para las etiquetas y los datos
+    const nombres = datosEvaluacion.map(item => item.nombre_completo);
+    const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
+    const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
+
+    // Verificar en la consola los valores extraídos
+    console.log('Nombres:', nombres);
+    console.log('Evaluación Técnica:', evaluacionTecnica);
+    console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
+
+    // Crear el gráfico
+    const ctx = document.getElementById('evaluacionChart').getContext('2d');
+    const evaluacionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: nombres,
+        datasets: [{
+          label: 'Evaluación Técnica',
+          data: evaluacionTecnica,
+          backgroundColor: 'rgba(17, 194, 56, 0.95)',
+          borderColor: 'rgb(54, 235, 111)',
+          borderWidth: 1,
+          borderRadius: 15,
+        }, {
+          label: 'Evaluación Estudiantil',
+          data: evaluacionEstudiantil,
+          backgroundColor: 'rgb(16, 117, 36)',
+          borderColor: 'rgb(16, 117, 36)',
+          borderWidth: 1,
+          borderRadius: 15,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Puntaje'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Docentes'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Evaluación Docente'
+          }
+        }
+      }
+    });
+  </script>
+
+</div>
+
           <div class="container-fluid mt-0">
             <div class="row">
               <div class="col-lg-6">
@@ -1206,6 +1283,7 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   <script src="js/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
   $(document).ready(function() {
     // Abrir la modal y cargar el contenido
