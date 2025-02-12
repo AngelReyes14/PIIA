@@ -1,34 +1,27 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php'); // Conexión a la base de datos
+include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Initialize carreraData to avoid undefined variable warning
-$carreraData = [];
+$consultas = new Consultas($conn);
 
-// Check if the user is logged out and retrieve carrera data
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
-
-
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión  
-
+// Obtener imagen del usuario actual
+$idusuario = $_SESSION['user_id']; 
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
-// Retrieve user ID and carrera data
-$idusuario = $sessionManager->getUserId();
-$consultas = new Consultas($conn);
+// Obtener datos de carrera
 $carreraData = $consultas->datosCarreraPorId($idusuario);
-// Check if carreraData is not null and extract the ID
 $carreraId = $carreraData ? $carreraData['carrera_id'] : null;
+
+// Obtener datos de docentes, grupos y turnos
 $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
-$maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
-$incidencia = $consultas -> Incidenciausuario($carreraId);
+$maestros = $consultas->CarreraMaestros($carreraId);
+$incidencia = $consultas->Incidenciausuario($carreraId);
 
-// Get the count of women in the carrera
 if ($carreraId) {
   $mujeres = $consultas->mujeresCarrera($carreraId);
   $hombres = $consultas->hombresCarrera($carreraId);
@@ -36,7 +29,74 @@ if ($carreraId) {
   $mujeres = 0;
   $hombres = 0;
 }
+
+// Obtener las certificaciones tipo 2
+$cerTipo2 = $consultas->obtenerCertificacionesTipo2(2);
+$cerTipo2Json = json_encode($cerTipo2);
+$certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
+
+// Obtener las certificaciones tipo 1
+$certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
+
+
+// Obtener certificaciones de todos los usuarios por mes
+$query = "
+    SELECT 
+        m.descripcion AS nombre_mes,
+        u.nombre_usuario,
+        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
+        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
+    FROM 
+        mes m
+    LEFT JOIN 
+        certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
+    LEFT JOIN 
+        usuario u ON chu.usuario_usuario_id = u.usuario_id
+    WHERE chu.certificaciones_certificaciones_id IN (1, 2)
+    GROUP BY 
+        m.mes_id, m.descripcion, u.nombre_usuario
+    ORDER BY 
+        m.mes_id ASC, u.nombre_usuario ASC;
+";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$certificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Preparar los datos para el gráfico
+$meses = [];
+$usuarios = [];
+$certificaciones1 = [];
+$certificaciones2 = [];
+
+// Inicializa los datos con los meses del 1 al 12 para asegurar que todos estén presentes
+$todosMeses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+// Inicializar las certificaciones con cero para todos los meses
+$certificaciones1PorMes = array_fill(0, 12, 0); 
+$certificaciones2PorMes = array_fill(0, 12, 0); 
+
+foreach ($certificaciones as $row) {
+    // Encontrar el índice del mes
+    $mesIndex = array_search($row['nombre_mes'], $todosMeses);
+    
+    if ($mesIndex !== false) {
+        // Asignar los valores a las arrays correspondientes
+        $certificaciones1PorMes[$mesIndex] = $row['cantidad_certificaciones_tipo_1'];
+        $certificaciones2PorMes[$mesIndex] = $row['cantidad_certificaciones_tipo_2'];
+    }
+}
+
+// Convertir los valores a JSON para usarlos en JavaScript
+$mesesJson = json_encode($todosMeses);
+$certificaciones1Json = json_encode($certificaciones1PorMes);
+$certificaciones2Json = json_encode($certificaciones2PorMes);
+$usuariosJson = json_encode($usuarios); // Este arreglo no lo usas en el gráfico, pero lo dejas aquí por si lo necesitas
 ?>
+
 
 
 <!doctype html>
@@ -338,51 +398,115 @@ if ($carreraId) {
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Diciplinarios
+            Acreditaciones Pedagógicas
             </div>
+
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+                <!-- Aquí se incluye el gráfico -->
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo1"></canvas> <!-- Contenedor para el gráfico tipo 1 -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Cursos Diciplinarios</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Pedagógicas</h4> <!-- Título actualizado -->
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo1)) : ?> <!-- Usamos $certificacionesTipo1 para certificados tipo 1 -->
+                    <?php foreach ($certificacionesTipo1 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP
+    var mesesTipo1 = <?php echo $mesesJson; ?>; // Meses para el gráfico tipo 1
+    var certificaciones1 = <?php echo $certificaciones1Json; ?>; // Certificaciones tipo 1
+
+    // Configuración del gráfico para certificaciones tipo 1
+    var ctxTipo1 = document.getElementById('columnChartTipo1').getContext('2d');
+    var columnChartTipo1 = new Chart(ctxTipo1, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo1, // Los meses
+            datasets: [{
+                label: 'Certificaciones Pedagógicas', 
+                data: certificaciones1, // Cantidades de certificaciones tipo 1
+                backgroundColor: 'rgba(59, 204, 23)', // Azul transparente
+                borderColor: 'rgb(105, 215, 109)', // Azul fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+
+
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
@@ -390,51 +514,112 @@ if ($carreraId) {
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Pedagógicos
+            Acreditaciones Profesionales
             </div>
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart2"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+               
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo2"></canvas> <!-- Contenedor para el gráfico -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion ">Cursos Pedagógicos</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP para certificaciones tipo 2
+    var mesesTipo2 = <?php echo $mesesJson; ?>;
+    var certificacionesTipo2 = <?php echo $certificaciones2Json; ?>;
+
+    // Configuración del gráfico para certificaciones tipo 2
+    var ctxTipo2 = document.getElementById('columnChartTipo2').getContext('2d');
+    var columnChartTipo2 = new Chart(ctxTipo2, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo2, // Los meses
+            datasets: [{
+                label: 'Certificaciones Profesionales',
+                data: certificacionesTipo2, // Cantidades de certificaciones tipo 2
+                backgroundColor: 'rgba(7, 118, 24)', // Rojo transparente
+                borderColor: 'rgb(16, 102, 29)', // Rojo fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Profesionales</h4>
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo2)) : ?>
+                    <?php foreach ($certificacionesTipo2 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
+
+
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->

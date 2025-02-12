@@ -18,6 +18,7 @@ $consultas = new Consultas($conn);
 // Obtener la imagen del usuario
 $imgUser = $consultas->obtenerImagen($idusuario);
 $certificaciones = $consultas->obtenerCertificaciones();
+$meses = $consultas->obtenerMes();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
 
 
@@ -241,7 +242,7 @@ if (isset($_POST['logout'])) {
 
     <div class="row">
         <!-- Certificación -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
             <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -259,14 +260,31 @@ if (isset($_POST['logout'])) {
         </div>
 
         <!-- Nombre del Certificado -->
-        <div class="col-md-4 ">
+        <div class="col-md-3 ">
             <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
             <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
+        <div class="col-md-3">
+            <label for="mes_mes_id" class="form-label">Mes:</label>
+            <select class="form-control" id="mes_mes_id" name="mes_mes_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['mes_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
         <!-- Selección de archivo PDF -->
-        <div class="col-md-4" id="documentDiv">
+        <div class="col-md-3" id="documentDiv">
             <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
             <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
@@ -296,6 +314,7 @@ if (isset($_POST['logout'])) {
                                     <tr>
                                         <th>Certificación</th>
                                         <th>Nombre del Certificado</th>
+                                        <th>Mes</th>
                                         <th>Certificado</th>
                                         <th>Acciones</th> <!-- Nueva columna para las acciones -->
                                     </tr>
@@ -305,6 +324,7 @@ if (isset($_POST['logout'])) {
                                         <tr>
                                             <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
                                             <td class="text-center">
                                                 <?php if (!empty($certificacionusuario['url'])): ?>
                                                     <?php 

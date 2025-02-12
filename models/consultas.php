@@ -51,13 +51,20 @@ public function obtenerHorario($periodo, $usuarioId, $carrera) {
 
 public function obtenerCertificacionesPorUsuario($usuarioId) {
     try {
-        $sql = "SELECT c.certificados_id, c.certificaciones_certificaciones_id, 
-                       c.usuario_usuario_id, c.nombre_certificado, c.url, 
-                       cert.descripcion AS certificacion_descripcion
+        $sql = "SELECT 
+                    c.certificados_id, 
+                    c.certificaciones_certificaciones_id, 
+                    c.usuario_usuario_id, 
+                    c.nombre_certificado, 
+                    c.url, 
+                    cert.descripcion AS certificacion_descripcion,
+                    m.descripcion AS nombre_mes  -- Agregar el nombre del mes
                 FROM certificaciones_has_usuario c
                 INNER JOIN certificaciones cert ON c.certificaciones_certificaciones_id = cert.certificaciones_id
+                INNER JOIN mes m ON c.mes_id = m.mes_id  -- Unir con la tabla 'mes' para obtener el nombre del mes
                 WHERE c.usuario_usuario_id = :usuarioId
                 ORDER BY c.certificados_id";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
@@ -67,6 +74,36 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
         return []; // Retorna un arreglo vacío en caso de error
     }
 }
+
+
+public function obtenerCertificacionesTipo2($cert_id) {
+    $query = "
+        SELECT 
+            chu.nombre_certificado, 
+            m.descripcion AS nombre_mes, 
+            CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo
+        FROM certificaciones_has_usuario chu
+        INNER JOIN mes m ON chu.mes_id = m.mes_id
+        INNER JOIN usuario u ON chu.usuario_usuario_id = u.usuario_id
+        WHERE chu.certificaciones_certificaciones_id = :cert_id
+        ORDER BY u.usuario_id, chu.mes_id
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':cert_id', $cert_id, PDO::PARAM_INT); // Vincula el parámetro para evitar SQL Injection
+    
+    $stmt->execute();
+    
+    $certificados = [];
+    if ($stmt) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $certificados[] = $row;
+        }
+    }
+    return $certificados;
+}
+
+
 
 
 
@@ -143,6 +180,21 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
         return $periodos;
     }
     
+
+
+    public function obtenerMes() {
+        $query = "SELECT mes_id, descripcion FROM mes";
+        $result = $this->conn->query($query);
+    
+        $mes = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                $meses[] = $row;
+            }
+        }
+        return $meses;
+    }
+
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -1994,6 +2046,10 @@ class BorrarHorario {
     }
 }
 
+
+
+
+
 class CertificacionUsuario {
     private $conn;
 
@@ -2007,6 +2063,7 @@ class CertificacionUsuario {
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
             $nombreCertificado = $_POST['nombre_certificado'];
+            $nombreMes = $_POST['mes_mes_id'];
 
             // Manejo de archivo
             $filePath = null;
@@ -2044,21 +2101,23 @@ class CertificacionUsuario {
 
             // Insertar en la base de datos
             $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
-            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $relativeFilePath);
+            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $nombreMes, $relativeFilePath);
         }
     }
 
-    private function insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $filePath) {
+    private function insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $nombreMes, $filePath) {
         // Consulta para insertar los datos
         $query = "INSERT INTO piia.certificaciones_has_usuario (
                     certificaciones_certificaciones_id,
                     usuario_usuario_id,
                     nombre_certificado,
+                    mes_id,
                     url
                   ) VALUES (
                     :certificacion_id,
                     :usuario_id,
                     :nombre_certificado,
+                    :mes_id,
                     :url
                   )";
     
@@ -2066,13 +2125,14 @@ class CertificacionUsuario {
         $stmt->bindParam(':certificacion_id', $certificacionId);
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado);
+        $stmt->bindParam(':mes_id', $nombreMes);
         $stmt->bindParam(':url', $filePath);
     
         try {
             // Ejecutar la consulta
             $stmt->execute();
             // Redirigir a la página de perfil con un mensaje de éxito
-            header("Location: ../views/templates/Perfil.php?status=success&action=insert");
+            header("Location: ../views/templates/Perfil.php?success=true");
             exit();
         } catch (PDOException $e) {
             // Manejar errores y mostrar detalles para depuración
@@ -2092,7 +2152,22 @@ class CertificacionUsuario {
         }
         return $newFileName;
     }
+
+    public function obtenerMes() {
+        $query = "SELECT mes_id, descripcion FROM mes";
+        $result = $this->conn->query($query);
+    
+        $mes = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                $meses[] = $row;
+            }
+        }
+        return $meses;
+    }
 }
+
+
 
 class ActualizarCertificacionUsuario {
     private $conn;
