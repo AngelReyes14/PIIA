@@ -555,12 +555,42 @@ function filtrarUsuariosPorCarrera() {
 }
 
 
+
 function actualizarInputs(btn) {
+    // Previene el envío del formulario
+    event.preventDefault();
+
     var row = btn.closest("tr");
-    var periodoValue = document.getElementById("periodo_periodo_id").value; // Captura el valor del select de periodo
-    row.querySelector("#periodo_periodo_id_value").value = periodoValue; // Asigna el valor al input hidden del periodo
+    var periodoValue = document.getElementById("periodo_periodo_id").value;
+    row.querySelector("#periodo_periodo_id_value").value = periodoValue;
     row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
     row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
+
+    // Validación opcional
+    if (row.querySelector(".evaluacionTECNM").value === "00.0" || 
+        row.querySelector(".evaluacionEstudiantil").value === "00.0") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'Asegúrate de ingresar una evaluación válida antes de guardar.',
+            allowOutsideClick: false,
+        });
+        return false;
+    }
+
+    // Muestra el SweetAlert que el usuario cierra manualmente
+    Swal.fire({
+        icon: 'success',
+        title: '¡Registro exitoso!',
+        text: 'Se ha registrado con éxito.',
+        allowOutsideClick: false,
+        confirmButtonText: 'Cerrar',
+    }).then(() => {
+        // Enviar formulario después de mostrar SweetAlert
+        btn.closest("form").submit();
+    });
+
+    return false; // Impide envío automático
 }
 
 
@@ -801,7 +831,9 @@ function actualizarInputs(btn) {
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script>
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
     $('.select2').select2({
       theme: 'bootstrap4',
     });

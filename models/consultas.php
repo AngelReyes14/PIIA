@@ -69,7 +69,6 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
 }
 
 
-
      // Método para obtener horario filtrado por periodo, carrera y usuario
      public function obtenerHorarioPorFiltros($periodo_id, $carrera_id, $docente_id, $dia_id, $hora_id) {
         $query = "SELECT materia_materia_id, grupo_grupo_id, salones_salon_id 
@@ -2432,6 +2431,36 @@ class EvaluacionDocentes {
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
             return false;
+        }
+    }
+}
+
+// EvaluacionDocente.php
+class EvaluacionDocente2 {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
+    public function obtenerEvaluacionesDocentes() {
+        try {
+            $query = "
+                SELECT 
+                    CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo,
+                    evaluacionTECNM, 
+                    evaluacionEstudiantil
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id;
+            ";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener evaluaciones docentes: " . $e->getMessage());
+            return [];
         }
     }
 }
