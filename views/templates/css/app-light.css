@@ -19654,6 +19654,16 @@ button#downloadPDF:hover {
   background-color: #b3e2b3; /* Verde más suave */
 }
 
+
+.modal-info {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
 /* Contenedor del perfil */
 .card.p-4.mb-4.box-shadow-div {
   background: #ffffff;
@@ -19954,4 +19964,5 @@ button.btn-primary:hover {
     margin-bottom: 10px;
   }
 }
+
 

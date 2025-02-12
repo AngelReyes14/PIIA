@@ -19,6 +19,7 @@ $consultas = new Consultas($conn);
 $imgUser = $consultas->obtenerImagen($idusuario);
 $certificaciones = $consultas->obtenerCertificaciones();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
 
 
 
@@ -241,7 +242,7 @@ if (isset($_POST['logout'])) {
 
     <div class="row">
         <!-- Certificación -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
             <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -258,8 +259,25 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
+        <div class="col-md-3">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
         <!-- Nombre del Certificado -->
-        <div class="col-md-4 ">
+        <div class="col-md-3">
             <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
             <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
@@ -283,7 +301,7 @@ if (isset($_POST['logout'])) {
         </div>
 
         <!-- Selección de archivo PDF -->
-        <div class="col-md-4" id="documentDiv">
+        <div class="col-md-3" id="documentDiv">
             <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
             <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
@@ -301,62 +319,72 @@ if (isset($_POST['logout'])) {
 <div class="col-lg-12 col-md-12">
     <div class="card shadow mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-center align-items-center mb-3">
-                <p class="titulo-grande"><strong>Certificaciones del Usuario</strong></p>
-            </div>
-            <div class="table-responsive">
-                <table class="table datatables" id="dataTable-certificaciones">
-                    <thead>
-                        <tr>
-                            <th>Certificación</th>
-                            <th>Nombre del Certificado</th>
-                            <th>Certificado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
-                                <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
-                                <td class="text-center">
-                                    <?php if (!empty($certificacionusuario['url'])): ?>
-                                        <?php 
-                                        $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
-                                        ?>
-                                        <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a>
-                                    <?php else: ?>
-                                        No disponible
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-center">
-                                    <!-- Botón de actualizar certificado -->
-                                    <button class="btn btn-sm btn-warning update-cert-btn" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#updateCertificacionModal"
-                                            data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
-                                            data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
-                                            data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
-                                            data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
-                                        Actualizar
-                                    </button>
 
-                                    <!-- Botón de eliminar certificado -->
-                                    <form method="POST" action="../../models/insert.php" style="display: inline;">
-                                        <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
-                                        <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
-                                        <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div class="d-flex justify-content-center align-items-center mb-3 col">
+                <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
+            </div>
+            <div class="row my-4">
+                <div class="col-md-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <table class="table datatables" id="dataTable-certificaciones">
+                                <thead>
+                                    <tr>
+                                        <th>Certificación</th>
+                                        <th>Nombre del Certificado</th>
+                                        <th>Mes</th> <!-- Nueva columna para los meses -->
+                                        <th>Certificado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
+                                            <td class="text-center">
+                                                <?php if (!empty($certificacionusuario['url'])): ?>
+                                                    <?php 
+                                                    $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                                                    ?>
+                                                    <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a>
+                                                <?php else: ?>
+                                                    No disponible
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <!-- Botón de actualizar certificado -->
+                                                <button class="btn btn-sm btn-warning update-cert-btn" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#updateCertificacionModal"
+                                                        data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+                                                        data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+                                                        data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+                                                        data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
+                                                        data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+                                                    Actualizar
+                                                </button>
+
+                                                <!-- Botón de eliminar certificado -->
+                                                <form method="POST" action="../../models/insert.php">
+                                                    <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
+                                                    <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
+                                                    <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
-
 
 
 <!-- Modal -->
@@ -376,7 +404,7 @@ if (isset($_POST['logout'])) {
 
           <div class="row">
             <!-- Certificación -->
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
               <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -393,15 +421,32 @@ if (isset($_POST['logout'])) {
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
+            <div class="col-md-3">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
             <!-- Nombre del Certificado -->
-            <div class="col-md-4 ">
+            <div class="col-md-3 ">
               <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
               <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
             <!-- Selección de archivo PDF -->
-            <div class="col-md-4" id="documentDiv">
+            <div class="col-md-3" id="documentDiv">
               <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
               <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf">
               <input type="hidden" name="url_antigua" id="url_antigua" value="">
@@ -652,6 +697,54 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
                 });
               </script>
       </div>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get("status");
+        const action = urlParams.get("action");
+
+        if (status === "success") {
+            let message = "";
+            let title = "¡Éxito!";
+            let icon = "success";
+
+            switch (action) {
+                case "insert":
+                    message = "La certificación ha sido añadida correctamente.";
+                    break;
+                case "update":
+                    message = "La certificación ha sido actualizada con éxito.";
+                    break;
+                case "delete":
+                    message = "La certificación ha sido eliminada exitosamente.";
+                    break;
+                default:
+                    message = "Operación completada con éxito.";
+                    break;
+            }
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: icon,
+                confirmButtonText: "OK"
+            }).then(() => {
+                // Limpiar la URL después de mostrar el mensaje
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        } else if (status === "error") {
+            Swal.fire({
+                title: "¡Error!",
+                text: "Hubo un problema con la operación.",
+                icon: "error",
+                confirmButtonText: "OK"
+            }).then(() => {
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        }
+    });
+</script>
 
     </main>
       <!-- Contenido de la página -->

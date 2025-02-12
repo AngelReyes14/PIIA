@@ -87,6 +87,12 @@ if (isset($_POST['form_type'])) {
     $certificacionUsuarioDelete = new BorrarCertificacion($conn);
     $certificacionUsuarioDelete->eliminarCertificacion();
 
+} elseif ($form_type === 'evaluacion-docente') {
+    // Crear una instancia de la clase EvaluacionDocentes
+    $evaluacionDocentes = new EvaluacionDocentes($conn);
+    $evaluacionDocentes->gestionarEvaluacion();  // Método para manejar el formulario de evaluación docente
+
+
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";
