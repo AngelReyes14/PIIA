@@ -151,6 +151,28 @@ public function obtenerCertificacionesTipo2($cert_id) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    public function IncidenciasCarreraGrafic()
+{
+    $sql = "
+        SELECT 
+    c.nombre_carrera, 
+    COUNT(*) AS cantidad_registros,
+    (COUNT(*) / (SELECT COUNT(*) FROM incidencia_has_usuario)) * 100 AS porcentaje
+FROM incidencia_has_usuario ihu
+JOIN carrera c ON c.carrera_id = ihu.carrera_carrera_id
+GROUP BY c.carrera_id
+LIMIT 0, 1000;
+
+
+    ";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
     
     public function obtenerCertificaciones() {
         $query = "SELECT certificaciones_id, descripcion FROM certificaciones ORDER BY descripcion ASC";

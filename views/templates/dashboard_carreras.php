@@ -23,79 +23,80 @@ $maestros = $consultas->CarreraMaestros($carreraId);
 $incidencia = $consultas->Incidenciausuario($carreraId);
 
 if ($carreraId) {
-  $mujeres = $consultas->mujeresCarrera($carreraId);
-  $hombres = $consultas->hombresCarrera($carreraId);
+    $mujeres = $consultas->mujeresCarrera($carreraId);
+    $hombres = $consultas->hombresCarrera($carreraId);
 } else {
-  $mujeres = 0;
-  $hombres = 0;
+    $mujeres = 0;
+    $hombres = 0;
 }
 
-// Obtener las certificaciones tipo 2
-$cerTipo2 = $consultas->obtenerCertificacionesTipo2(2);
-$cerTipo2Json = json_encode($cerTipo2);
-$certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
-
-// Obtener las certificaciones tipo 1
+// Obtener certificaciones tipo 1 y tipo 2
 $certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
-
+$certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
 $query = "
     SELECT 
         m.descripcion AS nombre_mes,
-        u.nombre_usuario,
         COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
         COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
-    FROM 
-        mes m
-    LEFT JOIN 
-        certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
-    LEFT JOIN 
-        usuario u ON chu.usuario_usuario_id = u.usuario_id
-    WHERE chu.certificaciones_certificaciones_id IN (1, 2)
-    GROUP BY 
-        m.mes_id, m.descripcion, u.nombre_usuario
-    ORDER BY 
-        m.mes_id ASC, u.nombre_usuario ASC;
+    FROM mes m
+    LEFT JOIN certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
+    GROUP BY m.mes_id, m.descripcion
+    ORDER BY m.mes_id ASC;
 ";
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $certificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Preparar los datos para el gráfico
-$meses = [];
-$usuarios = [];
-$certificaciones1 = [];
-$certificaciones2 = [];
-
-// Inicializa los datos con los meses del 1 al 12 para asegurar que todos estén presentes
+// Lista de todos los meses asegurando que la gráfica los muestre
 $todosMeses = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
-// Inicializar las certificaciones con cero para todos los meses
+// Inicializar arrays para certificaciones en cada mes
 $certificaciones1PorMes = array_fill(0, 12, 0); 
-$certificaciones2PorMes = array_fill(0, 12, 0); 
+$certificaciones2PorMes = array_fill(0, 12, 0);
 
+// Asignar valores desde la consulta SQL
 foreach ($certificaciones as $row) {
-    // Encontrar el índice del mes
     $mesIndex = array_search($row['nombre_mes'], $todosMeses);
-    
     if ($mesIndex !== false) {
-        // Asignar los valores a las arrays correspondientes
-        $certificaciones1PorMes[$mesIndex] = $row['cantidad_certificaciones_tipo_1'];
-        $certificaciones2PorMes[$mesIndex] = $row['cantidad_certificaciones_tipo_2'];
+        $certificaciones1PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_1'];
+        $certificaciones2PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_2'];
     }
 }
 
-// Convertir los valores a JSON para usarlos en JavaScript
+// ** Obtener incidencias por carrera **
+$incidenciasCarrera = $consultas->IncidenciasCarreraGrafic();
+$carreras = [];
+$incidencias = [];
+$promedios = [];
+
+foreach ($incidenciasCarrera as $row) {
+    // Ahora estamos usando el nombre de la carrera en lugar del ID
+    $carreras[] = $row['nombre_carrera']; // Usamos el nombre de la carrera
+    
+    // Validación para evitar Undefined array key
+    $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
+    $porcentaje = isset($row['porcentaje']) ? round($row['porcentaje'], 2) : 0;
+
+    // Agregar los valores al array correspondiente
+    $incidencias[] = $cantidadRegistros; // Valores de incidencias
+    $promedios[] = $porcentaje; // Valores de porcentaje
+}
+
+// Convertir datos a JSON
 $mesesJson = json_encode($todosMeses);
 $certificaciones1Json = json_encode($certificaciones1PorMes);
 $certificaciones2Json = json_encode($certificaciones2PorMes);
-$usuariosJson = json_encode($usuarios); // Este arreglo no lo usas en el gráfico, pero lo dejas aquí por si lo necesitas
+$carrerasJson = json_encode($carreras); // Nombres de las carreras
+$incidenciasJson = json_encode($incidencias); // Cantidades de incidencias
+$promediosJson = json_encode($promedios); // Porcentajes de incidencias
 ?>
+
 
 
 
@@ -347,8 +348,80 @@ $usuariosJson = json_encode($usuarios); // Este arreglo no lo usas en el gráfic
 
                     <!-- Cuerpo de la tarjeta -->
                     <div class="card-body text-center">
-                      <!-- Gráfico de dona para incidencias -->
-                      <div id="donutChart3"></div>
+                      <!-- Incluye Chart.js -->
+                   
+
+
+
+
+
+                      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+                      <!-- Nuevo contenedor para el gráfico de pastel -->
+<div id="donutChart4"></div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Obtener datos desde PHP
+    var carreras = <?php echo $carrerasJson; ?>;
+    var incidencias = <?php echo $incidenciasJson; ?>;
+
+    console.log("Carreras:", carreras);
+    console.log("Incidencias:", incidencias);
+
+    // Verificar si hay datos
+    if (carreras.length === 0 || incidencias.length === 0) {
+        console.warn("No hay datos para mostrar en la gráfica.");
+        return;
+    }
+
+    // Verificar si ya existe un gráfico en #donutChart4 y destruirlo
+    if (typeof chart !== 'undefined' && chart !== null) {
+        chart.destroy(); // Destruir el gráfico anterior si existe
+    }
+
+    // Configuración del gráfico de dona (donut)
+    var options = {
+        series: incidencias, // Datos de incidencias
+        chart: {
+            type: 'donut', // Cambiar a tipo 'donut'
+            height: 350
+        },
+        labels: carreras, // Etiquetas de las carreras
+        colors: [
+            '#66BB6A', // Verde claro
+            '#43A047', // Verde medio
+            '#2C6B2F', // Verde más oscuro
+            '#1B5E20', // Verde oscuro
+            '#81C784', // Verde pastel
+            '#388E3C', // Verde fuerte
+            '#4CAF50'  // Verde más brillante
+        ], // Colores verdes
+        legend: {
+            position: 'bottom'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '60%' // Controlar el tamaño del agujero en el centro
+                }
+            }
+        }
+    };
+
+    // Renderizar el gráfico en el div con ID 'donutChart4'
+    var chart = new ApexCharts(document.querySelector("#donutChart4"), options);
+    chart.render();
+});
+</script>
+
+
+
+
+
+
 
                       <!-- Tabla de incidencias -->
                       <table class="table datatables" id="tabla-materias-2">
