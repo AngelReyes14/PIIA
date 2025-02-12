@@ -283,6 +283,23 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
+        <div class="col-md-3">
+            <label for="mes_mes_id" class="form-label">Mes:</label>
+            <select class="form-control" id="mes_mes_id" name="mes_mes_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['mes_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
         <!-- Selección de archivo PDF -->
         <div class="col-md-3" id="documentDiv">
             <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
@@ -302,6 +319,7 @@ if (isset($_POST['logout'])) {
 <div class="col-lg-12 col-md-12">
     <div class="card shadow mb-4">
         <div class="card-body">
+
             <div class="d-flex justify-content-center align-items-center mb-3 col">
                 <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
             </div>
@@ -362,6 +380,7 @@ if (isset($_POST['logout'])) {
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -499,130 +518,122 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
 
       <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
-        <div class="card p-4 mb-4 box-shadow-div">
-      <div class="container p-4 mb-4 box-shadow-div">
+  <div class="card p-4 mb-4 box-shadow-div">
+    <div class="container p-4 mb-4">
       <div id="cardProfesores" class="card p-4 mb-4 box-shadow-div text-center">
-  <div class="conteiner">
-    <h5 class="card-title mt-3">Profesores</h5>
-    <div class="filter-container" style="position: relative; display: inline-block;">
-      <!-- Label para el select -->
-      <select class="form-control" id="profesorSelect">
-        <option value="" selected>Selecciona profesor</option>
-        <?php foreach ($profesores as $profesor): ?>
-          <?php if ($profesor['carrera_carrera_id'] == $carreraUsuario): // Filtrar profesores por carrera ?>
-            <?php
-            $fechaContratacion = $profesor["fecha_contratacion"];
-            $fechaContratacionDate = new DateTime($fechaContratacion);
-            $fechaActual = new DateTime();
-            $antiguedad = $fechaContratacionDate->diff($fechaActual)->y;
-            $profesor['antiguedad'] = $antiguedad;
-            ?>
-<option
-    data-nombre="<?= htmlspecialchars($profesor['nombre_usuario']) ?>"
-    data-apellido="<?= htmlspecialchars($profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>"
-    data-correo="<?= htmlspecialchars($profesor['correo']) ?>"
-    data-edad="<?= htmlspecialchars($profesor['edad']) ?>"
-    data-cedula="<?= htmlspecialchars($profesor['cedula']) ?>"
-    data-fecha="<?= htmlspecialchars($profesor['fecha_contratacion']) ?>"
-    data-grado="<?= htmlspecialchars($profesor['grado_academico']) ?>"
-    data-imagen="<?= htmlspecialchars($profesor['imagen_url']) ?>"
-    data-certificaciones='<?= json_encode($profesor['certificaciones']) ?>'> <!-- Aquí estamos pasando las certificaciones -->
-    <?= htmlspecialchars($profesor['nombre_usuario'] . ' ' . $profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>
-</option>
-
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </select>
-    </div>
-  </div>
-          <div class="card-header" style="border:none;">
-            <h2>Perfil de docentes</h2>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-12 col-md-4  text-center hidden" id="profileContainer">
-                <strong class="name-line text-start">Foto del Docente:</strong>
-                <br>
-                <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
-              </div>
-              <div class="col-md-8">
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label">Nombre:</label>
-                    <input type="text" class="form-control" id="nombre" value="" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Correo Electrónico:</label>
-                    <input type="text" class="form-control" id="correo" value="" readonly>
-                  </div>
-
-                </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label">Edad:</label>
-                    <input type="text" class="form-control" id="edad" value="" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Cédula:</label>
-                    <input type="text" class="form-control" id="cedula" value="" readonly>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label">Fecha de Contratación:</label>
-                    <input type="text" class="form-control" id="fechaContratacion" value="" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Grado Académico:</label>
-                    <input type="text" class="form-control" id="gradoAcademico" value="" readonly>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-md-12">
-                    <label class="form-label">Antigüedad:</label>
-                    <input type="text" class="form-control" id="antiguedad" value="" readonly>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          <div class="col-lg-12 col-md-12">
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-center align-items-center mb-3 col">
-                <p class="titulo-grande"><strong>Certificaciones del Profesor</strong></p>
-            </div>
-            <div class="row my-4">
-                <div class="col-md-12">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <table class="table datatables" id="dataTable-certificaciones">
-                                <thead>
-                                    <tr>
-                                        <th>Certificación</th>
-                                        <th>Nombre del Certificado</th>
-                                        <th>Certificado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="certificacionesBody">
-                                    <!-- Aquí se insertarán las certificaciones dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <h5 class="card-title mt-3">Profesores</h5>
+        <div class="filter-container">
+          <select class="form-control" id="profesorSelect">
+            <option value="" selected>Selecciona profesor</option>
+            <?php foreach ($profesores as $profesor): ?>
+              <?php if ($profesor['carrera_carrera_id'] == $carreraUsuario): ?>
+                <?php
+                $fechaContratacion = $profesor["fecha_contratacion"];
+                $fechaContratacionDate = new DateTime($fechaContratacion);
+                $fechaActual = new DateTime();
+                $antiguedad = $fechaContratacionDate->diff($fechaActual)->y;
+                $profesor['antiguedad'] = $antiguedad;
+                ?>
+                <option
+                  data-nombre="<?= htmlspecialchars($profesor['nombre_usuario']) ?>"
+                  data-apellido="<?= htmlspecialchars($profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>"
+                  data-correo="<?= htmlspecialchars($profesor['correo']) ?>"
+                  data-edad="<?= htmlspecialchars($profesor['edad']) ?>"
+                  data-cedula="<?= htmlspecialchars($profesor['cedula']) ?>"
+                  data-fecha="<?= htmlspecialchars($profesor['fecha_contratacion']) ?>"
+                  data-grado="<?= htmlspecialchars($profesor['grado_academico']) ?>"
+                  data-imagen="<?= htmlspecialchars($profesor['imagen_url']) ?>"
+                  data-certificaciones='<?= json_encode($profesor['certificaciones']) ?>'>
+                  <?= htmlspecialchars($profesor['nombre_usuario'] . ' ' . $profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>
+                </option>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </select>
         </div>
-    </div>
-</div>
 
-          </div>
-          
-        </div>
+        <div class="card-header">
+          <h2>Perfil de docentes</h2>
         </div>
         
-        <?php endif; ?>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-12 col-md-4 text-center hidden" id="profileContainer">
+              <strong class="name-line text-start">Foto del Docente:</strong>
+              <br>
+              <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
+            </div>
+            <div class="col-md-8">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre:</label>
+                  <input type="text" class="form-control" id="nombre" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Correo Electrónico:</label>
+                  <input type="text" class="form-control" id="correo" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Edad:</label>
+                  <input type="text" class="form-control" id="edad" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cédula:</label>
+                  <input type="text" class="form-control" id="cedula" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Fecha de Contratación:</label>
+                  <input type="text" class="form-control" id="fechaContratacion" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Grado Académico:</label>
+                  <input type="text" class="form-control" id="gradoAcademico" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label">Antigüedad:</label>
+                  <input type="text" class="form-control" id="antiguedad" value="" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-center align-items-center mb-3 col">
+      <p class="titulo-grande"><strong>Certificaciones del Profesor</strong></p>
+    </div>
+    <div class="row my-4">
+      <div class="col-md-12">
+        <!-- Eliminar la tarjeta interna extra, manteniendo solo la tarjeta principal -->
+        <table class="table datatables" id="dataTable-certificaciones">
+          <thead>
+            <tr>
+              <th>Certificación</th>
+              <th>Nombre del Certificado</th>
+              <th>Certificado</th>
+            </tr>
+          </thead>
+          <tbody id="certificacionesBody">
+            <!-- Aquí se insertarán las certificaciones dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
         <script>
 document.getElementById('profesorSelect').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
