@@ -1,42 +1,107 @@
 <?php
 include('../../models/session.php');
+include('../../controllers/db.php'); // Conexión a la base de datos
+include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Initialize carreraData to avoid undefined variable warning
-$carreraData = [];
+$consultas = new Consultas($conn);
 
-// Check if the user is logged out and retrieve carrera data
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
-
-
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión  
-
+// Obtener imagen del usuario actual
+$idusuario = $_SESSION['user_id']; 
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
-// Retrieve user ID and carrera data
-$idusuario = $sessionManager->getUserId();
-$consultas = new Consultas($conn);
+// Obtener datos de carrera
 $carreraData = $consultas->datosCarreraPorId($idusuario);
-// Check if carreraData is not null and extract the ID
 $carreraId = $carreraData ? $carreraData['carrera_id'] : null;
+
+// Obtener datos de docentes, grupos y turnos
 $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
+
 $maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
 $incidencia = $consultas -> Incidenciausuario($carreraId);
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
 
-// Get the count of women in the carrera
+
 if ($carreraId) {
-  $mujeres = $consultas->mujeresCarrera($carreraId);
-  $hombres = $consultas->hombresCarrera($carreraId);
+    $mujeres = $consultas->mujeresCarrera($carreraId);
+    $hombres = $consultas->hombresCarrera($carreraId);
 } else {
-  $mujeres = 0;
-  $hombres = 0;
+    $mujeres = 0;
+    $hombres = 0;
 }
+
+// Obtener certificaciones tipo 1 y tipo 2
+$certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
+$certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
+
+// Obtener certificaciones de todos los usuarios por mes
+$query = "
+    SELECT 
+        m.descripcion AS nombre_mes,
+        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
+        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
+    FROM mes m
+    LEFT JOIN certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
+    GROUP BY m.mes_id, m.descripcion
+    ORDER BY m.mes_id ASC;
+";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$certificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Lista de todos los meses asegurando que la gráfica los muestre
+$todosMeses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+// Inicializar arrays para certificaciones en cada mes
+$certificaciones1PorMes = array_fill(0, 12, 0); 
+$certificaciones2PorMes = array_fill(0, 12, 0);
+
+// Asignar valores desde la consulta SQL
+foreach ($certificaciones as $row) {
+    $mesIndex = array_search($row['nombre_mes'], $todosMeses);
+    if ($mesIndex !== false) {
+        $certificaciones1PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_1'];
+        $certificaciones2PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_2'];
+    }
+}
+
+// ** Obtener incidencias por carrera **
+$incidenciasCarrera = $consultas->IncidenciasCarreraGrafic();
+$carreras = [];
+$incidencias = [];
+$promedios = [];
+
+foreach ($incidenciasCarrera as $row) {
+    // Ahora estamos usando el nombre de la carrera en lugar del ID
+    $carreras[] = $row['nombre_carrera']; // Usamos el nombre de la carrera
+    
+    // Validación para evitar Undefined array key
+    $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
+    $porcentaje = isset($row['porcentaje']) ? round($row['porcentaje'], 2) : 0;
+
+    // Agregar los valores al array correspondiente
+    $incidencias[] = $cantidadRegistros; // Valores de incidencias
+    $promedios[] = $porcentaje; // Valores de porcentaje
+}
+
+// Convertir datos a JSON
+$mesesJson = json_encode($todosMeses);
+$certificaciones1Json = json_encode($certificaciones1PorMes);
+$certificaciones2Json = json_encode($certificaciones2PorMes);
+$carrerasJson = json_encode($carreras); // Nombres de las carreras
+$incidenciasJson = json_encode($incidencias); // Cantidades de incidencias
+$promediosJson = json_encode($promedios); // Porcentajes de incidencias
 ?>
+
+
 
 
 <!doctype html>
@@ -108,9 +173,9 @@ if ($carreraId) {
           </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
-            <a class="dropdown-item" href="#">Activities</a>
+            <a class="dropdown-item" href="Perfil.php">Perfil</a>
+            <a class="dropdown-item" href="#">Ajustes</a>
+            <a class="dropdown-item" href="#">ACtividades</a>
             <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
@@ -287,8 +352,80 @@ if ($carreraId) {
 
                     <!-- Cuerpo de la tarjeta -->
                     <div class="card-body text-center">
-                      <!-- Gráfico de dona para incidencias -->
-                      <div id="donutChart3"></div>
+                      <!-- Incluye Chart.js -->
+                   
+
+
+
+
+
+                      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+                      <!-- Nuevo contenedor para el gráfico de pastel -->
+<div id="donutChart4"></div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Obtener datos desde PHP
+    var carreras = <?php echo $carrerasJson; ?>;
+    var incidencias = <?php echo $incidenciasJson; ?>;
+
+    console.log("Carreras:", carreras);
+    console.log("Incidencias:", incidencias);
+
+    // Verificar si hay datos
+    if (carreras.length === 0 || incidencias.length === 0) {
+        console.warn("No hay datos para mostrar en la gráfica.");
+        return;
+    }
+
+    // Verificar si ya existe un gráfico en #donutChart4 y destruirlo
+    if (typeof chart !== 'undefined' && chart !== null) {
+        chart.destroy(); // Destruir el gráfico anterior si existe
+    }
+
+    // Configuración del gráfico de dona (donut)
+    var options = {
+        series: incidencias, // Datos de incidencias
+        chart: {
+            type: 'donut', // Cambiar a tipo 'donut'
+            height: 350
+        },
+        labels: carreras, // Etiquetas de las carreras
+        colors: [
+            '#66BB6A', // Verde claro
+            '#43A047', // Verde medio
+            '#2C6B2F', // Verde más oscuro
+            '#1B5E20', // Verde oscuro
+            '#81C784', // Verde pastel
+            '#388E3C', // Verde fuerte
+            '#4CAF50'  // Verde más brillante
+        ], // Colores verdes
+        legend: {
+            position: 'bottom'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '60%' // Controlar el tamaño del agujero en el centro
+                }
+            }
+        }
+    };
+
+    // Renderizar el gráfico en el div con ID 'donutChart4'
+    var chart = new ApexCharts(document.querySelector("#donutChart4"), options);
+    chart.render();
+});
+</script>
+
+
+
+
+
+
 
                       <!-- Tabla de incidencias -->
                       <table class="table datatables" id="tabla-materias-2">
@@ -338,51 +475,115 @@ if ($carreraId) {
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Diciplinarios
+            Acreditaciones Pedagógicas
             </div>
+
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+                <!-- Aquí se incluye el gráfico -->
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo1"></canvas> <!-- Contenedor para el gráfico tipo 1 -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Cursos Diciplinarios</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Pedagógicas</h4> <!-- Título actualizado -->
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo1)) : ?> <!-- Usamos $certificacionesTipo1 para certificados tipo 1 -->
+                    <?php foreach ($certificacionesTipo1 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP
+    var mesesTipo1 = <?php echo $mesesJson; ?>; // Meses para el gráfico tipo 1
+    var certificaciones1 = <?php echo $certificaciones1Json; ?>; // Certificaciones tipo 1
+
+    // Configuración del gráfico para certificaciones tipo 1
+    var ctxTipo1 = document.getElementById('columnChartTipo1').getContext('2d');
+    var columnChartTipo1 = new Chart(ctxTipo1, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo1, // Los meses
+            datasets: [{
+                label: 'Certificaciones Pedagógicas', 
+                data: certificaciones1, // Cantidades de certificaciones tipo 1
+                backgroundColor: 'rgba(59, 204, 23)', // Azul transparente
+                borderColor: 'rgb(105, 215, 109)', // Azul fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+
+
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
@@ -390,56 +591,118 @@ if ($carreraId) {
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Pedagógicos
+            Acreditaciones Profesionales
             </div>
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart2"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+               
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo2"></canvas> <!-- Contenedor para el gráfico -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion ">Cursos Pedagógicos</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP para certificaciones tipo 2
+    var mesesTipo2 = <?php echo $mesesJson; ?>;
+    var certificacionesTipo2 = <?php echo $certificaciones2Json; ?>;
+
+    // Configuración del gráfico para certificaciones tipo 2
+    var ctxTipo2 = document.getElementById('columnChartTipo2').getContext('2d');
+    var columnChartTipo2 = new Chart(ctxTipo2, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo2, // Los meses
+            datasets: [{
+                label: 'Certificaciones Profesionales',
+                data: certificacionesTipo2, // Cantidades de certificaciones tipo 2
+                backgroundColor: 'rgba(7, 118, 24)', // Rojo transparente
+                borderColor: 'rgb(16, 102, 29)', // Rojo fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Profesionales</h4>
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo2)) : ?>
+                    <?php foreach ($certificacionesTipo2 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
+
+
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
+
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
               Promedio de Calificaciones
@@ -448,99 +711,150 @@ if ($carreraId) {
               <div class="row">
                 <!-- Tabla de Promedio de Calificaciones -->
                 <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Docentes</th>
-                          <th>Evaluación Estudiantil</th>
-                          <th>Evaluación TECNM</th>
-                          <th>Promedio por semestre</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                        </tr>
-                        <tr>
-                          <td>Edwin Luna Castillo</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                        </tr>
-                        <tr>
-                          <td>Alfredo Olivas Ruiz</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                        </tr>
-                        <tr>
-                          <td>Cosme Tadeo Lopez Varela</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                        </tr>
-                        <tr>
-                          <td>Virlán García Nuñez</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                        </tr>
-                        <tr>
-                          <td>Cornelio Vega Chairez</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                        </tr>
-                        <tr>
-                          <td>Julion Alvarez Buendla</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                        </tr>
-                        <tr>
-                          <td>Ariel Camacho Torres</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                        </tr>
-                        <tr>
-                          <td>Amanda Rivera de Miguel</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                        </tr>
-                        <tr>
-                          <td>Jenifer Espinoza German</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+    <div class="form-group">
+        <label for="carrera_carrera_id">Selecciona una carrera:</label>
+        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" onchange="filtrarUsuariosPorCarrera()" required>
+            <option value="">Seleccione una carrera</option>
+            <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>">
+                    <?php echo $carrera['nombre_carrera']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarUsuariosPorCarrera()">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    
+
+    <div class="table-responsive">
+    <table class="table table-bordered" id="docentes-table">
+        <thead>
+            <tr>
+                <th>Nombre del Docente</th>
+                <th>Evaluación TECNM</th>
+                <th>Evaluación Estudiantil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="docentes-table-body">
+    <!-- Las filas se llenan dinámicamente -->
+</tbody>
+    </table>
+</div>
+
+
                 </div> <!-- /.col -->
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
+          <script>
+function filtrarUsuariosPorCarrera() {
+    var carrera_id = document.getElementById("carrera_carrera_id").value;
+    var periodo_id = document.getElementById("periodo_periodo_id").value; // Obtener el valor del periodo
+
+    if (carrera_id === "" || periodo_id === "") {
+        document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
+        return;
+    }
+
+    fetch('../../models/obtener_docentes.php', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `carrera_id=${carrera_id}&periodo_id=${periodo_id}` // Incluye el periodo en la solicitud
+    })
+    .then(response => response.json())
+    .then(data => {
+        var tbody = document.querySelector("#docentes-table-body");
+        tbody.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4">${data.error}</td></tr>`;
+            return;
+        }
+
+        data.forEach(docente => {
+            // Obtener las evaluaciones previas (si existen)
+            var evaluacionTecnm = docente.evaluacion_tecnm || "00.0";
+            var evaluacionEstudiantil = docente.evaluacion_estudiantil || "00.0";
+
+            var row = `
+<tr>
+    <td>${docente.nombre_completo}</td>
+    <td>
+        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="${evaluacionTecnm}" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="${evaluacionEstudiantil}" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
+            <input type="hidden" name="form_type" value="evaluacion-docente">
+            <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
+            <input type="hidden" class="input-tecnm" name="evaluacionTECNM" value="${evaluacionTecnm}">
+            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil" value="${evaluacionEstudiantil}">
+            <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
+        </form>
+    </td>
+</tr>
+`;
+            tbody.innerHTML += row;
+        });
+    })
+    .catch(error => console.error("Error al obtener docentes:", error));
+}
+
+
+
+function actualizarInputs(btn) {
+    // Previene el envío del formulario
+    event.preventDefault();
+
+    var row = btn.closest("tr");
+    var periodoValue = document.getElementById("periodo_periodo_id").value;
+    row.querySelector("#periodo_periodo_id_value").value = periodoValue;
+    row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
+    row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
+
+    // Validación opcional
+    if (row.querySelector(".evaluacionTECNM").value === "00.0" || 
+        row.querySelector(".evaluacionEstudiantil").value === "00.0") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'Asegúrate de ingresar una evaluación válida antes de guardar.',
+            allowOutsideClick: false,
+        });
+        return false;
+    }
+
+    // Muestra el SweetAlert que el usuario cierra manualmente
+    Swal.fire({
+        icon: 'success',
+        title: '¡Registro exitoso!',
+        text: 'Se ha registrado con éxito.',
+        allowOutsideClick: false,
+        confirmButtonText: 'Cerrar',
+    }).then(() => {
+        // Enviar formulario después de mostrar SweetAlert
+        btn.closest("form").submit();
+    });
+
+    return false; // Impide envío automático
+}
+
+
+</script>
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
@@ -744,6 +1058,7 @@ if ($carreraId) {
     </div>
     </main> <!-- main -->
   </div> <!-- .wrapper -->
+  
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -776,7 +1091,9 @@ if ($carreraId) {
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script>
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
     $('.select2').select2({
       theme: 'bootstrap4',
     });

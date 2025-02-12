@@ -14,7 +14,9 @@ $menuItems = [
         'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
         'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
-        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php'],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
     ],
 
     2 => [
@@ -24,19 +26,22 @@ $menuItems = [
             'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php']
         ],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
-        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+        'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php'],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
     ],
 
     3 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
         'Recursos Humanos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'recursos_humanos_empleados.php'],
-       'Formularios' => [
+        'Formularios' => [
             'Registro de usuarios' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_usuario.php'],
             'Registro de incidencias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_incidencias.php'],
-            'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
-            'Asignacion de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignacion_carrera.php'],
-            'Asignacion de Salones' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_asignar-salones.php'],
-            'Registro de Edificios' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
+            
+
+
+            'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php'],
+
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
         ]
        ],
@@ -48,8 +53,12 @@ $menuItems = [
             'Registro de materias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_materia.php'],
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
-            'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
-        ]
+            'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
+            'Grupos con carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
+            'Registro de Escenario' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
+       ],
+        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
+
        ],
        
     5 => [
@@ -63,7 +72,13 @@ $menuItems = [
             'Registro de Carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
         ]
-    ]
+        ],
+
+        7 => [
+            'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
+            'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+    
+        ]
 ];
 
 // Verificar si $tipoUsuarioId es un valor válido (un número entero)

@@ -6,6 +6,8 @@ include('aside.php');
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -163,6 +165,10 @@ if (isset($_POST['logout'])) {
             <?php endforeach; ?>
         </select>
     </div>
+    <div class="form-group">
+        <label for="capacidad">Capacidad:</label>
+        <input class="form-control" id="capacidad" name="capacidad" type="text" required>
+    </div>
     <button type="submit" class="btn btn-success">Registrar Salón</button>
 </form>
 
@@ -187,6 +193,7 @@ if (isset($_POST['logout'])) {
                                                 <th>ID Salón</th>
                                                 <th>Descripción</th>
                                                 <th>Edificio</th>
+                                                <th>Cantidad</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -194,7 +201,8 @@ if (isset($_POST['logout'])) {
                                                 <tr>
                                                     <td><?php echo $salon['salon_id']; ?></td>
                                                     <td><?php echo $salon['descripcion']; ?></td>
-                                                    <td><?php echo $salon['edificio']; ?></td> <!-- Nombre del edificio -->
+                                                    <td><?php echo $salon['edificio']; ?></td>
+                                                    <td><?php echo $salon['capacidad']; ?></td><!-- Nombre del edificio -->
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>

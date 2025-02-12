@@ -62,8 +62,37 @@ if (isset($_POST['form_type'])) {
         // Crear una instancia de la clase UsuarioGrupo
         $usuarioGrupo = new UsuarioGrupo($conn);
         $usuarioGrupo->gestionarUsuarioGrupo();  // Método para procesar el formulario de usuario-grupo
-
         
+    } elseif ($form_type === 'horario') {
+        // Crear una instancia de la clase Horario
+        $horario = new Horario($conn);
+        $horario->gestionarHorario();  // Método para procesar el formulario de horarios
+    } elseif ($form_type === 'borrar-horario') {
+        // Crear una instancia de la clase BorrarHorario
+        $borrarHorario = new BorrarHorario($conn);
+        $borrarHorario->eliminarHorario(); // Método para manejar el formulario de borrado de horarios
+    } elseif ($form_type === 'certificacion-usuario') {
+        $certificacionUsuario = new CertificacionUsuario($conn);
+        $certificacionUsuario->handleRequest(); // Nuevo método para manejar certificaciones
+        
+    } elseif ($form_type === 'actualizar-certificacion-usuario') {
+        // Crear una instancia de la clase ActualizarCertificacionUsuario para actualizar certificación
+        $actualizarCertificacionUsuario = new ActualizarCertificacionUsuario($conn);
+        $actualizarCertificacionUsuario->handleRequest(); // Método para actualizar la certificación
+
+    
+        
+    } elseif ($form_type === 'eliminar-certificacion-usuario') {
+        // Crear una instancia de la clase CertificacionUsuarioUpdate para actualizar certificaciones
+    $certificacionUsuarioDelete = new BorrarCertificacion($conn);
+    $certificacionUsuarioDelete->eliminarCertificacion();
+
+} elseif ($form_type === 'evaluacion-docente') {
+    // Crear una instancia de la clase EvaluacionDocentes
+    $evaluacionDocentes = new EvaluacionDocentes($conn);
+    $evaluacionDocentes->gestionarEvaluacion();  // Método para manejar el formulario de evaluación docente
+
+
     } else {
         // Manejar otros formularios o enviar un mensaje de error
         echo "Formulario no reconocido.";

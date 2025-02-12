@@ -42,6 +42,9 @@ if ($usuario_tipo == 1) {
 // Obtener las carreras
 $carreras = $consultas->obtenerCarreras();
 
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+
+$imgUser  = $consultas->obtenerImagen($idusuario);
 ?>
 
 
@@ -113,11 +116,13 @@ $carreras = $consultas->obtenerCarreras();
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="avatar avatar-sm mt-2">
-              <img src="./assets/avatars/face-1.jpg" alt="..." class="avatar-img rounded-circle">
-            </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar avatar-sm mt-2">
+                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                      alt="Avatar del usuario" 
+                      class="avatar-img rounded-circle" 
+                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+              </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -168,53 +173,73 @@ $carreras = $consultas->obtenerCarreras();
     </div>
 </div>
 
-    <table class="table datatables" id="dataTable-1">
-        <thead>
-            <tr>
-                <th>Tipo Incidencia</th>
-                <th>Usuario</th>
-                <th>Fecha Solicitada</th>
-                <th>Motivo</th>
-                <th>Horario Inicio</th>
-                <th>Horario Término</th>
-                <th>Horario Incidencia</th>
-                <th>Día Incidencia</th>
-                <th>Carrera</th>
-                <th>Validación por División Académica</th>
-                <th>Validación por Subdirección</th>
-                <th>Validación por Recursos Humanos</th>
-                <th>Estado de la Incidencia</th>
-            </tr>
-        </thead>
-        <tbody>
-          <?php // Función para obtener la clase de estado
-          function getStatus($validacionDivision, $validacionSubdireccion, $validacionRH) {
+<table class="table datatables" id="dataTable-1">
+    <thead>
+        <tr>
+            <th>Tipo Incidencia</th>
+            <th>Usuario</th>
+            <th>Fecha Solicitada</th>
+            <th>Motivo</th>
+            <th>Otros</th>
+            <th>Documento Médico</th>
+            <th>Horario Inicio</th>
+            <th>Horario Término</th>
+            <th>Horario Incidencia</th>
+            <th>Día Incidencia</th>
+            <th>Carrera</th>
+            <th>Validación por División Académica</th>
+            <th>Validación por Subdirección</th>
+            <th>Validación por Recursos Humanos</th>
+            <th>Estado de la Incidencia</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php 
+        function getStatus($validacionDivision, $validacionSubdireccion, $validacionRH) {
             if ($validacionDivision == 2 || $validacionSubdireccion == 2 || $validacionRH == 2) {
-                return 2; // Rechazado si alguna validación tiene 2
+                return 2; // Rechazado
             }
             if ($validacionDivision == 3 || $validacionSubdireccion == 3 || $validacionRH == 3) {
-                return 3; // Pendiente si alguna validación tiene 3
+                return 3; // Pendiente
             }
-            return 1; // Aceptado si todas las validaciones son 1
+            return 1; // Aceptado
         }
-function getStatusClass($status) {
-    switch ($status) {
-        case 1: 
-            return 'status-color-green'; // Aceptado
-        case 2:
-            return 'status-color-red'; // Rechazado
-        case 3:
-            return 'status-color-yellow'; // En espera
-        default:
-            return 'status-color-gray'; // Estado por defecto
-    }
-}?>
+
+        function getStatusClass($status) {
+            switch ($status) {
+                case 1: return 'status-color-green'; // Aceptado
+                case 2: return 'status-color-red';   // Rechazado
+                case 3: return 'status-color-yellow'; // En espera
+                default: return 'status-color-gray'; // Estado desconocido
+            }
+        }
+        ?>
+
         <?php foreach ($incidencias as $incidencia): ?>
             <tr>
                 <td><?php echo $incidencia['descripcion_incidencia']; ?></td>
                 <td><?php echo $incidencia['nombre_usuario'] . ' ' . $incidencia['apellido_paterno'] . ' ' . $incidencia['apellido_materno']; ?></td>
                 <td><?php echo $incidencia['fecha_solicitada']; ?></td>
                 <td><?php echo $incidencia['motivo']; ?></td>
+
+                <!-- Campo "Otros" -->
+                <td><?php echo !empty($incidencia['otro']) ? $incidencia['otro'] : '-'; ?></td>
+
+                <!-- Documento Médico -->
+<!-- Documento Médico -->
+<td class="text-center">
+    <?php if (!empty($incidencia['doc_medico'])): ?>
+        <!-- Ajustar la ruta -->
+        <?php 
+        $correctFilePath = str_replace('views/', '', $incidencia['doc_medico']); // Eliminar el '../' de la ruta
+        ?>
+        <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver Documento</a>
+    <?php else: ?>
+        No disponible
+    <?php endif; ?>
+</td>
+
+
                 <td><?php echo $incidencia['horario_inicio']; ?></td>
                 <td><?php echo $incidencia['horario_termino']; ?></td>
                 <td><?php echo $incidencia['horario_incidencia']; ?></td>
@@ -223,9 +248,7 @@ function getStatusClass($status) {
 
                 <!-- Validación División Académica -->
                 <td class="text-center">
-                    <?php
-                    $statusClass = getStatusClass($incidencia['validacion_division_academica']);
-                    ?>
+                    <?php $statusClass = getStatusClass($incidencia['validacion_division_academica']); ?>
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 2): ?>
                             onclick="validarIncidencia(this)"
@@ -237,12 +260,9 @@ function getStatusClass($status) {
                     </span>
                 </td>
 
-
                 <!-- Validación Subdirección -->
                 <td class="text-center">
-                    <?php
-                    $statusClass = getStatusClass($incidencia['validacion_subdireccion']);
-                    ?>
+                    <?php $statusClass = getStatusClass($incidencia['validacion_subdireccion']); ?>
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 7): ?>
                             onclick="validarIncidencia(this)"
@@ -256,13 +276,11 @@ function getStatusClass($status) {
 
                 <!-- Validación Recursos Humanos -->
                 <td class="text-center">
-                    <?php
-                    $statusClass = getStatusClass($incidencia['validacion_rh']);
-                    ?>
+                    <?php $statusClass = getStatusClass($incidencia['validacion_rh']); ?>
                     <span class="status-color <?php echo $statusClass; ?>"
                         <?php if ($usuario_tipo == 3): ?>
                             onclick="validarIncidencia(this)"
-                           data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
+                            data-incidencia-id="<?php echo $incidencia['id_incidencia_has_usuario']; ?>"
                             data-validacion="rh">
                         <?php else: ?>
                             <?php echo $statusClass; ?>
@@ -272,11 +290,8 @@ function getStatusClass($status) {
 
                 <!-- Estado -->
                 <td class="text-center">
-                    <?php
-                    $statusClass = getStatusClass($incidencia['status_incidencia_id']);
-                    ?>
-      <span class="status-color <?php echo $statusClass; ?>" data-status="<?php echo $incidencia['status_incidencia_id']; ?>"></span>
-
+                    <?php $statusClass = getStatusClass($incidencia['status_incidencia_id']); ?>
+                    <span class="status-color <?php echo $statusClass; ?>" data-status="<?php echo $incidencia['status_incidencia_id']; ?>"></span>
                 </td>
             </tr>
         <?php endforeach; ?>

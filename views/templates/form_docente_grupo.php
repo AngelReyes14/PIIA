@@ -6,6 +6,8 @@ include('aside.php');
 
 $idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
+$imgUser  = $consultas->obtenerImagen($idusuario);
+
 // Inicializa la respuesta por defecto
 $response = ['status' => 'error', 'message' => ''];
 
@@ -15,6 +17,7 @@ try {
     $consultas = new Consultas($conn);
     // Obtén las carreras
     $relaciones = $consultas->obtenerDocentesGrupos();
+    $carreras = $consultas->obtenerCarreras();
     $usuarios = $consultas->obtenerUsuariosDocentes();
     $grupos = $consultas->obtenerGrupos();
     $materias = $consultas->obtenerMaterias();
@@ -112,14 +115,14 @@ if (isset($_POST['logout'])) {
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
-          </a>
+        <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+                <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
+                    alt="Avatar del usuario" 
+                    class="avatar-img rounded-circle" 
+                    style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+            </span>
+        </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
             <a class="dropdown-item" href="#">Settings</a>
@@ -144,6 +147,22 @@ if (isset($_POST['logout'])) {
           <div class="d-flex justify-content-center align-items-center mb-3 col">
             <p class="titulo-grande"><strong>Asignar Grupos a Docentes</strong></p>
           </div>
+
+          <div class="col-md-12">
+            <div class="form-group">
+              <label for="carrera" class="form-label">Carrera:</label>
+              <select class="form-control" id="carrera" name="carrera" required>
+                <option value="">Selecciona una Carrera</option>
+                <?php foreach ($carreras as $carrera): ?>
+                  <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+                <?php endforeach; ?>
+              </select>
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+          </div>
+
+
+
           <form method="POST" action="../../models/insert.php">
     <input type="hidden" name="form_type" value="usuario-grupo">
     <div class="row">

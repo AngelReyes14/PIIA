@@ -12748,3 +12748,285 @@ a.uppy-Dashboard-poweredBy {
 .status-color-gray {
   background-color: gray;
 }
+
+
+/* Estilos del horario en modo oscuro */
+/* General */
+
+
+/* Estilos del horario en modo oscuro */
+/* General */
+/* Logo Institucional */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #1b1f23;
+  border-bottom: 3px solid #06753e; /* Verde principal */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.logo-container img {
+  max-width: 90px;
+  height: auto;
+}
+
+.titulo-container h1,
+.titulo-container h2 {
+  margin: 0;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+}
+
+.periodo-container p {
+  font-weight: bold;
+  color: #f7f7f7;
+  text-align: center;
+}
+
+/* Contenedor del Horario */
+.schedule-container {
+  background-color: #1e1e1e; /* Fondo principal oscuro */
+  border-radius: 8px; /* Bordes redondeados */
+  padding: 20px;
+  margin-top: 20px; /* Margen superior */
+  border: 1px solid #2b2b2b; /* Gris oscuro */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Sombra más definida */
+}
+
+/* Tabla */
+.schedule-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 8px; /* Bordes redondeados */
+  overflow: hidden; /* Ocultar bordes redondeados en celdas */
+}
+
+/* Encabezado */
+.schedule-container th {
+  background-color: #2a2d2e; /* Gris oscuro */
+  color: #a8e6cf; /* Verde claro sutil */
+  text-transform: uppercase;
+  font-weight: bold;
+  border-bottom: 2px solid #3a3d3a; /* Línea gris más clara */
+  padding: 12px;
+  font-size: 14px;
+}
+
+/* Celdas */
+.schedule-container td {
+  background-color: #2b2b2b; /* Gris medio */
+  color: #cfcfcf; /* Texto gris claro */
+  border: 1px solid #3a3d3a; /* Borde gris más claro */
+  padding: 10px;
+  transition: all 0.3s ease; /* Transición de todo (fondo y borde) */
+}
+
+/* Primera Columna (Horas) */
+.schedule-container td:first-child {
+  font-weight: bold;
+  background-color: #ffffff;
+  color: #ffffff;
+  border-right: 2px solid #3a3d3a; /* División gris más clara */
+}
+
+/* Filas Alternas */
+.schedule-container tr:nth-child(odd) td {
+  background-color: #242424; /* Gris más oscuro */
+}
+
+.schedule-container tr:nth-child(even) td {
+  background-color: #2b2b2b; /* Gris medio */
+}
+
+/* Hover en fila */
+.schedule-container tr:hover {
+  background-color: #1f3a33; /* Verde oscuro sutil */
+  color: #ffffff; /* Blanco */
+}
+
+/* Hover en celdas */
+.schedule-container tr:hover td {
+  background-color: #24342f; /* Verde grisáceo oscuro */
+  border-color: #a8e6cf; /* Borde verde claro */
+}
+
+/* Bordes verdes sutiles en celdas al hacer hover */
+.schedule-container td:hover {
+  border: 2px solid #a8e6cf; /* Borde verde completo al hacer hover */
+}
+
+/* Fondo de celdas con verde suave */
+.schedule-container td.green-background {
+  background-color: #2b3a32; /* Verde oscuro suave */
+  color: #a8e6cf; /* Verde claro */
+}
+
+.schedule-container td.green-background:hover {
+  background-color: #24342f; /* Verde grisáceo oscuro */
+}
+
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .schedule-container table {
+    font-size: 14px;
+  }
+
+  .schedule-container th,
+  .schedule-container td {
+    padding: 10px;
+  }
+}
+
+/* Botón */
+button#downloadPDF {
+  background-color: #1f3a33; /* Verde oscuro */
+  color: #e8f5e9; /* Texto blanco con tono verde */
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 20px auto;
+  display: block;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button#downloadPDF:hover {
+  background-color: #275342; /* Verde más claro */
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Firmas */
+.firmas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #1e1e1e; /* Fondo oscuro para resaltar el shadow */
+  border-radius: 10px; /* Opcional: bordes redondeados */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra más notoria */
+}
+
+.firma.pdf-mode p {
+  color: #000000 !important; /* Negro para PDF */
+}
+
+.firma p {
+  text-align: center;
+  margin: 5px 0;
+  font-weight: bold;
+  color:#ffffff;
+}
+button#downloadPDF {
+  padding: 10px 20px;
+  font-size: 13px;
+}
+
+
+/* Contenedor principal del docente */
+.docente-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 15px;
+}
+
+/* Texto del título */
+.docente-container .name-line {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* Imagen del docente */
+.docente-img {
+  max-width: 12rem; /* Ajusta el tamaño de la imagen */
+  height: 13rem;
+}
+
+
+/* Tabla de certificaciones */
+#dataTable-certificaciones {
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Encabezado de la tabla */
+#dataTable-certificaciones thead {
+  background: #27ae60; /* Verde más suave */
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Celdas de la tabla */
+#dataTable-certificaciones th, 
+#dataTable-certificaciones td {
+  padding: 12px 15px;
+  text-align: center;
+  word-wrap: break-word;
+  color: #ecf0f1; /* Gris claro */
+}
+
+
+/* Botones en la tabla */
+#dataTable-certificaciones a, 
+#dataTable-certificaciones .btn-warning, 
+#dataTable-certificaciones .btn-danger, 
+#dataTable-certificaciones form button { 
+  padding: 8px 15px; /* Espaciado uniforme */
+  border-radius: 8px; /* Bordes redondeados */
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  display: inline-block; /* Evita estiramientos */
+  text-align: center;
+  min-width: 120px; /* Asegura tamaño uniforme */
+  height: 38px; /* Mantiene la misma altura */
+  line-height: 1.2;
+}
+
+/* Asegurar que el botón dentro del formulario se vea igual */
+#dataTable-certificaciones form {
+  display: inline-block;
+  margin: 0; /* Elimina márgenes extras */
+}
+
+/* Espaciado entre los botones */
+#dataTable-certificaciones .btn-warning,
+#dataTable-certificaciones form {
+  margin-right: 1rem; /* Espacio entre botones */
+}
+
+/* Efecto hover */
+#dataTable-certificaciones .btn-warning:hover,
+#dataTable-certificaciones .btn-danger:hover {
+  opacity: 0.8;
+  transform: scale(1.05); /* Efecto ligero */
+}
+
+#dataTable-certificaciones a {
+  background: #27ae60;
+  color: white;
+}
+
+#dataTable-certificaciones a:hover {
+  background: #1e8449;
+}
+
+
+
+
+

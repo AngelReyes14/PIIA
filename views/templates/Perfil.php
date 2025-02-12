@@ -1,61 +1,65 @@
 <?php
 include('../../models/session.php');  
-include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
-include('../../models/consultas.php'); // Incluir la clase de consultas
+include('../../controllers/db.php'); 
+include('../../models/consultas.php'); 
 include('aside.php');
 
-
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['user_id'])) {
+  header("Location: ../templates/auth-login.php");
+  exit();
 }
-// El ID del usuario debe obtenerse ya desde session.php, por lo que no necesitamos repetir aquí el código para gestionar la sesión.
 
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
+$idusuario = $_SESSION['user_id'];
 
-$imgUser  = $consultas->obtenerImagen($idusuario);
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
-// Llamamos al método para obtener el usuario actual
+// Obtener la imagen del usuario
+$imgUser = $consultas->obtenerImagen($idusuario);
+$certificaciones = $consultas->obtenerCertificaciones();
+$certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
+
+
+
+// Obtener datos del usuario
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
-$carreraUsuario = $usuario['carrera_carrera_id']; // ID de la carrera del usuario
-// Verificamos si el resultado de $usuario está bien
-echo "<script>console.log('Usuario:', " . json_encode($usuario) . ");</script>";
+if (!$usuario) {
+  die("Error: No se pudo obtener la información del usuario.");
+}
 
-// Llamamos al método para obtener la carrera del usuario
+$carreraUsuario = $usuario['carrera_carrera_id'];
+
+// Obtener la carrera del usuario
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
-$profesores = $consultas->obtenerProfesores();
-// Verificamos si el resultado de $carrera está bien
-echo "<script>console.log('Carrera:', " . json_encode($carrera) . ");</script>";
-
-// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
-if ($carrera) {
+if (is_array($carrera) && !empty($carrera)) {
   $usuario = array_merge($usuario, $carrera);
 }
 
-// Verificamos si la fusión de los arrays está bien
-echo "<script>console.log('Usuario con Carrera:', " . json_encode($usuario) . ");</script>";
+// Obtener la lista de profesores
+$profesores = $consultas->obtenerProfesoresconCertificado();
 
-// Supongamos que la fecha de contratación viene del array $usuario
+// Calcular antigüedad
 $fechaContratacion = $usuario["fecha_contratacion"];
-
-// Convertimos la fecha de contratación en un objeto DateTime
 $fechaContratacionDate = new DateTime($fechaContratacion);
-
-// Obtenemos la fecha actual
 $fechaActual = new DateTime();
+$usuario['antiguedad'] = $fechaContratacionDate->diff($fechaActual)->y;
 
-// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
-$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
-
-// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
-$usuario['antiguedad'] = $antiguedad;
-
-// Verificamos el resultado final de $usuario
-echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usuario) . ");</script>";
+// Depuración (desactivar en producción)
+$debug = true;
+if ($debug) {
+  echo "<script>console.log('Usuario:', " . json_encode($usuario) . ");</script>";
+  echo "<script>console.log('Carrera:', " . json_encode($carrera) . ");</script>";
+  echo "<script>console.log('Usuario con Carrera:', " . json_encode($usuario) . ");</script>";
+}
 
 // Verificar si se ha enviado el formulario de cerrar sesión
+if (isset($_POST['logout'])) {
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+}
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -75,6 +79,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
   <link href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100;0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
   <!-- Icons CSS -->
   <link rel="stylesheet" href="css/feather.css">
+  <link rel="stylesheet" href="css/dataTables.bootstrap4.css">
   <link rel="stylesheet" href="css/select2.css">
   <link rel="stylesheet" href="css/dropzone.css">
   <link rel="stylesheet" href="css/uppy.min.css">
@@ -145,23 +150,25 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
     </nav>
 
     <main role="main" class="main-content">
-
-      <div class="container-fluid px-0">
-        <div class="card w-100" style="border:none;">
+      <div class="card p-4 mb-4 box-shadow-div">
+        <div class="row mb-3"> 
+        <div class="container p-4 mb-4 box-shadow-div">
           <div class="card-header" style="border:none;">
             <h2>Perfil del Usuario</h2>
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-12 col-md-5 col-xl-3 text-center">
-                <strong class="name-line text-start">Foto del Docente:</strong>
-                <br>
-                <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
+            <div class="col-12 col-md-4 docente-container">
+    <strong class="name-line bold">Foto del Docente:</strong>
+    <img src="<?= '../' . (!empty($usuario["imagen_url"]) ? htmlspecialchars($usuario["imagen_url"]) : 'default-image.png') ?>" 
+         alt="Imagen del docente" 
+         class="docente-img mt-2">
+    <div class="mt-2">
+        <button class="btn btn-primary btn-sm mt-3" id="changeProfilePictureBtn">Cambiar Imagen</button>
+    </div>
+</div>
 
-                <div class="mt-3">
-                  <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
-              </div>
+
 
               <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
@@ -183,107 +190,565 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                 </div>
               </div>
 
-              <div class="col-md-7 filter-container" style="position: relative; display: inline-block;">
+              <div class="col-md-8 filter-container" >
                 <div class="row mb-3">
-                  <div class="col-sm-6">
+                  <div class="col-sm-6 col-md-6">
                     <label class="form-label">Nombre:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre_usuario']) . ' ' . htmlspecialchars($usuario['apellido_p']) . ' ' . htmlspecialchars($usuario['apellido_m']); ?>" readonly>                  </div>
-                  <div class="col-sm-6">
+                  <div class="col-sm-6 col-md-6">
                     <label class="form-label">Correo Electrónico:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['correo']); ?>" readonly>
                   </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
+
+                  <div class="col-sm-6 col-md-6 mt-3">
                     <label class="form-label">Edad:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['edad']); ?>" readonly>
                   </div>
-                  <div class="col-sm-6">
+                  <div class="col-sm-6 col-md-6 mt-3">
                     <label class="form-label">Cédula:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula']); ?>" readonly>
                   </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
+
+
+                  <div class="col-sm-6 col-md-6 mt-3">
                     <label class="form-label">Fecha de Contratación:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['fecha_contratacion']); ?>" readonly>
                   </div>
-                  <div class="col-sm-6">
+                  <div class="col-sm-6 col-md-6 mt-3">
                     <label class="form-label">Grado Académico:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['grado_academico']); ?>" readonly>
                   </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
+
+
+                  <div class="col-sm-6 col-md-12 mt-3">
                     <label class="form-label">Antigüedad:</label>
                     <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario['antiguedad']); ?> años" readonly>
                   </div>
                 </div>
-              </div>
-              
 
+                  
+
+                </div>
+            </div>
             </div>
           </div>
         </div>
-      </div>
-      <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
-      <div class="container-fluid px-0">
-          <div id="cardProfesores" class="card text-center" style="border: none; ">
-            <div class="card-body">
-              <h5 class="card-title">Profesores</h5>
-              <div class="filter-container" style="position: relative; display: inline-block;">
-                <button id="filterBtn" class="btn btn-primary" style="margin-bottom: 10px;">Selecciona profesor</button>
-                <div id="filterOptions" class="filter-options">
-                  <select class="form-control" id="profesorSelect">
-                    <option value="" selected>Selecciona profesor</option>
-                    <?php foreach ($profesores as $profesor): ?>
-                      <?php if ($profesor['carrera_carrera_id'] == $carreraUsuario): // Filtrar profesores por carrera 
-                      ?>
-                        <?php
-                        $fechaContratacion = $profesor["fecha_contratacion"];
-                        $fechaContratacionDate = new DateTime($fechaContratacion);
-                        $fechaActual = new DateTime();
-                        $antiguedad = $fechaContratacionDate->diff($fechaActual)->y;
-                        $profesor['antiguedad'] = $antiguedad;
-                        ?>
-                        <option
-                          data-nombre="<?= htmlspecialchars($profesor['nombre_usuario']) ?>"
-                          data-apellido="<?= htmlspecialchars($profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>"
-                          data-correo="<?= htmlspecialchars($profesor['correo']) ?>"
-                          data-edad="<?= htmlspecialchars($profesor['edad']) ?>"
-                          data-cedula="<?= htmlspecialchars($profesor['cedula']) ?>"
-                          data-fecha="<?= htmlspecialchars($profesor['fecha_contratacion']) ?>"
-                          data-grado="<?= htmlspecialchars($profesor['grado_academico']) ?>"
-                          data-antiguedad="<?= htmlspecialchars($profesor['antiguedad']) ?>"
-                          data-imagen="<?= htmlspecialchars($profesor['imagen_url']) ?>">
-                          <?= htmlspecialchars($profesor['nombre_usuario'] . ' ' . $profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>
+        <?php if ($usuario['tipo_usuario_tipo_usuario_id'] == 1): ?>
+    <div class="row mt-4">
+      <div class="container p-4 mb-4 box-shadow-div">
+        <div class="col-md-12">
+          <div class="mb-4 text-center">
+            <h3>Registrar Certificación</h3>
+          </div>
+            <form method="POST" action="../../models/insert.php" enctype="multipart/form-data">
+    <input type="hidden" name="form_type" value="certificacion-usuario">
+    <input type="hidden" name="usuario_usuario_id" value="<?= htmlspecialchars($idusuario) ?>">
+
+    <div class="row mb-5">
+        <!-- Certificación -->
+        <div class="col-md-3">
+            <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
+            <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
+                <option value="" disabled selected>Selecciona una certificación</option>
+                <?php if ($certificaciones): ?>
+                    <?php foreach ($certificaciones as $certificacion): ?>
+                        <option value="<?= htmlspecialchars($certificacion['certificaciones_id']) ?>">
+                            <?= htmlspecialchars($certificacion['descripcion']) ?>
                         </option>
-                      <?php endif; ?>
                     <?php endforeach; ?>
-                  </select>
+                <?php else: ?>
+                    <option value="">No hay certificaciones disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
+        <div class="col-md-3">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
+        <!-- Nombre del Certificado -->
+        <div class="col-md-3">
+            <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
+            <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
+
+        <!-- Selección de archivo PDF -->
+        <div class="col-md-3" id="documentDiv">
+            <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
+            <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf" required>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+    </div>
+
+
+<div class="mt-3 text-center">
+    <button type="submit" class="btn btn-primary mt-3">Registrar Certificación</button>
+    </div>
+            </form>
+
+        </div>
+      </div>
+    </div>
+<!-- Mostrar las certificaciones en una sola card -->
+<div class="col-lg-12 col-md-12">
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
+            </div>
+            <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                    <thead>
+                        <tr>
+                            <th>Certificación</th>
+                            <th>Nombre del Certificado</th>
+                            <th>Mes</th> <!-- Nueva columna para los meses -->
+                            <th>Certificado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                                <tbody>
+                                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
+                                            <td class="text-center">
+                                                <?php if (!empty($certificacionusuario['url'])): ?>
+                                                    <?php 
+                                                    $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                                                    ?>
+                                                    <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a>
+                                                <?php else: ?>
+                                                    No disponible
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center">
+    <div class="d-flex justify-content-center">
+        <!-- Botón de actualizar certificado -->
+        <button class="btn btn-sm btn-warning" 
+                data-bs-toggle="modal" 
+                data-bs-target="#updateCertificacionModal"
+                data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+                data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+                data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+                data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
+                data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+            Actualizar
+        </button>
+
+        <!-- Botón de eliminar certificado -->
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
+            <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
+            <button class="btn btn-sm btn-danger " data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
+        </form>
+    </div>
+</td>
+
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="updateCertificacionModal" tabindex="-1" aria-labelledby="updateCertificacionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateCertificacionModalLabel">Actualizar Certificación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulario de actualización -->
+        <form method="POST" action="../../models/insert.php" enctype="multipart/form-data">
+          <input type="hidden" name="form_type" value="actualizar-certificacion-usuario">
+          <input type="hidden" name="usuario_usuario_id" value="<?= htmlspecialchars($idusuario) ?>">
+          <input type="hidden" name="certificacion_usuario_id" id="certificacion_usuario_id" value="">
+
+          <div class="row">
+            <!-- Certificación -->
+            <div class="col-md-6">
+              <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
+              <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
+                <option value="" disabled selected>Selecciona una certificación</option>
+                <?php if ($certificaciones): ?>
+                  <?php foreach ($certificaciones as $certificacion): ?>
+                    <option value="<?= htmlspecialchars($certificacion['certificaciones_id']) ?>">
+                      <?= htmlspecialchars($certificacion['descripcion']) ?>
+                    </option>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <option value="">No hay certificaciones disponibles</option>
+                <?php endif; ?>
+              </select>
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+
+            <div class="col-md-6">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+          </div>
+          <div class="row mt-3">
+            <!-- Nombre del Certificado -->
+            <div class="col-md-6 ">
+              <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
+              <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+
+            <!-- Selección de archivo PDF -->
+            <div class="col-md-6" id="documentDiv">
+              <label for="documentInput" class="form-label">Selecciona tu certificado PDF:</label>
+              <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf">
+              <input type="hidden" name="url_antigua" id="url_antigua" value="">
+              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+            </div>
+          </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary mt-3">Actualizar Certificación</button>
+          
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-bs-target='#updateCertificacionModal']").forEach(button => {
+        button.addEventListener("click", function () {
+// Obtener el modal
+            let modalElement = document.getElementById('updateCertificacionModal');
+            let modal = new bootstrap.Modal(modalElement);
+            modal.show(); // Mostrar el modal manualmente
+
+            // Obtener datos del botón
+            let certificacionId = this.getAttribute("data-certificacion-id") || "";
+            let certificacionesId = this.getAttribute("data-certificaciones-id") || "";
+            let nombreCertificado = this.getAttribute("data-nombre-certificado") || "";
+            let urlAntigua = this.getAttribute("data-url-antigua") || "";
+
+            // Asignar valores a los campos del modal
+            document.getElementById("certificacion_usuario_id").value = certificacionId;
+            document.getElementById("nombre_certificado").value = nombreCertificado;
+            document.getElementById("url_antigua").value = urlAntigua;
+
+            // Seleccionar la certificación correspondiente en el <select>
+            let selectCertificaciones = document.getElementById("certificaciones_certificaciones_id");
+            if (selectCertificaciones) {
+                for (let option of selectCertificaciones.options) {
+                    if (option.value === certificacionesId) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#updateCertificacionModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#updateCertificacionModal .btn-secondary"); 
+    const modal = document.getElementById("updateCertificacionModal");
+    
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
+
+
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var deleteButtons = document.querySelectorAll('.btn-danger'); // Asegúrate de que el botón de eliminar tenga esta clase
+
+    deleteButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            // Obtener el ID del certificado al que pertenece el botón de eliminar
+            var certificadoId = button.getAttribute('data-id'); 
+            // Asignar el ID al campo oculto de certificados_id
+            document.getElementById('certificados_id').value = certificadoId;
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
+    const modal = document.getElementById("changeImageModal");
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
+
+</script>
+<?php endif; ?>
+
+      </div>
+
+      <?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
+  <div class="card p-4 mb-4 box-shadow-div">
+    <div class="container p-4 mb-4">
+      <div id="cardProfesores" class="card p-4 mb-4 box-shadow-div text-center">
+        <h5 class="card-title mt-3">Profesores</h5>
+        <div class="filter-container">
+          <select class="form-control" id="profesorSelect">
+            <option value="" selected>Selecciona profesor</option>
+            <?php foreach ($profesores as $profesor): ?>
+              <?php if ($profesor['carrera_carrera_id'] == $carreraUsuario): ?>
+                <?php
+                $fechaContratacion = $profesor["fecha_contratacion"];
+                $fechaContratacionDate = new DateTime($fechaContratacion);
+                $fechaActual = new DateTime();
+                $antiguedad = $fechaContratacionDate->diff($fechaActual)->y;
+                $profesor['antiguedad'] = $antiguedad;
+                ?>
+                <option
+                  data-nombre="<?= htmlspecialchars($profesor['nombre_usuario']) ?>"
+                  data-apellido="<?= htmlspecialchars($profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>"
+                  data-correo="<?= htmlspecialchars($profesor['correo']) ?>"
+                  data-edad="<?= htmlspecialchars($profesor['edad']) ?>"
+                  data-cedula="<?= htmlspecialchars($profesor['cedula']) ?>"
+                  data-fecha="<?= htmlspecialchars($profesor['fecha_contratacion']) ?>"
+                  data-grado="<?= htmlspecialchars($profesor['grado_academico']) ?>"
+                  data-imagen="<?= htmlspecialchars($profesor['imagen_url']) ?>"
+                  data-certificaciones='<?= json_encode($profesor['certificaciones']) ?>'>
+                  <?= htmlspecialchars($profesor['nombre_usuario'] . ' ' . $profesor['apellido_p'] . ' ' . $profesor['apellido_m']) ?>
+                </option>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="card-header">
+          <h2>Perfil de docentes</h2>
+        </div>
+        
+        <div class="card-body">
+          <div class="row">
+            <div class="col-12 col-md-4 text-center hidden" id="profileContainer">
+              <strong class="name-line text-start">Foto del Docente:</strong>
+              <br>
+              <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
+            </div>
+            <div class="col-md-8">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre:</label>
+                  <input type="text" class="form-control" id="nombre" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Correo Electrónico:</label>
+                  <input type="text" class="form-control" id="correo" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Edad:</label>
+                  <input type="text" class="form-control" id="edad" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Cédula:</label>
+                  <input type="text" class="form-control" id="cedula" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Fecha de Contratación:</label>
+                  <input type="text" class="form-control" id="fechaContratacion" value="" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Grado Académico:</label>
+                  <input type="text" class="form-control" id="gradoAcademico" value="" readonly>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label">Antigüedad:</label>
+                  <input type="text" class="form-control" id="antiguedad" value="" readonly>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-center align-items-center mb-3 col">
+      <p class="titulo-grande"><strong>Certificaciones del Profesor</strong></p>
+    </div>
+    <div class="row my-4">
+      <div class="col-md-12">
+        <!-- Eliminar la tarjeta interna extra, manteniendo solo la tarjeta principal -->
+        <table class="table datatables" id="dataTable-certificaciones">
+          <thead>
+            <tr>
+              <th>Certificación</th>
+              <th>Nombre del Certificado</th>
+              <th>Certificado</th>
+            </tr>
+          </thead>
+          <tbody id="certificacionesBody">
+            <!-- Aquí se insertarán las certificaciones dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
+
+        <script>
+document.getElementById('profesorSelect').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const certificacionesBody = document.getElementById('certificacionesBody');
+
+    if (!selectedOption.value) {
+        document.getElementById('profesorImagen').src = '../default-image.png';
+        document.getElementById('nombre').value = '';
+        document.getElementById('correo').value = '';
+        document.getElementById('edad').value = '';
+        document.getElementById('cedula').value = '';
+        document.getElementById('fechaContratacion').value = '';
+        document.getElementById('gradoAcademico').value = '';
+        certificacionesBody.innerHTML = '<tr><td colspan="3" class="text-center">No hay certificaciones disponibles</td></tr>';
+    } else {
+        document.getElementById('profesorImagen').src = '../' + selectedOption.getAttribute('data-imagen');
+        document.getElementById('nombre').value = selectedOption.getAttribute('data-nombre') + ' ' + selectedOption.getAttribute('data-apellido');
+        document.getElementById('correo').value = selectedOption.getAttribute('data-correo');
+        document.getElementById('edad').value = selectedOption.getAttribute('data-edad');
+        document.getElementById('cedula').value = selectedOption.getAttribute('data-cedula');
+        document.getElementById('fechaContratacion').value = selectedOption.getAttribute('data-fecha');
+        document.getElementById('gradoAcademico').value = selectedOption.getAttribute('data-grado');
+
+        // Obtener certificaciones
+        const certificaciones = JSON.parse(selectedOption.getAttribute('data-certificaciones') || "[]");
+        certificacionesBody.innerHTML = ''; // Limpiar la tabla antes de agregar nuevas filas
+
+        if (certificaciones.length > 0) {
+            certificaciones.forEach(cert => {
+                const filePath = cert.url.replace('views/', ''); // Ajustar ruta del archivo
+                const row = `
+                    <tr>
+                        <td>${cert.certificacion_nombre}</td> <!-- Cambié de 'certificacion_descripcion' a 'certificacion_nombre' si es necesario -->
+                        <td>${cert.nombre_certificado}</td>
+                        <td class="text-center">
+                            ${cert.url ? `<a href="${filePath}" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a>` : 'No disponible'}
+                        </td>
+                    </tr>
+                `;
+                certificacionesBody.innerHTML += row;
+            });
+        } else {
+            certificacionesBody.innerHTML = '<tr><td colspan="3" class="text-center">No hay certificaciones disponibles</td></tr>';
+        }
+    }
+});
 
 
-        <div class="card w-100" style="border:none;">
-          <div class="card-header" style="border:none;">
-            <h2>Perfil de docentes</h2>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-12 col-md-5 col-xl-3 text-center hidden" id="profileContainer">
-                <strong class="name-line text-start">Foto del Docente:</strong>
-                <br>
-                <img src="./assets/avatars/default.jpg" alt="Imagen del docente" class="img-fluid tamanoImg" id="profesorImagen">
-                <div class="mt-3">
-                  <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
-              </div>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
+    const modal = document.getElementById("changeImageModal");
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
+</script>
 
 
-              <script>
+      
+
+        <script>
                 $(document).ready(function() {
                   $('#profesorSelect').change(function() {
                     const selectedOption = $(this).find('option:selected');
@@ -293,108 +758,57 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
                   });
                 });
               </script>
-
-
-              <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="changeImageModalLabel">Cambiar Imagen de Perfil</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <form id="changeProfilePictureForm" action="subir_imagen.php" method="POST" enctype="multipart/form-data">
-                        <div class="mb-3">
-                          <label for="profilePictureInput" class="form-label">Selecciona una nueva imagen</label>
-                          <input class="form-control" type="file" id="profilePictureInput" name="profile_picture" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-7">
-                <div class="row mb-3">
-                  <div class="col-sm-6">
-                    <label class="form-label">Nombre:</label>
-                    <input type="text" class="form-control" id="nombre" value="" readonly>
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label">Correo Electrónico:</label>
-                    <input type="text" class="form-control" id="correo" value="" readonly>
-                  </div>
-
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
-                    <label class="form-label">Edad:</label>
-                    <input type="text" class="form-control" id="edad" value="" readonly>
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label">Cédula:</label>
-                    <input type="text" class="form-control" id="cedula" value="" readonly>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
-                    <label class="form-label">Fecha de Contratación:</label>
-                    <input type="text" class="form-control" id="fechaContratacion" value="" readonly>
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label">Grado Académico:</label>
-                    <input type="text" class="form-control" id="gradoAcademico" value="" readonly>
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-sm-6">
-                    <label class="form-label">Antigüedad:</label>
-                    <input type="text" class="form-control" id="antiguedad" value="" readonly>
-                  </div>
-                </div>
-              </div>
-              <script>
-                document.getElementById('profesorSelect').addEventListener('change', function() {
-                  // Obtener el profesor seleccionado
-                  const selectedOption = this.options[this.selectedIndex];
-
-                  // Si no se selecciona ningún profesor específico
-                  if (!selectedOption.value) {
-                    // Poner todos los campos en blanco y una imagen predeterminada o vacía
-                    document.getElementById('profesorImagen').src = '../default-image.png';
-                    document.getElementById('nombre').value = '';
-                    document.getElementById('correo').value = '';
-                    document.getElementById('edad').value = '';
-                    document.getElementById('cedula').value = '';
-                    document.getElementById('fechaContratacion').value = '';
-                    document.getElementById('gradoAcademico').value = '';
-                    document.getElementById('antiguedad').value = '';
-                  } else {
-                    // Mostrar datos del profesor seleccionado
-                    document.getElementById('profesorImagen').src = '../' + selectedOption.getAttribute('data-imagen');
-                    document.getElementById('nombre').value = selectedOption.getAttribute('data-nombre') + ' ' + selectedOption.getAttribute('data-apellido');
-                    document.getElementById('correo').value = selectedOption.getAttribute('data-correo');
-                    document.getElementById('edad').value = selectedOption.getAttribute('data-edad');
-                    document.getElementById('cedula').value = selectedOption.getAttribute('data-cedula');
-                    document.getElementById('fechaContratacion').value = selectedOption.getAttribute('data-fecha');
-                    document.getElementById('gradoAcademico').value = selectedOption.getAttribute('data-grado');
-                    document.getElementById('antiguedad').value = selectedOption.getAttribute('data-antiguedad') + ' años';
-                  }
-                });
-              </script>
-
-
-
-
-
-            </div>
-          </div>
-        </div>
-        <?php endif; ?>
-        
       </div>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get("status");
+        const action = urlParams.get("action");
 
+        if (status === "success") {
+            let message = "";
+            let title = "¡Éxito!";
+            let icon = "success";
+
+            switch (action) {
+                case "insert":
+                    message = "La certificación ha sido añadida correctamente.";
+                    break;
+                case "update":
+                    message = "La certificación ha sido actualizada con éxito.";
+                    break;
+                case "delete":
+                    message = "La certificación ha sido eliminada exitosamente.";
+                    break;
+                default:
+                    message = "Operación completada con éxito.";
+                    break;
+            }
+
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: icon,
+                confirmButtonText: "OK"
+            }).then(() => {
+                // Limpiar la URL después de mostrar el mensaje
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        } else if (status === "error") {
+            Swal.fire({
+                title: "¡Error!",
+                text: "Hubo un problema con la operación.",
+                icon: "error",
+                confirmButtonText: "OK"
+            }).then(() => {
+                window.history.replaceState(null, null, window.location.pathname);
+            });
+        }
+    });
+</script>
+
+    </main>
       <!-- Contenido de la página -->
 
       <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
@@ -523,6 +937,11 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
           </div>
         </div>
       </div>
+      <!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+<!-- DataTables Bootstrap4 JS -->
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
       <script src="js/jquery.min.js"></script>
       <script src="js/popper.min.js"></script>
       <script src="js/moment.min.js"></script>
@@ -640,10 +1059,10 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
         }, cb);
         cb(start, end);
         $('.input-placeholder').mask("00/00/0000", {
-          placeholder: "__/__/____"
+          placeholder: "_//_"
         });
         $('.input-zip').mask('00000-000', {
-          placeholder: "____-___"
+          placeholder: "_-__"
         });
         $('.input-money').mask("#.##0,00", {
           reverse: true
@@ -657,7 +1076,7 @@ echo "<script>console.log('Usuario final con antigüedad:', " . json_encode($usu
               optional: true
             }
           },
-          placeholder: "___.___.___.___"
+          placeholder: "_._._._"
         });
         // editor
         var editor = document.getElementById('editor');

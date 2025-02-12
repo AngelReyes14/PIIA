@@ -8,6 +8,149 @@ class Consultas {
         $this->conn = $dbConnection;
     }
     
+// Método para obtener el horario filtrado por periodo, usuarioId y carrera
+public function obtenerHorario($periodo, $usuarioId, $carrera) {
+    try {
+        // SQL con los LEFT JOIN, manteniendo las ID y añadiendo las descripciones
+        $sql = "SELECT h.horario_id, h.horas_horas_id, ho.horas_id, ho.descripcion AS hora, 
+                       d.dias_id, d.descripcion AS dia,
+                       m.materia_id, m.descripcion AS materia, 
+                       g.grupo_id, g.descripcion AS grupo, 
+                       s.salon_id, s.descripcion AS salon
+                FROM horario h
+                LEFT JOIN horas ho ON h.horas_horas_id = ho.horas_id
+                LEFT JOIN dias d ON h.dias_dias_id = d.dias_id
+                LEFT JOIN materia m ON h.materia_materia_id = m.materia_id
+                LEFT JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                LEFT JOIN salones s ON h.salones_salon_id = s.salon_id
+                WHERE h.periodo_periodo_id = :periodo
+                  AND h.usuario_usuario_id = :usuarioId
+                  AND h.carrera_carrera_id = :carrera
+                ORDER BY h.horas_horas_id, d.dias_id;";
+
+        // Preparar la consulta
+        $stmt = $this->conn->prepare($sql);
+
+        // Enlazar los parámetros
+        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+
+        // Ejecutar la consulta
+        $stmt->execute();
+
+        // Retornar los resultados como un arreglo asociativo
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        // Manejo de errores
+        error_log("Error al obtener horario: " . $e->getMessage());
+        return []; // Retorna un arreglo vacío en caso de error
+    }
+}
+
+public function obtenerMeses() {
+    $query = "SELECT meses_id, descripcion FROM meses";
+    $result = $this->conn->query($query);
+
+    $mes = [];
+    if ($result) {
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+            $meses[] = $row;
+        }
+    }
+    return $meses;
+}
+
+public function obtenerCertificacionesPorUsuario($usuarioId) {
+    try {
+
+        $sql = "SELECT c.certificados_id, c.certificaciones_certificaciones_id, 
+                       c.usuario_usuario_id, c.meses_meses_id, c.nombre_certificado, c.url, 
+                       cert.descripcion AS certificacion_descripcion,
+                       m.descripcion AS meses_descripcion
+                FROM certificaciones_has_usuario c
+                INNER JOIN certificaciones cert ON c.certificaciones_certificaciones_id = cert.certificaciones_id
+                INNER JOIN meses m ON c.meses_meses_id = m.meses_id
+                WHERE c.usuario_usuario_id = :usuarioId
+                ORDER BY c.certificados_id";
+                
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error al obtener certificaciones: " . $e->getMessage());
+        return []; // Retorna un arreglo vacío en caso de error
+    }
+}
+
+
+
+public function obtenerCertificacionesTipo2($cert_id) {
+    $query = "
+        SELECT 
+            chu.nombre_certificado, 
+            m.descripcion AS nombre_mes, 
+            CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo
+        FROM certificaciones_has_usuario chu
+        INNER JOIN mes m ON chu.mes_id = m.mes_id
+        INNER JOIN usuario u ON chu.usuario_usuario_id = u.usuario_id
+        WHERE chu.certificaciones_certificaciones_id = :cert_id
+        ORDER BY u.usuario_id, chu.mes_id
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':cert_id', $cert_id, PDO::PARAM_INT); // Vincula el parámetro para evitar SQL Injection
+    
+    $stmt->execute();
+    
+    $certificados = [];
+    if ($stmt) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $certificados[] = $row;
+        }
+    }
+    return $certificados;
+}
+
+
+     // Método para obtener horario filtrado por periodo, carrera y usuario
+     public function obtenerHorarioPorFiltros($periodo_id, $carrera_id, $docente_id, $dia_id, $hora_id) {
+        $query = "SELECT materia_materia_id, grupo_grupo_id, salones_salon_id 
+                  FROM horario
+                  WHERE periodo_periodo_id = :periodo_id
+                    AND carrera_carrera_id = :carrera_id
+                    AND usuario_usuario_id = :docente_id
+                    AND dias_dias_id = :dia_id
+                    AND horas_horas_id = :hora_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+        $stmt->bindParam(':docente_id', $docente_id, PDO::PARAM_INT);
+        $stmt->bindParam(':dia_id', $dia_id, PDO::PARAM_INT);
+        $stmt->bindParam(':hora_id', $hora_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve el primer registro que coincida
+    }
+
+    public function obtenerCertificacionPorFiltros($certificacion_id, $usuario_id, $tipo_certificado_id) {
+        $query = "SELECT url 
+                  FROM certificaciones_has_usuario
+                  WHERE certificaciones_certificaciones_id = :certificacion_id
+                    AND usuario_usuario_id = :usuario_id";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_id', $certificacion_id, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve el primer registro que coincida
+    }
+    
+    
     public function obtenerIncidencias() {
         $query = "SELECT * FROM incidencia"; // Asegúrate de cambiar esto según la estructura de tu tabla
         $stmt = $this->conn->prepare($query);
@@ -15,6 +158,44 @@ class Consultas {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    public function IncidenciasCarreraGrafic()
+{
+    $sql = "
+        SELECT 
+    c.nombre_carrera, 
+    COUNT(*) AS cantidad_registros,
+    (COUNT(*) / (SELECT COUNT(*) FROM incidencia_has_usuario)) * 100 AS porcentaje
+FROM incidencia_has_usuario ihu
+JOIN carrera c ON c.carrera_id = ihu.carrera_carrera_id
+GROUP BY c.carrera_id
+LIMIT 0, 1000;
+
+
+    ";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+    
+    public function obtenerCertificaciones() {
+        $query = "SELECT certificaciones_id, descripcion FROM certificaciones ORDER BY descripcion ASC";
+        $result = $this->conn->query($query);
+    
+        $certificaciones = [];
+        if ($result) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                $certificaciones[] = $row;
+            }
+        }
+        return $certificaciones;
+    }
+    
+
     // Método en la clase Consultas para obtener períodos
     public function obtenerPeriodos() {
         $query = "SELECT periodo_id, descripcion, fecha_inicio, fecha_termino FROM periodo ORDER BY fecha_inicio DESC"; // Ajusta la consulta según tu tabla
@@ -29,6 +210,8 @@ class Consultas {
         return $periodos;
     }
     
+
+
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -44,6 +227,31 @@ class Consultas {
 
     public function verUsuariosCarreras(){
         $query = "SELECT * FROM vista_usuario_carrera";  // Cambia el nombre de la vista
+        $stmt = $this->conn->prepare($query);
+        try {
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Devuelve todas las filas como un array asociativo
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;  // Devuelve false si ocurre algún error
+        }
+    }
+
+
+    public function verUsuariosGrupos(){
+        $query = "SELECT 
+        u.nombre_usuario,
+        g.descripcion AS nombre_grupo,
+        m.descripcion AS nombre_materia
+        FROM 
+        usuario_has_grupo ug
+        JOIN 
+        usuario u ON ug.usuario_usuario_id = u.usuario_id
+        JOIN 
+        grupo g ON ug.grupo_grupo_id = g.grupo_id
+        JOIN 
+        vista_materias m ON ug.materia_materia_id = m.materia_id;
+";  // Cambia el nombre de la vista
         $stmt = $this->conn->prepare($query);
         try {
             $stmt->execute();
@@ -79,6 +287,46 @@ class Consultas {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerProfesoresconCertificado() {
+        $sql = "SELECT u.*, 
+                       GROUP_CONCAT(c.descripcion) AS certificaciones_nombres, 
+                       GROUP_CONCAT(chu.nombre_certificado) AS nombres_certificados, 
+                       GROUP_CONCAT(chu.url) AS urls_certificados
+                FROM usuario u
+                LEFT JOIN certificaciones_has_usuario chu ON u.usuario_id = chu.usuario_usuario_id
+                LEFT JOIN certificaciones c ON chu.certificaciones_certificaciones_id = c.certificaciones_id
+                WHERE u.tipo_usuario_tipo_usuario_id = 1
+                GROUP BY u.usuario_id";
+    
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $profesores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        // Procesar las certificaciones para cada profesor
+        foreach ($profesores as &$profesor) {
+            $certificaciones = [];
+    
+            if (!empty($profesor['certificaciones_nombres'])) {
+                $nombresCertificaciones = explode(',', $profesor['certificaciones_nombres']);
+                $nombres = explode(',', $profesor['nombres_certificados']);
+                $urls = explode(',', $profesor['urls_certificados']);
+    
+                foreach ($nombresCertificaciones as $index => $certificacionNombre) {
+                    $certificaciones[] = [
+                        'certificacion_nombre' => $certificacionNombre,
+                        'nombre_certificado' => $nombres[$index],
+                        'url' => $urls[$index]
+                    ];
+                }
+            }
+    
+            // Agregar certificaciones al profesor
+            $profesor['certificaciones'] = $certificaciones;
+        }
+    
+        return $profesores;
+    }
+    
     public function verMaterias(){
         $query = "SELECT * FROM vista_materias";
         $stmt = $this->conn->prepare($query);
@@ -299,7 +547,67 @@ public function obtenerCarreraPorUsuario($idusuario) {
         }
     }
     
-    
+        
+    public function obtenerDocentesPorCarrera($carrera_id) {
+        // Consulta para obtener usuarios asociados a una carrera específica
+        $query = "SELECT 
+        u.usuario_id,
+        CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo,
+        u.edad,
+        u.correo,
+        u.fecha_contratacion,
+        u.numero_empleado,
+        u.grado_academico,
+        u.cedula,
+        u.imagen_url,
+        u.sexo_sexo_id,
+        u.status_status_id,
+        u.tipo_usuario_tipo_usuario_id,
+        u.cuerpo_colegiado_cuerpo_colegiado_id,
+        u.carrera_carrera_id,
+        c.carrera_id,
+        c.nombre_carrera 
+      FROM 
+        vista_usuarios u
+      JOIN 
+        carrera c ON u.carrera_carrera_id = c.carrera_id
+      WHERE 
+        c.carrera_id = :carrera_id AND u.tipo_usuario_tipo_usuario_id = 1"; // Filtra por tipo_usuario = 1 (docente)
+
+$stmt = $this->conn->prepare($query);
+$stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
+try {
+$stmt->execute(); // Ejecutamos la consulta
+return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
+} catch (PDOException $e) {
+return ['error' => 'Error en la consulta: ' . $e->getMessage()]; // Devolvemos el error
+}
+}
+
+public function obtenerEvaluacionesPorDocenteYPeriodo($usuario_id, $periodo_id) {
+    // Consulta para obtener las evaluaciones de un docente en un periodo específico
+    $query = "SELECT 
+                evaluacion_tecnm, 
+                evaluacion_estudiantil
+              FROM 
+                evaluaciones
+              WHERE 
+                usuario_usuario_id = :usuario_id
+              AND 
+                periodo_periodo_id = :periodo_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+    $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+    try {
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna los resultados como un array asociativo
+    } catch (PDOException $e) {
+        return ['error' => 'Error en la consulta: ' . $e->getMessage()];
+    }
+}
+
+
     
     public function obtenerTodosLosUsuarios() {
         $sql = "SELECT * FROM vista_usuarios";
@@ -429,9 +737,9 @@ public function obtenerEdificio() {
     }
 
 public function obtenerSalones() {
-    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio 
+    $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio, s.capacidad
             FROM salones s 
-            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id";
+            JOIN edificios e ON s.edificios_id_edificio = e.edificio_id;";
     $stmt = $this->conn->query($sql);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -451,6 +759,26 @@ public function obtenerSalones() {
                     imagen_url
                   FROM usuario
                   WHERE tipo_usuario_tipo_usuario_id = 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerUsuariosJefesdeDivision() {
+        $query = "SELECT 
+                    usuario_id, 
+                    nombre_usuario, 
+                    apellido_p, 
+                    apellido_m, 
+                    edad, 
+                    correo, 
+                    fecha_contratacion, 
+                    numero_empleado, 
+                    grado_academico, 
+                    cedula, 
+                    imagen_url
+                  FROM usuario
+                  WHERE tipo_usuario_tipo_usuario_id = 2";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -727,21 +1055,22 @@ class Grupo {
         session_start(); // Iniciar la sesión
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar que los campos no estén vacíos
+            // Obtener y validar los campos del formulario
             $descripcion = trim($_POST['grupo']);
             $semestre_id = intval($_POST['semestre']);
             $turno_id = intval($_POST['turno']);
             $periodo_id = intval($_POST['periodo']);
             $salon_id = intval($_POST['salon']);
+            $cantidad_alumnos = intval($_POST['cantidad_alumnos']); // Nuevo campo
 
-            // Validar los campos
-            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id)) {
+            // Validar que los campos no estén vacíos
+            if (empty($descripcion) || empty($semestre_id) || empty($turno_id) || empty($periodo_id) || empty($salon_id) || empty($cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?error=campos_vacios");
                 exit();
             }
 
             // Si todos los campos son válidos, insertar el grupo en la base de datos
-            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id)) {
+            if ($this->insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos)) {
                 header("Location: ../views/templates/formulario_grupo.php?success=true");
                 exit();
             } else {
@@ -751,9 +1080,9 @@ class Grupo {
         }
     }
 
-    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id) {
-        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones) 
-                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id)";
+    private function insertarGrupo($descripcion, $semestre_id, $turno_id, $periodo_id, $salon_id, $cantidad_alumnos) {
+        $sql = "INSERT INTO grupo (descripcion, semestre_semestre_id, turno_idturno, periodo_periodo_id, salones_id_salones, cantidad_alumnos) 
+                VALUES (:descripcion, :semestre_id, :idturno, :periodo_id, :salon_id, :cantidad_alumnos)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
@@ -761,6 +1090,7 @@ class Grupo {
         $stmt->bindParam(':idturno', $turno_id, PDO::PARAM_INT);
         $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
         $stmt->bindParam(':salon_id', $salon_id, PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad_alumnos', $cantidad_alumnos, PDO::PARAM_INT);
 
         try {
             $stmt->execute();
@@ -774,6 +1104,7 @@ class Grupo {
         }
     }
 }
+
 
 
 
@@ -1180,6 +1511,7 @@ class IncidenciaUsuario {
             $incidenciaId = $_POST['incidencias'];
             $usuarioId = $_POST['usuario-servidor-publico']; 
             $fechaSolicitada = $_POST['fecha'];
+            $otro = $_POST['otro'];
             $motivo = $_POST['motivo'];
             $horarioInicio = $_POST['start-time'];
             $horarioTermino = $_POST['end-time'];
@@ -1187,28 +1519,66 @@ class IncidenciaUsuario {
             $diaIncidencia = $_POST['dia-incidencia']; 
             $carreraId = $_POST['area'];
             $status_incidencia_id = $_POST['status_incidencia_id'] ?? 3;
-
+    
             // Validar los datos (ejemplo básico, se puede expandir)
             if (empty($incidenciaId) || empty($usuarioId) || empty($fechaSolicitada) || empty($motivo)) {
                 echo "Por favor, completa todos los campos requeridos.";
                 return;
             }
-
-            // Insertar los datos en la base de datos
-            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id);
+    
+            // Manejo de archivo (documento)
+            $filePath = null; // Inicializar en null
+            if (isset($_FILES['documento']) && $_FILES['documento']['error'] === UPLOAD_ERR_OK) {
+                // Obtener detalles del archivo
+                $fileTmpPath = $_FILES['documento']['tmp_name'];
+                $fileName = $_FILES['documento']['name'];
+                $fileSize = $_FILES['documento']['size'];
+                $fileType = $_FILES['documento']['type'];
+    
+                // Obtener la extensión del archivo
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = $fileInfo['extension']; // Extensión del archivo
+    
+                // Generar una ruta de archivo única dentro de la estructura de directorios solicitada
+                $uploadDir = __DIR__ . '/../views/templates/assets/doc_medicos/'; // Carpeta dentro del proyecto
+                $filePath = $this->generateUniqueFileName('cita-medica', $fileExtension, $uploadDir);
+    
+                // Verificar si la carpeta existe y tiene permisos adecuados
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true); // Crear la carpeta si no existe
+                }
+    
+                // Mover el archivo a la carpeta de destino
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
+                    echo "El archivo se ha subido correctamente.";
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+    
+            // Si no se sube archivo, se deja en null
+            $relativeFilePath = $filePath ? '../views/templates/assets/doc_medicos/' . $filePath : null;
+    
+            // Insertar los datos en la base de datos, incluyendo la ruta del archivo
+            $this->insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $relativeFilePath);
         }
     }
+    
 
-    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id) {
+    private function insertIncidenciaUsuario($incidenciaId, $usuarioId, $fechaSolicitada, $otro, $motivo, $horarioInicio, $horarioTermino, $horario_incidencia, $diaIncidencia, $carreraId, $status_incidencia_id, $filePath) {
         $validacionDivicionAcademica = 3;
         $validacionSubdireccion = 3;
         $validacionRH = 3;
 
+        // Inserción en la base de datos, incluyendo la ruta del archivo
         $query = "INSERT INTO incidencia_has_usuario (
                     incidencia_incidenciaid,
                     usuario_usuario_id,
                     fecha_solicitada,
+                    otro,
                     motivo,
+                    doc_medico,
                     horario_inicio,
                     horario_termino,
                     horario_incidencia,
@@ -1222,7 +1592,9 @@ class IncidenciaUsuario {
                     :incidencia_id,
                     :usuario_id,
                     :fecha_solicitada,
+                    :otro,
                     :motivo,
+                    :doc_medico,
                     :horario_inicio,
                     :horario_termino,
                     :horario_incidencia,
@@ -1238,7 +1610,9 @@ class IncidenciaUsuario {
         $stmt->bindParam(':incidencia_id', $incidenciaId);
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->bindParam(':fecha_solicitada', $fechaSolicitada);
+        $stmt->bindParam(':otro', $otro);
         $stmt->bindParam(':motivo', $motivo);
+        $stmt->bindParam(':doc_medico', $filePath); // Aquí guardamos la ruta relativa del archivo
         $stmt->bindParam(':horario_inicio', $horarioInicio);
         $stmt->bindParam(':horario_termino', $horarioTermino);
         $stmt->bindParam(':horario_incidencia', $horario_incidencia);
@@ -1259,7 +1633,22 @@ class IncidenciaUsuario {
             exit();
         }
     }
+
+    // Generar un nombre único para el archivo con formato cita-medica-(numero).pdf
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        // Verificar si el archivo ya existe, incrementar el contador si es necesario
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
 }
+
+
+
 
 class CarreraManager
 {
@@ -1473,43 +1862,6 @@ class Edificio {
         $this->conn = $dbConnection;
     }
 
-    public function handleFormSubmission() {
-        session_start(); // Iniciar la sesión
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $descripcion = trim($_POST['nombre_edificio']); // Solo el campo `descripcion`
-
-            // Registrar los datos para depuración
-            error_log("Descripción: $descripcion");
-
-            // Validar que el campo no esté vacío
-            if (empty($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?error=campo_vacio");
-                exit();
-            }
-
-            // Insertar el edificio en la base de datos
-            if ($this->insertarEdificio($descripcion)) {
-                header("Location: ../views/templates/form_edificio.php?success=true");
-                exit();
-            } else {
-                header("Location: ../views/templates/form_edificio.php?error=insert");
-                exit();
-            }
-        } else {
-            // Si no es una solicitud POST, redirigir o manejar el error
-            header("Location: ../views/templates/form_edificio.php?error=invalid_request");
-            exit();
-        }
-    }
-
-class Edificio {
-    private $conn;
-
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
-    }
-
     public function gestionarEdificio() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
@@ -1533,7 +1885,6 @@ class Edificio {
         }
     }
 }
-
 class Salon {
     private $conn;
 
@@ -1545,17 +1896,20 @@ class Salon {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $descripcion = $_POST['descripcion'];
             $edificioId = $_POST['edificios_id_edificio'];
+            $capacidad = $_POST['capacidad']; // Nuevo campo capacidad
 
-            $this->insertarSalon($descripcion, $edificioId);
+            $this->insertarSalon($descripcion, $edificioId, $capacidad);
         }
     }
 
-    private function insertarSalon($descripcion, $edificioId) {
-        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio) VALUES (:descripcion, :edificioId)";
+    private function insertarSalon($descripcion, $edificioId, $capacidad) {
+        $sql = "INSERT INTO salones (descripcion, edificios_id_edificio, capacidad) 
+                VALUES (:descripcion, :edificioId, :capacidad)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':descripcion', $descripcion);
         $stmt->bindParam(':edificioId', $edificioId);
+        $stmt->bindParam(':capacidad', $capacidad);
 
         try {
             $stmt->execute();
@@ -1565,7 +1919,8 @@ class Salon {
             header("Location: ../views/templates/form_salon.php?success=false");
         }
     }
-}   
+}
+
 
 class UsuarioGrupo {
     private $conn;
@@ -1606,3 +1961,583 @@ class UsuarioGrupo {
     }
 }
 
+
+class Horario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarHorario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Extraer datos del formulario
+            $periodoId = $_POST['periodo_periodo_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $carreraId = $_POST['carrera_carrera_id'];
+            $diaId = $_POST['dias_dias_id'];
+            $horaId = $_POST['horas_horas_id'];
+            $salonId = $_POST['salon_salon_id'];
+            $grupoId = $_POST['grupo_grupo_id'];
+            $materiaId = $_POST['materia_materia_id'];
+
+            // Verificar si el horario ya existe
+            if ($this->existeHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId)) {
+                // Si el horario ya existe, actualizamos los campos necesarios
+                $this->actualizarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+            } else {
+                // Si el horario no existe, insertamos uno nuevo
+                $this->insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId);
+            }
+        }
+
+    }
+
+    private function existeHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId) {
+        // Verificar si existe un horario con los mismos datos (sin contar el horario_id)
+        $sql = "SELECT COUNT(*) FROM horario 
+                WHERE periodo_periodo_id = :periodoId 
+                  AND usuario_usuario_id = :usuarioId
+                  AND carrera_carrera_id = :carreraId
+                  AND dias_dias_id = :diaId 
+                  AND horas_horas_id = :horaId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0; // Devuelve true si existe un registro
+    }
+
+    private function insertarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "INSERT INTO horario (periodo_periodo_id, usuario_usuario_id, carrera_carrera_id, dias_dias_id, horas_horas_id, salones_salon_id, grupo_grupo_id, materia_materia_id) 
+                VALUES (:periodoId, :usuarioId, :carreraId, :diaId, :horaId, :salonId, :grupoId, :materiaId)";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_horario.php?status=success&action=insert");
+exit();
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
+            exit();
+        }
+    }
+
+    private function actualizarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
+        $sql = "UPDATE horario 
+                SET salones_salon_id = :salonId, 
+                    grupo_grupo_id = :grupoId, 
+                    materia_materia_id = :materiaId 
+                WHERE periodo_periodo_id = :periodoId 
+                  AND usuario_usuario_id = :usuarioId 
+                  AND carrera_carrera_id = :carreraId
+                  AND dias_dias_id = :diaId 
+                  AND horas_horas_id = :horaId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->bindParam(':diaId', $diaId, PDO::PARAM_INT);
+        $stmt->bindParam(':horaId', $horaId, PDO::PARAM_INT);
+        $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
+        $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
+        $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+            header("Location: ../views/templates/form_horario.php?status=success&action=update");
+            exit();;
+        } catch (PDOException $e) {
+            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
+            exit();
+        }
+    }
+
+}
+
+
+class BorrarHorario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function eliminarHorario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Mostrar los datos recibidos para depuración
+            var_dump($_POST);
+            
+            // Obtener el ID del horario desde el formulario
+            $horarioId = $_POST['horario_id'] ?? null;
+    
+            // Depuración: Mostrar el valor recibido de horario_id
+            error_log("Valor de horario_id recibido: " . var_export($horarioId, true));
+    
+            // Verificar que el ID sea válido
+            if (empty($horarioId) || !is_numeric($horarioId)) {
+                error_log("Error: ID de horario no válido. Valor recibido: " . var_export($horarioId, true));
+                die("Error: ID de horario no válido.");
+            }
+    
+            // Verificar si el ID de horario existe en la base de datos antes de eliminarlo
+            $sqlCheck = "SELECT * FROM horario WHERE horario_id = :horarioId";
+            $stmtCheck = $this->conn->prepare($sqlCheck);
+            $stmtCheck->bindParam(':horarioId', $horarioId, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            
+            if ($stmtCheck->rowCount() == 0) {
+                die("Error: El ID de horario no existe en la base de datos.");
+            }
+    
+            // Si el ID existe, proceder con la eliminación
+            $sql = "DELETE FROM horario WHERE horario_id = :horarioId";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':horarioId', $horarioId, PDO::PARAM_INT);
+    
+            try {
+                $stmt->execute();
+                error_log("Horario con ID $horarioId eliminado exitosamente.");
+                header("Location: ../views/templates/form_horario.php?status=success&action=delete");
+                exit();
+            } catch (PDOException $e) {
+                error_log("Error al intentar eliminar el horario: " . $e->getMessage());
+                die("Error al eliminar: " . $e->getMessage());
+            }
+        }
+    }
+}
+
+class CertificacionUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener datos del formulario
+            $certificacionId = $_POST['certificaciones_certificaciones_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
+            $nombreCertificado = $_POST['nombre_certificado'];
+
+            // Manejo de archivo
+            $filePath = null;
+            if (isset($_FILES['certificado']) && $_FILES['certificado']['error'] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $_FILES['certificado']['tmp_name'];
+                $fileName = $_FILES['certificado']['name'];
+                $fileSize = $_FILES['certificado']['size'];
+                $fileType = $_FILES['certificado']['type'];
+
+                // Verificar que el archivo sea un PDF
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = strtolower($fileInfo['extension']);
+                if ($fileExtension !== 'pdf') {
+                    echo "El archivo debe ser un PDF.";
+                    return;
+                }
+
+                // Directorio de subida
+                $uploadDir = __DIR__ . '/../views/templates/assets/certificados/';
+                $filePath = $this->generateUniqueFileName('certificado', $fileExtension, $uploadDir);
+
+                // Verificar si la carpeta existe
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Mover el archivo al destino
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
+                    echo "Archivo subido correctamente.";
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+
+            // Insertar en la base de datos
+            $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
+            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $relativeFilePath);
+        }
+    }
+
+    private function insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
+        // Consulta para insertar los datos
+        $query = "INSERT INTO piia.certificaciones_has_usuario (
+                    certificaciones_certificaciones_id,
+                    usuario_usuario_id,
+                    meses_meses_id,
+                    nombre_certificado,
+                    url
+                  ) VALUES (
+                    :certificacion_id,
+                    :usuario_id,
+                    :meses_id,
+                    :nombre_certificado,
+                    :url
+                  )";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_id', $certificacionId);
+        $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':meses_id', $mesesId);
+        $stmt->bindParam(':nombre_certificado', $nombreCertificado);
+        $stmt->bindParam(':url', $filePath);
+    
+        try {
+            // Ejecutar la consulta
+            $stmt->execute();
+            // Redirigir a la página de perfil con un mensaje de éxito
+            header("Location: ../views/templates/Perfil.php?status=success&action=insert");
+            exit();
+        } catch (PDOException $e) {
+            // Manejar errores y mostrar detalles para depuración
+            echo "Ocurrió un error al procesar la solicitud. Detalles del error: " . $e->getMessage();
+            exit();
+        }
+    }
+
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+
+        // Generar un nombre único si ya existe el archivo
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
+}
+
+
+class ActualizarCertificacionUsuario {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener datos del formulario
+            $certificacionUsuarioId = $_POST['certificacion_usuario_id'];
+            $certificacionId = $_POST['certificaciones_certificaciones_id'];
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
+            $nombreCertificado = $_POST['nombre_certificado'];
+            $urlAntigua = $_POST['url_antigua']; // URL previa del archivo
+
+            // Mantener la URL antigua por defecto
+            $filePath = $urlAntigua;
+
+            // Si se sube un nuevo archivo
+            if (isset($_FILES['certificado']) && $_FILES['certificado']['error'] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $_FILES['certificado']['tmp_name'];
+                $fileName = $_FILES['certificado']['name'];
+                $fileInfo = pathinfo($fileName);
+                $fileExtension = strtolower($fileInfo['extension']);
+
+                // Verificar que el archivo sea un PDF
+                if ($fileExtension !== 'pdf') {
+                    echo "El archivo debe ser un PDF.";
+                    return;
+                }
+
+                // Directorio de subida
+                $uploadDir = __DIR__ . '/../views/templates/assets/certificados/';
+
+                // Mantener el mismo nombre del archivo anterior si existe, sino generar uno nuevo
+                if (!empty($urlAntigua)) {
+                    $newFileName = basename($urlAntigua); // Mantiene el mismo nombre de archivo
+                } else {
+                    $newFileName = $this->generateUniqueFileName('certificado', $fileExtension, $uploadDir);
+                }
+
+                $filePath = '../views/templates/assets/certificados/' . $newFileName;
+
+                // Crear directorio si no existe
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Mover el archivo al destino y reemplazar el anterior
+                if (move_uploaded_file($fileTmpPath, $uploadDir . $newFileName)) {
+                    echo "Archivo actualizado correctamente.";
+
+                    // Eliminar el archivo anterior si existe y si el nombre es diferente
+                    $oldFilePath = __DIR__ . '/../' . $urlAntigua;
+                    if (!empty($urlAntigua) && file_exists($oldFilePath) && basename($urlAntigua) !== $newFileName) {
+                        unlink($oldFilePath);
+                    }
+                } else {
+                    echo "Error al subir el archivo.";
+                    return;
+                }
+            }
+
+            // Actualizar la base de datos con la nueva información
+            $this->updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath);
+        }
+    }
+
+    private function updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
+        // Consulta para actualizar los datos
+        $query = "UPDATE piia.certificaciones_has_usuario 
+                  SET certificaciones_certificaciones_id = :certificacion_id,
+                      usuario_usuario_id = :usuario_id,
+                      meses_meses_id = :meses_id,
+                      nombre_certificado = :nombre_certificado,
+                      url = :url
+                  WHERE certificados_id = :certificacion_usuario_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':certificacion_usuario_id', $certificacionUsuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':certificacion_id', $certificacionId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':meses_id', $mesesId, PDO::PARAM_INT);
+        $stmt->bindParam(':nombre_certificado', $nombreCertificado, PDO::PARAM_STR);
+        $stmt->bindParam(':url', $filePath, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+            // Redirigir a la página de perfil con un mensaje de éxito
+            header("Location: ../views/templates/Perfil.php?status=success&action=update");
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error en la BD: " . $e->getMessage());
+            echo "Ocurrió un error al actualizar la certificación.";
+            exit();
+        }
+    }
+
+    private function generateUniqueFileName($baseName, $extension, $directory) {
+        $counter = 1;
+        $newFileName = $baseName . '-' . $counter . '.' . $extension;
+
+        // Generar un nombre único si ya existe el archivo
+        while (file_exists($directory . $newFileName)) {
+            $counter++;
+            $newFileName = $baseName . '-' . $counter . '.' . $extension;
+        }
+        return $newFileName;
+    }
+}
+
+
+class BorrarCertificacion {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function eliminarCertificacion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Mostrar los datos recibidos para depuración
+            var_dump($_POST);
+            
+            // Obtener el ID de la certificación desde el formulario
+            $certificadosId = $_POST['certificados_id'] ?? null;
+    
+            // Depuración: Mostrar el valor recibido de certificados_id
+            error_log("Valor de certificados_id recibido: " . var_export($certificadosId, true));
+    
+            // Verificar que el ID sea válido
+            if (empty($certificadosId) || !is_numeric($certificadosId)) {
+                error_log("Error: ID de certificación no válido. Valor recibido: " . var_export($certificadosId, true));
+                die("Error: ID de certificación no válido.");
+            }
+    
+            // Verificar si el ID de certificación existe en la base de datos antes de eliminarlo
+            $sqlCheck = "SELECT url FROM certificaciones_has_usuario WHERE certificados_id = :certificadosId";
+            $stmtCheck = $this->conn->prepare($sqlCheck);
+            $stmtCheck->bindParam(':certificadosId', $certificadosId, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            
+            if ($stmtCheck->rowCount() == 0) {
+                die("Error: El ID de certificación no existe en la base de datos.");
+            }
+    
+            // Obtener la URL del archivo antes de eliminar la certificación
+            $filePath = $stmtCheck->fetchColumn();
+    
+            // Si el ID existe, proceder con la eliminación
+            $sql = "DELETE FROM certificaciones_has_usuario WHERE certificados_id = :certificadosId";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':certificadosId', $certificadosId, PDO::PARAM_INT);
+    
+            try {
+                $stmt->execute();
+                error_log("Certificación con ID $certificadosId eliminada exitosamente.");
+    
+                // Intentar eliminar el archivo del servidor si existe
+                if ($filePath && file_exists($filePath)) {
+                    unlink($filePath);
+                }
+    
+                header("Location: ../views/templates/Perfil.php?status=success&action=delete");
+                exit();
+            } catch (PDOException $e) {
+                error_log("Error al intentar eliminar la certificación: " . $e->getMessage());
+                die("Error al eliminar: " . $e->getMessage());
+            }
+        }
+    }
+}
+
+
+class EvaluacionDocentes {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarEvaluacion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $evaluacionTecnm = floatval($_POST['evaluacionTECNM']);
+            $evaluacionEstudiantil = floatval($_POST['evaluacionEstudiantil']);
+            
+            if ($evaluacionTecnm < 0 || $evaluacionTecnm > 100 || $evaluacionEstudiantil < 0 || $evaluacionEstudiantil > 100) {
+                die("Error: Las calificaciones deben estar entre 0 y 100.");
+            }
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $periodoId = $_POST['periodo_periodo_id'];
+
+            // Verificamos si ya existen evaluaciones para ese usuario y periodo
+            if ($this->existeEvaluacion($usuarioId, $periodoId)) {
+                // Si existen, actualizamos la evaluación
+                $this->actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            } else {
+                // Si no existen, insertamos una nueva evaluación
+                $this->insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            }
+
+            // Redirigimos a la página de éxito
+            header("Location: ../views/templates/dashboard_carreras.php?success=true");
+        }
+    }
+
+    private function insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "INSERT INTO evaluacion_docentes (evaluacionTECNM, evaluacionEstudiantil, usuario_usuario_id, periodo_periodo_id) 
+                VALUES (:evaluacionTecnm, :evaluacionEstudiantil, :usuarioId, :periodoId)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+        }
+    }
+
+    private function actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "UPDATE evaluacion_docentes 
+                SET evaluacionTECNM = :evaluacionTecnm, evaluacionEstudiantil = :evaluacionEstudiantil 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+        }
+    }
+
+    // Método para verificar si ya existe una evaluación para el docente en el periodo
+    private function existeEvaluacion($usuarioId, $periodoId) {
+        $sql = "SELECT 1 FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            // Si existe un resultado, retornamos true
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+
+    // Método para obtener las evaluaciones de un docente por su usuario_id y periodo_id
+    public function obtenerEvaluaciones($usuarioId, $periodoId) {
+        $sql = "SELECT evaluacionTECNM, evaluacionEstudiantil 
+                FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna la evaluación del docente
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+}
+
+// EvaluacionDocente.php
+class EvaluacionDocente2 {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
+    public function obtenerEvaluacionesDocentes() {
+        try {
+            $query = "
+                SELECT 
+                    CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo,
+                    evaluacionTECNM, 
+                    evaluacionEstudiantil
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id;
+            ";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener evaluaciones docentes: " . $e->getMessage());
+            return [];
+        }
+    }
+}

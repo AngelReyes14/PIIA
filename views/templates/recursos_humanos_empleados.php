@@ -161,7 +161,7 @@ if (isset($_POST['logout'])) {
     <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
       <div class="container-fluid mb-3">
         <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-          PERFIL DOCENTE
+          RECURSOS HUMANOS
         </div>
         <div class="row justify-content-center mb-0">
           <div class="col-12">
@@ -494,7 +494,7 @@ if (isset($_POST['logout'])) {
 
       <div class="container-fluid ">
         <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DIRECCIÓN ACADÉMICA
+          DATOS DE INCIDENCIAS
         </div>
         <div class="row">
           <!-- Tarjeta de Gráfica de Incidencias -->
@@ -553,7 +553,7 @@ if (isset($_POST['logout'])) {
       <!----Parte de dirección academica---->
       <div class="container-fluid">
         <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DIRECCIÓN ACADÉMICA
+          INCIDENCIAS POR CARRERA
         </div>
 
         <!-- Tarjeta principal -->
@@ -574,7 +574,7 @@ if (isset($_POST['logout'])) {
                 </div> <!-- /.card-body -->
               </div> <!-- /.card -->
               <div class="card shadow mt-3">
-                <h2 class="col-md-12 mt-4 mb-4 text-center text-green">Total de horas: 40</h2>
+                <h2 class="col-md-12 mt-4 mb-4 text-center text-green">Total de incidencias por carrera: 5</h2>
               </div>
             </div> <!-- /. col -->
           </div>
