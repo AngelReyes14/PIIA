@@ -12928,3 +12928,105 @@ button#downloadPDF:hover {
 button#downloadPDF {
   padding: 10px 20px;
   font-size: 13px;
+}
+
+
+/* Contenedor principal del docente */
+.docente-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 15px;
+}
+
+/* Texto del título */
+.docente-container .name-line {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* Imagen del docente */
+.docente-img {
+  max-width: 12rem; /* Ajusta el tamaño de la imagen */
+  height: 13rem;
+}
+
+
+/* Tabla de certificaciones */
+#dataTable-certificaciones {
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Encabezado de la tabla */
+#dataTable-certificaciones thead {
+  background: #27ae60; /* Verde más suave */
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Celdas de la tabla */
+#dataTable-certificaciones th, 
+#dataTable-certificaciones td {
+  padding: 12px 15px;
+  text-align: center;
+  word-wrap: break-word;
+  color: #ecf0f1; /* Gris claro */
+}
+
+
+/* Botones en la tabla */
+#dataTable-certificaciones a, 
+#dataTable-certificaciones .btn-warning, 
+#dataTable-certificaciones .btn-danger, 
+#dataTable-certificaciones form button { 
+  padding: 8px 15px; /* Espaciado uniforme */
+  border-radius: 8px; /* Bordes redondeados */
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  display: inline-block; /* Evita estiramientos */
+  text-align: center;
+  min-width: 120px; /* Asegura tamaño uniforme */
+  height: 38px; /* Mantiene la misma altura */
+  line-height: 1.2;
+}
+
+/* Asegurar que el botón dentro del formulario se vea igual */
+#dataTable-certificaciones form {
+  display: inline-block;
+  margin: 0; /* Elimina márgenes extras */
+}
+
+/* Espaciado entre los botones */
+#dataTable-certificaciones .btn-warning,
+#dataTable-certificaciones form {
+  margin-right: 1rem; /* Espacio entre botones */
+}
+
+/* Efecto hover */
+#dataTable-certificaciones .btn-warning:hover,
+#dataTable-certificaciones .btn-danger:hover {
+  opacity: 0.8;
+  transform: scale(1.05); /* Efecto ligero */
+}
+
+#dataTable-certificaciones a {
+  background: #27ae60;
+  color: white;
+}
+
+#dataTable-certificaciones a:hover {
+  background: #1e8449;
+}
+
+
+
+
+

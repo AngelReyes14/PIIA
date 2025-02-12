@@ -19,8 +19,12 @@ $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
-$maestros = $consultas->CarreraMaestros($carreraId);
-$incidencia = $consultas->Incidenciausuario($carreraId);
+
+$maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
+$incidencia = $consultas -> Incidenciausuario($carreraId);
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
+
 
 if ($carreraId) {
     $mujeres = $consultas->mujeresCarrera($carreraId);
@@ -169,9 +173,9 @@ $promediosJson = json_encode($promedios); // Porcentajes de incidencias
           </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
-            <a class="dropdown-item" href="#">Activities</a>
+            <a class="dropdown-item" href="Perfil.php">Perfil</a>
+            <a class="dropdown-item" href="#">Ajustes</a>
+            <a class="dropdown-item" href="#">ACtividades</a>
             <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
@@ -698,6 +702,7 @@ document.addEventListener("DOMContentLoaded", function() {
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
+
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
               Promedio de Calificaciones
@@ -706,99 +711,150 @@ document.addEventListener("DOMContentLoaded", function() {
               <div class="row">
                 <!-- Tabla de Promedio de Calificaciones -->
                 <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Docentes</th>
-                          <th>Evaluación Estudiantil</th>
-                          <th>Evaluación TECNM</th>
-                          <th>Promedio por semestre</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                        </tr>
-                        <tr>
-                          <td>Edwin Luna Castillo</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                        </tr>
-                        <tr>
-                          <td>Alfredo Olivas Ruiz</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                        </tr>
-                        <tr>
-                          <td>Cosme Tadeo Lopez Varela</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                        </tr>
-                        <tr>
-                          <td>Virlán García Nuñez</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                        </tr>
-                        <tr>
-                          <td>Cornelio Vega Chairez</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                        </tr>
-                        <tr>
-                          <td>Julion Alvarez Buendla</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                        </tr>
-                        <tr>
-                          <td>Ariel Camacho Torres</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                        </tr>
-                        <tr>
-                          <td>Amanda Rivera de Miguel</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                        </tr>
-                        <tr>
-                          <td>Jenifer Espinoza German</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+    <div class="form-group">
+        <label for="carrera_carrera_id">Selecciona una carrera:</label>
+        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" onchange="filtrarUsuariosPorCarrera()" required>
+            <option value="">Seleccione una carrera</option>
+            <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>">
+                    <?php echo $carrera['nombre_carrera']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarUsuariosPorCarrera()">
+            <option value="">Selecciona un periodo</option>
+            <?php foreach ($periodos as $periodo): ?>
+                <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    
+
+    <div class="table-responsive">
+    <table class="table table-bordered" id="docentes-table">
+        <thead>
+            <tr>
+                <th>Nombre del Docente</th>
+                <th>Evaluación TECNM</th>
+                <th>Evaluación Estudiantil</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="docentes-table-body">
+    <!-- Las filas se llenan dinámicamente -->
+</tbody>
+    </table>
+</div>
+
+
                 </div> <!-- /.col -->
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
+          <script>
+function filtrarUsuariosPorCarrera() {
+    var carrera_id = document.getElementById("carrera_carrera_id").value;
+    var periodo_id = document.getElementById("periodo_periodo_id").value; // Obtener el valor del periodo
+
+    if (carrera_id === "" || periodo_id === "") {
+        document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
+        return;
+    }
+
+    fetch('../../models/obtener_docentes.php', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `carrera_id=${carrera_id}&periodo_id=${periodo_id}` // Incluye el periodo en la solicitud
+    })
+    .then(response => response.json())
+    .then(data => {
+        var tbody = document.querySelector("#docentes-table-body");
+        tbody.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
+
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4">${data.error}</td></tr>`;
+            return;
+        }
+
+        data.forEach(docente => {
+            // Obtener las evaluaciones previas (si existen)
+            var evaluacionTecnm = docente.evaluacion_tecnm || "00.0";
+            var evaluacionEstudiantil = docente.evaluacion_estudiantil || "00.0";
+
+            var row = `
+<tr>
+    <td>${docente.nombre_completo}</td>
+    <td>
+        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="${evaluacionTecnm}" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="${evaluacionEstudiantil}" min="0" max="100" step="0.1" required>
+    </td>
+    <td>
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
+            <input type="hidden" name="form_type" value="evaluacion-docente">
+            <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
+            <input type="hidden" class="input-tecnm" name="evaluacionTECNM" value="${evaluacionTecnm}">
+            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil" value="${evaluacionEstudiantil}">
+            <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
+        </form>
+    </td>
+</tr>
+`;
+            tbody.innerHTML += row;
+        });
+    })
+    .catch(error => console.error("Error al obtener docentes:", error));
+}
+
+
+
+function actualizarInputs(btn) {
+    // Previene el envío del formulario
+    event.preventDefault();
+
+    var row = btn.closest("tr");
+    var periodoValue = document.getElementById("periodo_periodo_id").value;
+    row.querySelector("#periodo_periodo_id_value").value = periodoValue;
+    row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
+    row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
+
+    // Validación opcional
+    if (row.querySelector(".evaluacionTECNM").value === "00.0" || 
+        row.querySelector(".evaluacionEstudiantil").value === "00.0") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'Asegúrate de ingresar una evaluación válida antes de guardar.',
+            allowOutsideClick: false,
+        });
+        return false;
+    }
+
+    // Muestra el SweetAlert que el usuario cierra manualmente
+    Swal.fire({
+        icon: 'success',
+        title: '¡Registro exitoso!',
+        text: 'Se ha registrado con éxito.',
+        allowOutsideClick: false,
+        confirmButtonText: 'Cerrar',
+    }).then(() => {
+        // Enviar formulario después de mostrar SweetAlert
+        btn.closest("form").submit();
+    });
+
+    return false; // Impide envío automático
+}
+
+
+</script>
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
@@ -1002,6 +1058,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
     </main> <!-- main -->
   </div> <!-- .wrapper -->
+  
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -1034,7 +1091,9 @@ document.addEventListener("DOMContentLoaded", function() {
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script>
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
     $('.select2').select2({
       theme: 'bootstrap4',
     });
