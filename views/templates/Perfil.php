@@ -158,15 +158,17 @@ if (isset($_POST['logout'])) {
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-12 col-md-4 text-center">
-                <strong class="name-line text-start">Foto del Docente:</strong>
-                <br>
-                <img src="<?= '../' . (!empty($usuario["imagen_url"]) ? htmlspecialchars($usuario["imagen_url"]) : 'default-image.png') ?>" alt="Imagen del docente" class="img-fluid tamanoImg">
+            <div class="col-12 col-md-4 docente-container">
+    <strong class="name-line bold">Foto del Docente:</strong>
+    <img src="<?= '../' . (!empty($usuario["imagen_url"]) ? htmlspecialchars($usuario["imagen_url"]) : 'default-image.png') ?>" 
+         alt="Imagen del docente" 
+         class="docente-img mt-2">
+    <div class="mt-2">
+        <button class="btn btn-primary btn-sm mt-3" id="changeProfilePictureBtn">Cambiar Imagen</button>
+    </div>
+</div>
 
-                <div class="mt-3">
-                  <button class="btn btn-primary" id="changeProfilePictureBtn">Cambiar Imagen</button>
-                </div>
-              </div>
+
 
               <div class="modal fade" id="changeImageModal" tabindex="-1" aria-labelledby="changeImageModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
@@ -298,7 +300,7 @@ if (isset($_POST['logout'])) {
 <div class="mt-3 text-center">
     <button type="submit" class="btn btn-primary mt-3">Registrar Certificación</button>
     </div>
-
+            </form>
 
         </div>
       </div>
@@ -338,25 +340,28 @@ if (isset($_POST['logout'])) {
                                                 <?php endif; ?>
                                             </td>
                                             <td class="text-center">
-                                                <!-- Botón de actualizar certificado -->
-                                                <button class="btn btn-sm btn-warning update-cert-btn" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#updateCertificacionModal"
-                                                        data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
-                                                        data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
-                                                        data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
-                                                        data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
-                                                        data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
-                                                    Actualizar
-                                                </button>
+    <div class="d-flex justify-content-center">
+        <!-- Botón de actualizar certificado -->
+        <button class="btn btn-sm btn-warning" 
+                data-bs-toggle="modal" 
+                data-bs-target="#updateCertificacionModal"
+                data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+                data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+                data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+                data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
+                data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+            Actualizar
+        </button>
 
-                                                <!-- Botón de eliminar certificado -->
-                                                <form method="POST" action="../../models/insert.php">
-                                                    <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
-                                                    <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
-                                                    <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
-                                                </form>
-                                            </td>
+        <!-- Botón de eliminar certificado -->
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
+            <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
+            <button class="btn btn-sm btn-danger " data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
+        </form>
+    </div>
+</td>
+
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -388,7 +393,7 @@ if (isset($_POST['logout'])) {
 
           <div class="row">
             <!-- Certificación -->
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
               <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -405,7 +410,7 @@ if (isset($_POST['logout'])) {
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-6">
             <label for="meses_meses_id" class="form-label">Mes:</label>
             <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
                 <option value="" disabled selected>Selecciona un mes</option>
@@ -421,24 +426,27 @@ if (isset($_POST['logout'])) {
             </select>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
-
+          </div>
+          <div class="row mt-3">
             <!-- Nombre del Certificado -->
-            <div class="col-md-3 ">
+            <div class="col-md-6 ">
               <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
               <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
             <!-- Selección de archivo PDF -->
-            <div class="col-md-3" id="documentDiv">
-              <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
+            <div class="col-md-6" id="documentDiv">
+              <label for="documentInput" class="form-label">Selecciona tu certificado PDF:</label>
               <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf">
               <input type="hidden" name="url_antigua" id="url_antigua" value="">
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
           </div>
+          </div>
 
           <button type="submit" class="btn btn-primary mt-3">Actualizar Certificación</button>
+          
         </form>
       </div>
     </div>
@@ -480,6 +488,31 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#updateCertificacionModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#updateCertificacionModal .btn-secondary"); 
+    const modal = document.getElementById("updateCertificacionModal");
+    
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
+
+
+
 </script>
 
 <script>
@@ -494,6 +527,28 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('certificados_id').value = certificadoId;
         });
     });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
+    const modal = document.getElementById("changeImageModal");
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
 });
 
 </script>
@@ -665,6 +720,29 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
     }
 });
 
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
+    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
+    const modal = document.getElementById("changeImageModal");
+
+    function cerrarModal() {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        modal.style.display = "none";
+
+        // Remueve el fondo oscuro de Bootstrap si existe
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+        // Restablece el scroll del body
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "auto";
+    }
+
+    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
+    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
+});
 </script>
 
 
