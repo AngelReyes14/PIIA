@@ -1749,17 +1749,30 @@ class Horario {
         $stmt->bindParam(':salonId', $salonId, PDO::PARAM_INT);
         $stmt->bindParam(':grupoId', $grupoId, PDO::PARAM_INT);
         $stmt->bindParam(':materiaId', $materiaId, PDO::PARAM_INT);
-
+    
         try {
+            // Ejecutar la consulta
             $stmt->execute();
-            header("Location: ../views/templates/form_horario.php?status=success&action=insert");
-exit();
+            
+            
+            // Responder con JSON
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                'status' => 'success',
+                'message' => 'Horario insertado correctamente'
+            ));
+            
         } catch (PDOException $e) {
-            header("Location: ../views/templates/form_horario.php?status=error&message=" . urlencode($e->getMessage()));
-            exit();
+            // Si ocurre un error, responder con JSON de error
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                'status' => 'error',
+                'message' => 'Error al insertar el horario: ' . $e->getMessage()
+            ));
         }
     }
-
+    
+    
     private function actualizarHorario($periodoId, $usuarioId, $carreraId, $diaId, $horaId, $salonId, $grupoId, $materiaId) {
         $sql = "UPDATE horario 
                 SET salones_salon_id = :salonId, 

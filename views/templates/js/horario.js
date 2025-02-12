@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const periodo = document.getElementById('periodo_periodo_id').value;
         const usuarioId = document.getElementById('usuario_usuario_id').value;
         const carrera = document.getElementById('carrera_carrera_id').value;
-
+        console.log("Hola mundo");
         // Validar si todos los filtros están seleccionados
         if (!periodo || !usuarioId || !carrera) {
             return; // Salir de la función sin mostrar alerta
@@ -299,23 +299,43 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
             return;
         }
 
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Procesando...',
+            text: 'Por favor espera...',
+            icon: 'info',
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading(); // Mostrar el indicador de carga
+            }
+        });
+
         $.ajax({
             url: $form.attr('action'),
             type: 'POST',
             data: formData,
             dataType: 'json',
+            timeout: 10000, // Tiempo de espera de 10 segundos
             success: function(response) {
-                console.log("Respuesta del servidor:", response); // Depuración
+                console.log("Respuesta del servidor:", response);
+                Swal.close();  // Cerrar el indicador de carga
 
                 if (response && response.status === 'success') {
-                    actualizarVista(response);
+                    console.log("Actualizando vista...");
+                    actualizarVista();
                 } else {
+                    console.error("Error en la respuesta del servidor:", response?.message || 'Hubo un error inesperado.');
                     mostrarError(response?.message || 'Hubo un error inesperado.');
                 }
             },
             error: function(xhr, status, error) {
+                Swal.close();  // Cerrar el indicador de carga
                 console.log("Error en AJAX:", xhr.responseText); // Mostrar el error exacto
-                if (xhr.status === 500) {
+                console.log("Detalles del error:", status, error);
+
+                if (status === 'timeout') {
+                    mostrarError('La solicitud ha superado el tiempo de espera.');
+                } else if (xhr.status === 500) {
                     mostrarError('Hubo un error interno en el servidor.');
                 } else {
                     mostrarError('Error al asignar el horario. Verifica la consola.');
@@ -325,14 +345,34 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
     });
 
     // Función para actualizar la vista
-    function actualizarVista(response) {
-        $('#tabla-horarios').replaceWith(response.updatedTable); // Reemplazar solo la tabla
+    function actualizarVista() {
+        // Mostrar mensaje de éxito
         Swal.fire({
             title: 'Éxito',
             text: 'El horario ha sido asignado correctamente.',
             icon: 'success',
+        }).then(() => {
+            // Actualizar el contenido de #tabla_horas usando AJAX
+            $.ajax({
+                url: window.location.href, // Obtiene la URL actual
+                type: 'GET',
+                success: function (response) {
+                    // Buscar el nuevo contenido de #tabla_horas en la respuesta y actualizar
+                    var nuevaTabla = $(response).find('#tabla_horas');
+                    $('#tabla_horas').html(nuevaTabla.html());
+                },
+                error: function () {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un problema al actualizar la tabla.',
+                        icon: 'error',
+                    });
+                }
+            });
         });
     }
+    
+    
 
     // Función para mostrar un mensaje de error
     function mostrarError(mensaje) {
@@ -343,4 +383,3 @@ document.getElementById("downloadPDF").addEventListener("click", () => {
         });
     }
 });
-

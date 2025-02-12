@@ -213,7 +213,7 @@ if (isset($_POST['logout'])) {
             <div class="col-12 mb-0">
               <div class="schedule-container">
                 <div class="table-responsive">
-                  <table class="table table-borderless table-striped">
+                  <table class="table table-borderless table-striped" id="tabla_horas">
                   </table>
                 </div>
 
@@ -563,6 +563,7 @@ if (isset($_POST['logout'])) {
     gtag('js', new Date());
     gtag('config', 'UA-56159088-1');
   </script>
+  
 
 </body>
 
