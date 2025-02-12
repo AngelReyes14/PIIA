@@ -12936,131 +12936,10 @@ button#downloadPDF {
   border-radius: 8px;
   border: 3px solid #27ae60;
 }
-/* Tabla de certificaciones en modo oscuro */
+
+/* Tabla de certificaciones */
 #dataTable-certificaciones {
-  background: #252525; /* Fondo oscuro para la tabla */
-  border-radius: 10px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  min-width: 800px;
-  margin-bottom: 1rem;
-}
-
-/* Encabezado de la tabla */
-#dataTable-certificaciones thead {
-  background: #2e8b57; /* Verde más suave para el encabezado */
-  color: black; /* Color de texto para el encabezado */
-  font-size: 15px;
-  text-transform: uppercase;
-  text-align: center; /* Centra el texto del encabezado */
-}
-
-/* Celdas de la tabla */
-#dataTable-certificaciones th, #dataTable-certificaciones td {
-  padding: 10px;
-  text-align: center; /* Centra el texto en las celdas */
-  word-wrap: break-word; /* Permite que las palabras largas se ajusten */
-}
-
-#dataTable-certificaciones td {
-  color: #f1f1f1; /* Texto claro para celdas en modo oscuro */
-}
-
-/* Botones de acciones en la tabla */
-#dataTable-certificaciones a, .btn-warning, .btn-danger {
-  padding: 6px 10px;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: 0.3s;
-  display: inline-block;
-  margin-right: 5px;
-}
-
-/* Estilos para los botones en modo oscuro */
-#dataTable-certificaciones a {
-  background: #2e8b57; /* Verde más suave */
-  color: white;
-}
-
-#dataTable-certificaciones a:hover {
-  background: #216c43; /* Verde más oscuro al pasar el ratón */
-}
-
-.btn-warning {
-  background: #f39c12; /* Amarillo cálido */
-  color: white;
-}
-
-.btn-warning:hover {
-  background: #e67e22;
-}
-
-.btn-danger {
-  background: #e74c3c; /* Rojo */
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c0392b;
-}
-
-/* Hacer la tabla más responsiva */
-@media (max-width: 767px) {
-  #dataTable-certificaciones {
-    min-width: 600px; /* Reducir el ancho mínimo en pantallas más pequeñas */
-  }
-
-  /* Hacer que los botones se apilen verticalmente en pantallas pequeñas */
-  .btn-warning, .btn-danger {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-
-  /* Ajustar el texto de las celdas para pantallas pequeñas */
-  #dataTable-certificaciones td {
-    font-size: 14px;
-  }
-}
-
-/* Ajustar la tabla para pantallas más pequeñas como iPad */
-@media (max-width: 1024px) {
-  #dataTable-certificaciones {
-    min-width: 100%; /* Eliminar el mínimo ancho y permitir que la tabla se ajuste */
-    width: 100%;
-    font-size: 14px; /* Ajustar el tamaño de la fuente para que se vea mejor en pantallas más pequeñas */
-  }
-
-  /* Hacer que las celdas de la tabla se ajusten mejor en pantallas más pequeñas */
-  #dataTable-certificaciones th, #dataTable-certificaciones td {
-    padding: 8px;
-  }
-}
-
-/* Ajustar la tabla en pantallas de menos de 767px (móviles) */
-@media (max-width: 767px) {
-  #dataTable-certificaciones {
-    min-width: 100%; /* Eliminar el mínimo ancho y permitir que la tabla se ajuste */
-    width: 100%;
-  }
-
-  /* Hacer que los botones se apilen verticalmente en pantallas pequeñas */
-  .btn-warning, .btn-danger {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-
-  /* Ajustar el texto de las celdas para pantallas pequeñas */
-  #dataTable-certificaciones td {
-    font-size: 14px;
-  }
-}
-
-/* USUARIO DOS PERFIL*/
-/* Mejoras para la tabla en modo oscuro */
-#dataTable-certificaciones {
-  background: #2c3e50; /* Fondo más oscuro para contraste */
-  border-radius: 15px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4); /* Sombra más fuerte */
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
   width: 100%;
   min-width: 800px;
   margin-bottom: 20px;
@@ -13069,7 +12948,7 @@ button#downloadPDF {
 
 /* Encabezado de la tabla */
 #dataTable-certificaciones thead {
-  background: #27ae60;
+  background: #27ae60; /* Verde más suave */
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -13078,35 +12957,32 @@ button#downloadPDF {
   padding: 12px 0;
 }
 
-/* Estilos para las celdas */
-#dataTable-certificaciones th, #dataTable-certificaciones td {
+/* Celdas de la tabla */
+#dataTable-certificaciones th, 
+#dataTable-certificaciones td {
   padding: 12px 15px;
   text-align: center;
   word-wrap: break-word;
-  color: #ecf0f1; /* Gris claro para texto */
+  color: #ecf0f1; /* Gris claro */
 }
 
-/* Celdas de la tabla */
-#dataTable-certificaciones td {
-  color: #ecf0f1;
-}
-
-/* Botones */
-#dataTable-certificaciones a {
-  background: #27ae60;
-  color: white;
+/* Botones de acciones */
+#dataTable-certificaciones a, 
+.btn-warning, 
+.btn-danger {
   padding: 8px 15px;
   border-radius: 25px;
   font-weight: 500;
   transition: 0.3s;
 }
 
-#dataTable-certificaciones a:hover {
-  background: #1e8449;
+#dataTable-certificaciones a {
+  background: #27ae60;
+  color: white;
 }
 
-.btn-warning, .btn-danger {
-  border-radius: 25px;
+#dataTable-certificaciones a:hover {
+  background: #1e8449;
 }
 
 .btn-warning {
@@ -13133,15 +13009,34 @@ button#downloadPDF {
     min-width: 100%;
   }
 
-  #dataTable-certificaciones th, #dataTable-certificaciones td {
+  #dataTable-certificaciones th, 
+  #dataTable-certificaciones td {
     padding: 10px;
     font-size: 14px;
   }
 
-  .btn-warning, .btn-danger {
+  .btn-warning, 
+  .btn-danger {
     width: 100%;
     margin-bottom: 10px;
   }
 }
+
+@media (max-width: 767px) {
+  #dataTable-certificaciones {
+    min-width: 600px; 
+  }
+
+  .btn-warning, 
+  .btn-danger {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  #dataTable-certificaciones td {
+    font-size: 14px;
+  }
+}
+
 
 

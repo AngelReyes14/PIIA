@@ -235,12 +235,14 @@ if (isset($_POST['logout'])) {
     <div class="row mt-4">
       <div class="container p-4 mb-4 box-shadow-div">
         <div class="col-md-12">
+          <div class="mb-4 text-center">
             <h3>Registrar Certificación</h3>
+          </div>
             <form method="POST" action="../../models/insert.php" enctype="multipart/form-data">
     <input type="hidden" name="form_type" value="certificacion-usuario">
     <input type="hidden" name="usuario_usuario_id" value="<?= htmlspecialchars($idusuario) ?>">
 
-    <div class="row">
+    <div class="row mb-5">
         <!-- Certificación -->
         <div class="col-md-3">
             <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
@@ -283,22 +285,6 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
-        <div class="col-md-3">
-            <label for="mes_mes_id" class="form-label">Mes:</label>
-            <select class="form-control" id="mes_mes_id" name="mes_mes_id" required>
-                <option value="" disabled selected>Selecciona un mes</option>
-                <?php if ($meses): ?>
-                    <?php foreach ($meses as $mes): ?>
-                        <option value="<?= htmlspecialchars($mes['mes_id']) ?>">
-                            <?= htmlspecialchars($mes['descripcion']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <option value="">No hay meses disponibles</option>
-                <?php endif; ?>
-            </select>
-            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-        </div>
 
         <!-- Selección de archivo PDF -->
         <div class="col-md-3" id="documentDiv">
@@ -308,35 +294,33 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 
+
+<div class="mt-3 text-center">
     <button type="submit" class="btn btn-primary mt-3">Registrar Certificación</button>
-</form>
+    </div>
 
 
         </div>
       </div>
     </div>
-<!-- Mostrar las certificaciones en una tabla -->
+<!-- Mostrar las certificaciones en una sola card -->
 <div class="col-lg-12 col-md-12">
     <div class="card shadow mb-4">
         <div class="card-body">
-
-            <div class="d-flex justify-content-center align-items-center mb-3 col">
+            <div class="d-flex justify-content-center align-items-center mb-3">
                 <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
             </div>
-            <div class="row my-4">
-                <div class="col-md-12">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <table class="table datatables" id="dataTable-certificaciones">
-                                <thead>
-                                    <tr>
-                                        <th>Certificación</th>
-                                        <th>Nombre del Certificado</th>
-                                        <th>Mes</th> <!-- Nueva columna para los meses -->
-                                        <th>Certificado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
+            <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                    <thead>
+                        <tr>
+                            <th>Certificación</th>
+                            <th>Nombre del Certificado</th>
+                            <th>Mes</th> <!-- Nueva columna para los meses -->
+                            <th>Certificado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                                 <tbody>
                                     <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
                                         <tr>
