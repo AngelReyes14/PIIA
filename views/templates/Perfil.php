@@ -19,6 +19,7 @@ $consultas = new Consultas($conn);
 $imgUser = $consultas->obtenerImagen($idusuario);
 $certificaciones = $consultas->obtenerCertificaciones();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
 
 
 
@@ -241,7 +242,7 @@ if (isset($_POST['logout'])) {
 
     <div class="row">
         <!-- Certificación -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
             <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -258,15 +259,32 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
+        <div class="col-md-3">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
         <!-- Nombre del Certificado -->
-        <div class="col-md-4 ">
+        <div class="col-md-3">
             <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
             <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
         <!-- Selección de archivo PDF -->
-        <div class="col-md-4" id="documentDiv">
+        <div class="col-md-3" id="documentDiv">
             <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
             <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf" required>
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
@@ -296,8 +314,9 @@ if (isset($_POST['logout'])) {
                                     <tr>
                                         <th>Certificación</th>
                                         <th>Nombre del Certificado</th>
+                                        <th>Mes</th> <!-- Nueva columna para los meses -->
                                         <th>Certificado</th>
-                                        <th>Acciones</th> <!-- Nueva columna para las acciones -->
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -305,6 +324,7 @@ if (isset($_POST['logout'])) {
                                         <tr>
                                             <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                                            <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
                                             <td class="text-center">
                                                 <?php if (!empty($certificacionusuario['url'])): ?>
                                                     <?php 
@@ -317,27 +337,23 @@ if (isset($_POST['logout'])) {
                                             </td>
                                             <td class="text-center">
                                                 <!-- Botón de actualizar certificado -->
-    <button class="btn btn-sm btn-warning update-cert-btn" 
-            data-bs-toggle="modal" 
-            data-bs-target="#updateCertificacionModal"
-            data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
-            data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
-            data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
-            data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
-        Actualizar
-    </button>
-
+                                                <button class="btn btn-sm btn-warning update-cert-btn" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#updateCertificacionModal"
+                                                        data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+                                                        data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+                                                        data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+                                                        data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
+                                                        data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+                                                    Actualizar
+                                                </button>
 
                                                 <!-- Botón de eliminar certificado -->
-                                            
                                                 <form method="POST" action="../../models/insert.php">
-    <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
-    <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
-    <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
-
-</form>
-
-
+                                                    <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
+                                                    <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
+                                                    <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
+                                                </form>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -350,6 +366,7 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 </div>
+
 
 <!-- Modal -->
 <div class="modal fade" id="updateCertificacionModal" tabindex="-1" aria-labelledby="updateCertificacionModalLabel" aria-hidden="true">
@@ -368,7 +385,7 @@ if (isset($_POST['logout'])) {
 
           <div class="row">
             <!-- Certificación -->
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
               <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
@@ -385,15 +402,32 @@ if (isset($_POST['logout'])) {
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
+            <div class="col-md-3">
+            <label for="meses_meses_id" class="form-label">Mes:</label>
+            <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+                <option value="" disabled selected>Selecciona un mes</option>
+                <?php if ($meses): ?>
+                    <?php foreach ($meses as $mes): ?>
+                        <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                            <?= htmlspecialchars($mes['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="">No hay meses disponibles</option>
+                <?php endif; ?>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
+
             <!-- Nombre del Certificado -->
-            <div class="col-md-4 ">
+            <div class="col-md-3 ">
               <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
               <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
               <div class="invalid-feedback">Este campo no puede estar vacío.</div>
             </div>
 
             <!-- Selección de archivo PDF -->
-            <div class="col-md-4" id="documentDiv">
+            <div class="col-md-3" id="documentDiv">
               <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
               <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf">
               <input type="hidden" name="url_antigua" id="url_antigua" value="">

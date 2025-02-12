@@ -49,15 +49,31 @@ public function obtenerHorario($periodo, $usuarioId, $carrera) {
     }
 }
 
+public function obtenerMeses() {
+    $query = "SELECT meses_id, descripcion FROM meses";
+    $result = $this->conn->query($query);
+
+    $mes = [];
+    if ($result) {
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+            $meses[] = $row;
+        }
+    }
+    return $meses;
+}
+
 public function obtenerCertificacionesPorUsuario($usuarioId) {
     try {
         $sql = "SELECT c.certificados_id, c.certificaciones_certificaciones_id, 
-                       c.usuario_usuario_id, c.nombre_certificado, c.url, 
-                       cert.descripcion AS certificacion_descripcion
+                       c.usuario_usuario_id, c.meses_meses_id, c.nombre_certificado, c.url, 
+                       cert.descripcion AS certificacion_descripcion,
+                       m.descripcion AS meses_descripcion
                 FROM certificaciones_has_usuario c
                 INNER JOIN certificaciones cert ON c.certificaciones_certificaciones_id = cert.certificaciones_id
+                INNER JOIN meses m ON c.meses_meses_id = m.meses_id
                 WHERE c.usuario_usuario_id = :usuarioId
                 ORDER BY c.certificados_id";
+                
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
@@ -2052,7 +2068,6 @@ class BorrarHorario {
         }
     }
 }
-
 class CertificacionUsuario {
     private $conn;
 
@@ -2065,6 +2080,7 @@ class CertificacionUsuario {
             // Obtener datos del formulario
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
             $nombreCertificado = $_POST['nombre_certificado'];
 
             // Manejo de archivo
@@ -2103,20 +2119,22 @@ class CertificacionUsuario {
 
             // Insertar en la base de datos
             $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
-            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $relativeFilePath);
+            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $relativeFilePath);
         }
     }
 
-    private function insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $filePath) {
+    private function insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
         // Consulta para insertar los datos
         $query = "INSERT INTO piia.certificaciones_has_usuario (
                     certificaciones_certificaciones_id,
                     usuario_usuario_id,
+                    meses_meses_id,
                     nombre_certificado,
                     url
                   ) VALUES (
                     :certificacion_id,
                     :usuario_id,
+                    :meses_id,
                     :nombre_certificado,
                     :url
                   )";
@@ -2124,6 +2142,7 @@ class CertificacionUsuario {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':certificacion_id', $certificacionId);
         $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':meses_id', $mesesId);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado);
         $stmt->bindParam(':url', $filePath);
     
@@ -2166,6 +2185,7 @@ class ActualizarCertificacionUsuario {
             $certificacionUsuarioId = $_POST['certificacion_usuario_id'];
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
             $nombreCertificado = $_POST['nombre_certificado'];
             $urlAntigua = $_POST['url_antigua']; // URL previa del archivo
 
@@ -2218,15 +2238,16 @@ class ActualizarCertificacionUsuario {
             }
 
             // Actualizar la base de datos con la nueva información
-            $this->updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $nombreCertificado, $filePath);
+            $this->updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath);
         }
     }
 
-    private function updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $nombreCertificado, $filePath) {
+    private function updateCertificacionUsuario($certificacionUsuarioId, $certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
         // Consulta para actualizar los datos
         $query = "UPDATE piia.certificaciones_has_usuario 
                   SET certificaciones_certificaciones_id = :certificacion_id,
                       usuario_usuario_id = :usuario_id,
+                      meses_meses_id = :meses_id,
                       nombre_certificado = :nombre_certificado,
                       url = :url
                   WHERE certificados_id = :certificacion_usuario_id";
@@ -2235,6 +2256,7 @@ class ActualizarCertificacionUsuario {
         $stmt->bindParam(':certificacion_usuario_id', $certificacionUsuarioId, PDO::PARAM_INT);
         $stmt->bindParam(':certificacion_id', $certificacionId, PDO::PARAM_INT);
         $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':meses_id', $mesesId, PDO::PARAM_INT);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado, PDO::PARAM_STR);
         $stmt->bindParam(':url', $filePath, PDO::PARAM_STR);
 
@@ -2262,7 +2284,6 @@ class ActualizarCertificacionUsuario {
         return $newFileName;
     }
 }
-
 
 
 class BorrarCertificacion {
