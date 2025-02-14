@@ -38,6 +38,14 @@ if ($carreraId) {
   $mujeres = 0;
   $hombres = 0;
 }
+
+
+// Crea una instancia de la clase
+$evaluacionDocente = new GraficaEvaluacion($conn);
+
+// Llama al método
+
+
 ?>
 
 
@@ -440,6 +448,7 @@ if ($carreraId) {
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
+          
 
           <!-- Contenedor de Promedio de Calificaciones -->
 
@@ -447,151 +456,103 @@ if ($carreraId) {
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
               Promedio de Calificaciones
             </div>
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Tabla de Promedio de Calificaciones -->
-                <div class="col-md-12 carta_Informacion">
-    <div class="form-group">
-        <label for="carrera_carrera_id">Selecciona una carrera:</label>
-        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" onchange="filtrarUsuariosPorCarrera()" required>
-            <option value="">Seleccione una carrera</option>
-            <?php foreach ($carreras as $carrera): ?>
-                <option value="<?php echo $carrera['carrera_id']; ?>">
-                    <?php echo $carrera['nombre_carrera']; ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+            <div class="card box-shadow-div p-4">
+      <h2 class="text-center">Evaluación Docente</h2>
+      <div class="row justify-content-center my-2">
+        <div class="col-auto ml-auto">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="reportrange" class="sr-only">Date Ranges</label>
+              <div id="reportrange" class="px-2 py-2 text-muted">
+                <i class="fe fe-calendar fe-16 mx-2"></i>
+                <span class="small"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+              <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Contenedor del gráfico -->
+      <div class="my-4">
+        <canvas id="evaluacionChart"></canvas>
+      </div>
     </div>
+  </div>
 
-    <div class="form-group">
-        <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
-        <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required onchange="filtrarUsuariosPorCarrera()">
-            <option value="">Selecciona un periodo</option>
-            <?php foreach ($periodos as $periodo): ?>
-                <option value="<?php echo $periodo['periodo_id']; ?>"><?php echo htmlspecialchars($periodo['descripcion']); ?></option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
 
-    <div class="table-responsive">
-    <table class="table table-bordered" id="docentes-table">
-        <thead>
-            <tr>
-                <th>Nombre del Docente</th>
-                <th>Evaluación TECNM</th>
-                <th>Evaluación Estudiantil</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="docentes-table-body">
-    <!-- Las filas se llenan dinámicamente -->
-</tbody>
-    </table>
-</div>
+  <script>
+    // Convertir el JSON de PHP a un objeto JavaScript
+    const datosEvaluacion = <?php echo json_encode($resultados); ?>;
 
+    // Verificar en la consola los datos recibidos
+    console.log('Datos de evaluación:', datosEvaluacion);
 
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
-          <script>
-function filtrarUsuariosPorCarrera() {
-    var carrera_id = document.getElementById("carrera_carrera_id").value;
-    var periodo_id = document.getElementById("periodo_periodo_id").value; // Obtener el valor del periodo
+    // Extraer los valores para las etiquetas y los datos
+    const nombres = datosEvaluacion.map(item => item.nombre_completo);
+    const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
+    const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
 
-    if (carrera_id === "" || periodo_id === "") {
-        document.querySelector("#docentes-table-body").innerHTML = ""; // Vacía la tabla si no hay selección
-        return;
-    }
+    // Verificar en la consola los valores extraídos
+    console.log('Nombres:', nombres);
+    console.log('Evaluación Técnica:', evaluacionTecnica);
+    console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
 
-    fetch('../../models/obtener_docentes.php', {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+    // Crear el gráfico
+    const ctx = document.getElementById('evaluacionChart').getContext('2d');
+    const evaluacionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: nombres,
+        datasets: [{
+          label: 'Evaluación Técnica',
+          data: evaluacionTecnica,
+          backgroundColor: 'rgba(17, 194, 56, 0.95)',
+          borderColor: 'rgb(54, 235, 111)',
+          borderWidth: 1,
+          borderRadius: 15,
+        }, {
+          label: 'Evaluación Estudiantil',
+          data: evaluacionEstudiantil,
+          backgroundColor: 'rgb(16, 117, 36)',
+          borderColor: 'rgb(16, 117, 36)',
+          borderWidth: 1,
+          borderRadius: 15,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Puntaje'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Docentes'
+            }
+          }
         },
-        body: `carrera_id=${carrera_id}&periodo_id=${periodo_id}` // Incluye el periodo en la solicitud
-    })
-    .then(response => response.json())
-    .then(data => {
-        var tbody = document.querySelector("#docentes-table-body");
-        tbody.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
-
-        if (data.error) {
-            tbody.innerHTML = `<tr><td colspan="4">${data.error}</td></tr>`;
-            return;
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Evaluación Docente'
+          }
         }
-
-        data.forEach(docente => {
-            // Obtener las evaluaciones previas (si existen)
-            var evaluacionTecnm = docente.evaluacion_tecnm || "00.0";
-            var evaluacionEstudiantil = docente.evaluacion_estudiantil || "00.0";
-
-            var row = `
-<tr>
-    <td>${docente.nombre_completo}</td>
-    <td>
-        <input type="number" name="evaluacionTECNM" class="evaluacionTECNM" value="${evaluacionTecnm}" min="0" max="100" step="0.1" required>
-    </td>
-    <td>
-        <input type="number" name="evaluacionEstudiantil" class="evaluacionEstudiantil" value="${evaluacionEstudiantil}" min="0" max="100" step="0.1" required>
-    </td>
-    <td>
-        <form method="POST" action="../../models/insert.php">
-            <input type="hidden" name="usuario_usuario_id" value="${docente.usuario_id}">
-            <input type="hidden" name="form_type" value="evaluacion-docente">
-            <input type="hidden" name="periodo_periodo_id" id="periodo_periodo_id_value">
-            <input type="hidden" class="input-tecnm" name="evaluacionTECNM" value="${evaluacionTecnm}">
-            <input type="hidden" class="input-estudiantil" name="evaluacionEstudiantil" value="${evaluacionEstudiantil}">
-            <button type="submit" class="btn btn-success btn-sm" onclick="actualizarInputs(this)">Guardar</button>
-        </form>
-    </td>
-</tr>
-`;
-            tbody.innerHTML += row;
-        });
-    })
-    .catch(error => console.error("Error al obtener docentes:", error));
-}
-
-
-
-function actualizarInputs(btn) {
-    // Previene el envío del formulario
-    event.preventDefault();
-
-    var row = btn.closest("tr");
-    var periodoValue = document.getElementById("periodo_periodo_id").value;
-    row.querySelector("#periodo_periodo_id_value").value = periodoValue;
-    row.querySelector(".input-tecnm").value = row.querySelector(".evaluacionTECNM").value;
-    row.querySelector(".input-estudiantil").value = row.querySelector(".evaluacionEstudiantil").value;
-
-    // Validación opcional
-    if (row.querySelector(".evaluacionTECNM").value === "00.0" || 
-        row.querySelector(".evaluacionEstudiantil").value === "00.0") {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Advertencia',
-            text: 'Asegúrate de ingresar una evaluación válida antes de guardar.',
-            allowOutsideClick: false,
-        });
-        return false;
-    }
-
-    // Muestra el SweetAlert que el usuario cierra manualmente
-    Swal.fire({
-        icon: 'success',
-        title: '¡Registro exitoso!',
-        text: 'Se ha registrado con éxito.',
-        allowOutsideClick: false,
-        confirmButtonText: 'Cerrar',
-    }).then(() => {
-        // Enviar formulario después de mostrar SweetAlert
-        btn.closest("form").submit();
+      }
     });
-
-    return false; // Impide envío automático
-}
+  </script>
 
 
 </script>

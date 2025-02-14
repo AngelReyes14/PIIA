@@ -2436,31 +2436,144 @@ class EvaluacionDocentes {
 }
 
 // EvaluacionDocente.php
-class EvaluacionDocente2 {
+class GraficaEvaluacion {
     private $conn;
 
     public function __construct($conn) {
         $this->conn = $conn;
     }
 
-    public function obtenerEvaluacionesDocentes() {
+    /**
+     * Obtiene las evaluaciones de los docentes.
+     *
+     * @param int|null $periodo_id (Opcional) Filtrar por un periodo específico.
+     * @return array Un arreglo asociativo con los datos de las evaluaciones.
+     */
+    public function obtenerEvaluacionesUsuario($usuario_id) {
         try {
             $query = "
                 SELECT 
-                    CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo,
-                    evaluacionTECNM, 
-                    evaluacionEstudiantil
+                    CONCAT(usuario.nombre_usuario, ' ', usuario.apellido_p, ' ', usuario.apellido_m) AS nombre_completo,
+                    evaluacion_docentes.evaluacionTECNM, 
+                    evaluacion_docentes.evaluacionEstudiantil,
+                    periodo.descripcion AS periodo_descripcion
                 FROM 
                     evaluacion_docentes
                 JOIN 
-                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id;
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+                WHERE 
+                    usuario.usuario_id = :usuario_id
             ";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener evaluaciones del usuario: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Calcula el promedio general de las evaluaciones docentes.
+     *
+     * @param int|null $periodo_id (Opcional) Filtrar por un periodo específico.
+     * @return array Un arreglo asociativo con el promedio general.
+     */
+    public function obtenerPromedioEvaluaciones($periodo_id = null) {
+        try {
+            $query = "
+                SELECT 
+                    AVG((evaluacion_docentes.evaluacionTECNM + evaluacion_docentes.evaluacionEstudiantil) / 2) AS promedio_general
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+            ";
+            
+            // Si se proporciona un periodo_id, filtramos los resultados
+            if (!is_null($periodo_id)) {
+                $query .= " WHERE periodo.periodo_id = :periodo_id";
+            }
+
+            $stmt = $this->conn->prepare($query);
+            
+            // Asignamos el valor de periodo_id si se proporcionó
+            if (!is_null($periodo_id)) {
+                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al calcular el promedio de evaluaciones: " . $e->getMessage());
+            return ['promedio_general' => 0];
+        }
+    }
+
+    public function obtenerEvaluacionesTodosLosDocentes() {
+        try {
+            $query = "
+                SELECT 
+                    CONCAT(usuario.nombre_usuario, ' ', usuario.apellido_p, ' ', usuario.apellido_m) AS nombre_completo,
+                    evaluacion_docentes.evaluacionTECNM, 
+                    evaluacion_docentes.evaluacionEstudiantil,
+                    periodo.descripcion AS periodo_descripcion
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+            ";
+
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            error_log("Error al obtener evaluaciones docentes: " . $e->getMessage());
+            error_log("Error al obtener evaluaciones de todos los docentes: " . $e->getMessage());
             return [];
         }
     }
 }
+
+class EvaluacionDocente {
+    private $conn; // Conexión a la base de datos
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
+    public function obtenerPromedioDocentes($periodo_id = null) {
+        try {
+            $query = "
+                SELECT 
+                    AVG((ed.evaluacionTECNM + ed.evaluacionEstudiantil) / 2) AS promedio_general
+                FROM 
+                    evaluacion_docentes ed
+                JOIN 
+                    usuario u ON ed.usuario_usuario_id = u.usuario_id
+            ";
+
+            if (!is_null($periodo_id)) {
+                $query .= " WHERE ed.periodo_periodo_id = :periodo_id";
+            }
+
+            $stmt = $this->conn->prepare($query);
+
+            if (!is_null($periodo_id)) {
+                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al calcular el promedio de evaluaciones de docentes: " . $e->getMessage());
+            return ['promedio_general' => 0];
+        }
+    }
+}
+
