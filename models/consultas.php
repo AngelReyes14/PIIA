@@ -49,6 +49,83 @@ public function obtenerHorario($periodo, $usuarioId, $carrera) {
     }
 }
 
+
+
+public function vistaHorario($periodo, $usuarioId, $carrera) {
+    try {
+        $sql = "
+            SELECT 
+                h.horario_id,
+                h.horas_horas_id,
+                h.dias_dias_id,
+                m.descripcion AS materia,  
+                g.descripcion AS grupo,
+                s.descripcion AS salon
+            FROM horario h
+            JOIN usuario u ON h.usuario_usuario_id = u.usuario_id
+            JOIN periodo p ON h.periodo_periodo_id = p.periodo_id
+            JOIN materia m ON h.materia_materia_id = m.materia_id
+            JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+            JOIN salones s ON h.salones_salon_id = s.salon_id
+            WHERE h.usuario_usuario_id = :usuarioId
+            AND h.periodo_periodo_id = :periodo
+            AND u.carrera_carrera_id = :carrera
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return ['error' => 'Error en la consulta: ' . $e->getMessage()];
+    }
+}
+
+public function obtenerPeriodoReciente() {
+    $query = "SELECT periodo_id, descripcion FROM periodo ORDER BY fecha_inicio DESC LIMIT 1";
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: ["error" => "No hay periodos registrados"];
+}
+
+public function obtenerCarrerasPorUsuario($usuario_id) {
+    $query = "SELECT c.carrera_id, c.nombre_carrera 
+              FROM usuario_has_carrera uc
+              JOIN carrera c ON uc.carrera_carrera_id = c.carrera_id
+              WHERE uc.usuario_usuario_id = :usuario_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+
+    try {
+        $stmt->execute();
+        $carreras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        error_log("Carreras obtenidas en consulta: " . json_encode($carreras)); // 🛠 Depuración
+        return $carreras;
+    } catch (PDOException $e) {
+        error_log("Error en consulta: " . $e->getMessage());
+        return [];
+    }
+}
+
+public function obtenerHorasMaterias() {
+    $query = "SELECT 
+                SUM(CASE WHEN descripcion = 'Tutorias' THEN hora_teorica ELSE 0 END) AS horas_tutorias,
+                SUM(CASE WHEN descripcion = 'Horas Apoyo' THEN hora_teorica ELSE 0 END) AS horas_apoyo,
+                SUM(CASE WHEN descripcion NOT IN ('Tutorias', 'Horas Apoyo') THEN (hora_teorica + hora_practica) ELSE 0 END) AS horas_frente_grupo
+              FROM materia";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
 public function obtenerMeses() {
     $query = "SELECT meses_id, descripcion FROM meses";
     $result = $this->conn->query($query);

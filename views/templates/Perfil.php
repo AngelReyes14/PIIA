@@ -22,7 +22,6 @@ $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuar
 $meses = $consultas->obtenerMeses();
 
 
-
 // Obtener datos del usuario
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
 if (!$usuario) {
