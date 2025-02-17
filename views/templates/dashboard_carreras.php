@@ -1,16 +1,18 @@
 <?php
+// Incluir los archivos necesarios
 include('../../models/session.php');
 include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
+// Crear una instancia de la clase Consultas pasando la conexión
 $consultas = new Consultas($conn);
 
-// Obtener imagen del usuario actual
+// Obtener la imagen del usuario actual
 $idusuario = $_SESSION['user_id']; 
-$imgUser  = $consultas->obtenerImagen($idusuario);
+$imgUser = $consultas->obtenerImagen($idusuario);
 
-// Obtener datos de carrera
+// Obtener datos de la carrera
 $carreraData = $consultas->datosCarreraPorId($idusuario);
 $carreraId = $carreraData ? $carreraData['carrera_id'] : null;
 
@@ -22,33 +24,16 @@ $vespertino = $consultas->gruposTurnoVespertino($carreraId);
 $maestros = $consultas->CarreraMaestros($carreraId);
 $incidencia = $consultas->Incidenciausuario($carreraId);
 
-if ($carreraId) {
-    $mujeres = $consultas->mujeresCarrera($carreraId);
-    $hombres = $consultas->hombresCarrera($carreraId);
-} else {
-    $mujeres = 0;
-    $hombres = 0;
-}
+// Verificar y obtener los datos de mujeres y hombres en la carrera
+$mujeres = $carreraId ? $consultas->mujeresCarrera($carreraId) : 0;
+$hombres = $carreraId ? $consultas->hombresCarrera($carreraId) : 0;
 
 // Obtener certificaciones tipo 1 y tipo 2
 $certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
 $certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
-$query = "
-    SELECT 
-        m.descripcion AS nombre_mes,
-        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
-        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
-    FROM mes m
-    LEFT JOIN certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
-    GROUP BY m.mes_id, m.descripcion
-    ORDER BY m.mes_id ASC;
-";
-
-$stmt = $conn->prepare($query);
-$stmt->execute();
-$certificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$certificaciones = $consultas->obtenerCertificacionesPorMes();
 
 // Lista de todos los meses asegurando que la gráfica los muestre
 $todosMeses = [
@@ -60,7 +45,7 @@ $todosMeses = [
 $certificaciones1PorMes = array_fill(0, 12, 0); 
 $certificaciones2PorMes = array_fill(0, 12, 0);
 
-// Asignar valores desde la consulta SQL
+// Asignar valores desde la consulta SQL a los arrays correspondientes
 foreach ($certificaciones as $row) {
     $mesIndex = array_search($row['nombre_mes'], $todosMeses);
     if ($mesIndex !== false) {
@@ -69,33 +54,51 @@ foreach ($certificaciones as $row) {
     }
 }
 
-// ** Obtener incidencias por carrera **
+// Obtener incidencias por carrera
 $incidenciasCarrera = $consultas->IncidenciasCarreraGrafic();
 $carreras = [];
 $incidencias = [];
 $promedios = [];
 
+// Recorrer las incidencias por carrera y almacenarlas
 foreach ($incidenciasCarrera as $row) {
-    // Ahora estamos usando el nombre de la carrera en lugar del ID
-    $carreras[] = $row['nombre_carrera']; // Usamos el nombre de la carrera
+    $carreras[] = $row['nombre_carrera']; 
     
     // Validación para evitar Undefined array key
     $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
     $porcentaje = isset($row['porcentaje']) ? round($row['porcentaje'], 2) : 0;
 
     // Agregar los valores al array correspondiente
-    $incidencias[] = $cantidadRegistros; // Valores de incidencias
-    $promedios[] = $porcentaje; // Valores de porcentaje
+    $incidencias[] = $cantidadRegistros;
+    $promedios[] = $porcentaje;
 }
 
-// Convertir datos a JSON
+// Obtener incidencias con los nombres de los usuarios
+$incidenciasUsuarios = $consultas->obtenerIncidenciasUsuarios();
+
+// Obtener grados académicos de los docentes
+$grados = $consultas->obtenerGradosAcademicos();
+$labels = [];
+$values = [];
+
+foreach ($grados as $grado) {
+    $labels[] = $grado['grado_academico'];
+    $values[] = $grado['total_usuarios'];
+}
+
+// Convertir datos a JSON para pasarlos a JavaScript
 $mesesJson = json_encode($todosMeses);
 $certificaciones1Json = json_encode($certificaciones1PorMes);
 $certificaciones2Json = json_encode($certificaciones2PorMes);
-$carrerasJson = json_encode($carreras); // Nombres de las carreras
-$incidenciasJson = json_encode($incidencias); // Cantidades de incidencias
-$promediosJson = json_encode($promedios); // Porcentajes de incidencias
+$carrerasJson = json_encode($carreras);
+$incidenciasJson = json_encode($incidencias);
+$promediosJson = json_encode($promedios);
+
 ?>
+
+
+
+
 
 
 
@@ -269,64 +272,125 @@ $promediosJson = json_encode($promedios); // Porcentajes de incidencias
 
 
                 <!-- Donut Chart Card -->
-                <div class="col-12 col-md-6 carta_Informacion">
+                <div class="col-12 col-md-4 carta_Informacion">
                   <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
                     <div class="card-header carta_Informacion">
                       <strong class="card-title text-green mb-0 carta_Informacion">
                         Grado académico de docentes en la división
                       </strong>
                     </div>
+                    <!-- Incluye Chart.js -->
+
+
                     <div class="card-body text-center">
-                      <div id="donutChart"></div> <!-- Contenedor de la gráfica -->
-                    </div> <!-- /.card-body -->
+    <!-- Incluir Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Contenedor de la gráfica tipo donut -->
+    <canvas id="donutChart8"></canvas> 
+</div> <!-- /.card-body -->
+
+<script>
+    // Pasar los datos desde PHP a JavaScript
+    var labels = <?php echo json_encode($labels); ?>;
+    var values = <?php echo json_encode($values); ?>;
+
+    window.onload = function() {
+        var ctx = document.getElementById('donutChart8').getContext('2d'); // Obtener el contexto
+
+        // Crear la gráfica tipo donut
+        var donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels, 
+                datasets: [{
+                    label: 'Total de Usuarios',
+                    data: values,
+                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Colores verde oscuro, medio y claro
+                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'] // Colores de hover más oscuros
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios'; 
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    /* Asegurarse de que el gráfico sea más pequeño y redondo */
+    #donutChart8 {
+        width: 100px;  /* Ajustar el tamaño más pequeño */
+        height: 100px; /* Mantener la proporción redonda */
+    }
+</style>
+
                   </div> <!-- /.card -->
                 </div> <!-- /.col -->
 
 
 
                 <!-- Tabla de Docentes -->
-                <div class="col-12 col-md-6 mt-5 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-                    </div>
-                    <table class="table datatables" id="tabla-materias-2">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Edad</th>
-                          <th>Fecha de contratacion</th>
-                          <th>Numero de empleado</th>
-                          <th>cedula</th>
-                          <th>correo</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if ($maestros): ?>
-                          <?php foreach ($maestros as $maestroscarrera): ?>
-                            <tr>
-                            <tr>
-                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
-                            </tr>                  
-                          <?php endforeach; ?>
-                        <?php else: ?>
-                          <tr>
-                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
-                          </tr>
-                        <?php endif; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
+                
 
+<!-- Contenedor de la tabla con scroll y encabezado fijo -->
+<div class="col-12 col-md-8 mt-5 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+        </div>
+
+        <!-- Contenedor con scroll -->
+        <div class="table-responsive" style="max-height: 350px; overflow-y: auto; position: relative;">
+            <table class="table datatables" id="tabla-materias-2">
+                <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Edad</th>
+                        <th>Fecha de contratación</th>
+                        <th>Número de empleado</th>
+                        <th>Cédula</th>
+                        <th>Correo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($maestros): ?>
+                        <?php foreach ($maestros as $maestroscarrera): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
+                            </tr>                  
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No hay maestros registrados.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div> <!-- Fin del contenedor con scroll -->
+    </div>
+</div> <!-- /.col -->
+
+
+              
 
           <!-- Nuevo Contenedor Principal: Incidencias -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
@@ -421,44 +485,58 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
+<div id="incidencias-container" style="overflow-y: auto;">
+    <table class="table table-striped table-bordered" id="tabla-incidencias">
+        <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
+            <tr>
+                <th>Número de incidencia</th>
+                <th>Usuario</th>
+                <th>Fecha solicitada</th>
+                <th>Motivo</th>
+                <th>Hora de inicio</th>
+                <th>Hora de término</th>
+                <th>Horario de incidencia</th>
+                <th>Día de la incidencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($incidenciasUsuarios)): ?>
+                <?php foreach ($incidenciasUsuarios as $incidencia): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($incidencia['numero_incidencia']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['usuario']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['fecha_solicitada']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['motivo']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['hora_inicio']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['hora_termino']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['horario_incidencia']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['dia_incidencia']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="8" class="text-center">No hay incidencias registradas.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let table = document.getElementById("tabla-incidencias");
+        let container = document.getElementById("incidencias-container");
+        let rowCount = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr").length;
+
+        if (rowCount > 5) {
+            container.style.maxHeight = "400px"; // Agrega el scroll si hay más de 5 registros
+        } else {
+            container.style.maxHeight = "auto"; // Sin scroll si hay 5 o menos
+        }
+    });
+</script>
 
 
-                      <!-- Tabla de incidencias -->
-                      <table class="table datatables" id="tabla-materias-2">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th>Numero de incidencia</th>
-                          <th>Usuario</th>
-                          <th>Fecha solicitada</th>
-                          <th>Motivo</th>
-                          <th>Hora de inicio</th>
-                          <th>Hora de termino</th>
-                          <th>Horario de incidencias</th>
-                          <th>Dia de las incidencias</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if ($incidencia): ?>
-                          <?php foreach ($incidencia as $incidencias): ?>
-                            <tr>
-                            <tr>
-                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_incidencia']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
-                            </tr>                  
-                          <?php endforeach; ?>
-                        <?php else: ?>
-                          <tr>
-                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
-                          </tr>
-                        <?php endif; ?>
-                      </tbody>
-                    </table>
                     </div> <!-- /.card-body -->
                   </div> <!-- /.card -->
                 </div> <!-- /.col -->

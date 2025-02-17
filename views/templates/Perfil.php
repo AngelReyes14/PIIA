@@ -18,7 +18,7 @@ $consultas = new Consultas($conn);
 // Obtener la imagen del usuario
 $imgUser = $consultas->obtenerImagen($idusuario);
 $certificaciones = $consultas->obtenerCertificaciones();
-$meses = $consultas->obtenerMes();
+$meses = $consultas->obtenerMeses();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
 
 
@@ -266,22 +266,26 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
 
+
+
         <div class="col-md-3">
-            <label for="mes_mes_id" class="form-label">Mes:</label>
-            <select class="form-control" id="mes_mes_id" name="mes_mes_id" required>
-                <option value="" disabled selected>Selecciona un mes</option>
-                <?php if ($meses): ?>
-                    <?php foreach ($meses as $mes): ?>
-                        <option value="<?= htmlspecialchars($mes['mes_id']) ?>">
-                            <?= htmlspecialchars($mes['descripcion']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <option value="">No hay meses disponibles</option>
-                <?php endif; ?>
-            </select>
-            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-        </div>
+    <label for="meses_meses_id" class="form-label">Mes:</label>
+    <select class="form-control" id="meses_meses_id" name="mes_mes_id" required>
+        <option value="" disabled selected>Selecciona un mes</option>
+        <?php if (!empty($meses)): ?>
+            <?php foreach ($meses as $mes): ?>
+                <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                    <?= htmlspecialchars($mes['descripcion']) ?>
+                </option>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <option value="">No hay meses disponibles</option>
+        <?php endif; ?>
+    </select>
+    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+</div>
+
+
 
         <!-- Selección de archivo PDF -->
         <div class="col-md-3" id="documentDiv">
