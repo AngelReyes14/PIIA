@@ -2186,7 +2186,13 @@ class CertificacionUsuario {
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
             $nombreCertificado = $_POST['nombre_certificado'];
-            $nombreMes = $_POST['mes_mes_id'];
+            $nombreMes = isset($_POST['mes_mes_id']) ? $_POST['mes_mes_id'] : null;
+    
+            // Verificar que el campo 'mes_mes_id' no esté vacío
+            if (empty($nombreMes)) {
+                echo "El campo 'Mes' es obligatorio.";
+                return;
+            }
     
             // Manejo de archivo
             $filePath = null;

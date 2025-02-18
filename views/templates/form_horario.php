@@ -250,7 +250,7 @@ if (isset($_POST['logout'])) {
                     
 
                     <!-- Selección de Materia -->
-                    <div class="row info-modal">
+                    <div class="row ">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="materia_materia_id">Materia:</label>
