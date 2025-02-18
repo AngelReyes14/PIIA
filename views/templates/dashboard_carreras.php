@@ -221,7 +221,7 @@ $promediosJson = json_encode($promedios);
 
                     <!-- Contenedor para centrar la imagen -->
                     <div class="d-flex justify-content-center">
-                      <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid">
+                    <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="w-25">
                     </div>
                   </div>
 
@@ -597,8 +597,11 @@ document.addEventListener("DOMContentLoaded", function() {
         </table>
     </div>
 </div> <!-- /.col -->
+              </div> <!-- /.row -->
+            </div> <!-- /.container-fluid -->
+          </div> <!-- /.container-fluid -->
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Obtener los datos desde PHP
     var mesesTipo1 = <?php echo $mesesJson; ?>; // Meses para el gráfico tipo 1
@@ -655,12 +658,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 </script>
 
-
-
-
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
