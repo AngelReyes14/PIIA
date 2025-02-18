@@ -7,6 +7,8 @@ class Consultas {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+
+    
     
 // Método para obtener el horario filtrado por periodo, usuarioId y carrera
 public function obtenerHorario($periodo, $usuarioId, $carrera) {
@@ -89,15 +91,16 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
 
 public function obtenerCertificacionesTipo2($cert_id) {
     $query = "
-        SELECT 
-            chu.nombre_certificado, 
-            m.descripcion AS nombre_mes, 
-            CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo
-        FROM certificaciones_has_usuario chu
-        INNER JOIN mes m ON chu.mes_id = m.mes_id
-        INNER JOIN usuario u ON chu.usuario_usuario_id = u.usuario_id
-        WHERE chu.certificaciones_certificaciones_id = :cert_id
-        ORDER BY u.usuario_id, chu.mes_id
+SELECT 
+    chu.nombre_certificado, 
+    m.descripcion AS nombre_mes, 
+    CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo
+FROM certificaciones_has_usuario chu
+INNER JOIN meses m ON chu.meses_meses_id = m.meses_id
+INNER JOIN usuario u ON chu.usuario_usuario_id = u.usuario_id
+WHERE chu.certificaciones_certificaciones_id = :cert_id
+ORDER BY u.usuario_id, chu.meses_meses_id;
+
     "; 
     
     $stmt = $this->conn->prepare($query);
@@ -2170,6 +2173,7 @@ class CertificacionUsuario {
                     echo "Error al subir el archivo.";
                     return;
                 }
+                
             }
 
             // Insertar en la base de datos
@@ -2327,6 +2331,7 @@ class ActualizarCertificacionUsuario {
             exit();
         }
     }
+    
 
     private function generateUniqueFileName($baseName, $extension, $directory) {
         $counter = 1;
@@ -2541,3 +2546,4 @@ class EvaluacionDocente2 {
         }
     }
 }
+

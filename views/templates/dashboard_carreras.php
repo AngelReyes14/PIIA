@@ -40,14 +40,15 @@ $certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
 $query = "
-    SELECT 
-        m.descripcion AS nombre_mes,
-        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
-        COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
-    FROM mes m
-    LEFT JOIN certificaciones_has_usuario chu ON chu.mes_id = m.mes_id
-    GROUP BY m.mes_id, m.descripcion
-    ORDER BY m.mes_id ASC;
+SELECT 
+    m.descripcion AS nombre_mes,
+    COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
+    COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
+FROM meses m
+LEFT JOIN certificaciones_has_usuario chu ON chu.meses_meses_id = m.meses_id
+GROUP BY m.meses_id, m.descripcion
+ORDER BY m.meses_id ASC;
+
 ";
 
 $stmt = $conn->prepare($query);

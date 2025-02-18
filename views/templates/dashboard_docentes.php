@@ -12,16 +12,16 @@ $consultas = new Consultas($conn);
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
 $idusuario = (int) $_SESSION['user_id'];
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
-$imgUser  = $consultas->obtenerImagen($idusuario);
+$imgUser = $consultas->obtenerImagen($idusuario);
 
 // Validar tipo de usuario
 if (!$tipoUsuarioId) {
-    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
+  die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
 }
 
 // Si el tipo de usuario es 1, forzar visualización solo de su perfil
 if ($tipoUsuarioId === 1) {
-    $_GET['idusuario'] = $idusuario;
+  $_GET['idusuario'] = $idusuario;
 }
 
 // Obtener usuario y carrera
@@ -30,15 +30,20 @@ $usuario = $consultas->obtenerUsuarioPorId($idusuario);
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
 
+$certificaciones = $consultas->obtenerCertificaciones();
+$certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
+
+
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
-    header("Location: ?idusuario=1");
-    exit;
+  header("Location: ?idusuario=1");
+  exit;
 }
 
 // Fusionar datos de usuario y carrera
 if ($carrera) {
-    $usuario = array_merge($usuario, $carrera);
+  $usuario = array_merge($usuario, $carrera);
 }
 
 // Calcular antigüedad del usuario
@@ -48,7 +53,7 @@ $usuario['antiguedad'] = $fechaContratacionDate->diff($fechaActual)->y;
 
 // Cerrar sesión si se envió el formulario
 if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 // Nombre de carrera
@@ -141,8 +146,8 @@ $resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
   <link rel="stylesheet" href="css/app-dark.css" id="darkTheme">
   </link>
 
-<!-- Bootstrap JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 
 </head>
@@ -175,13 +180,13 @@ $resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
           </a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="avatar avatar-sm mt-2">
-                  <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>" 
-                      alt="Avatar del usuario" 
-                      class="avatar-img rounded-circle" 
-                      style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-              </span>
+          <a class="nav-link dropdown-toggle text-muted pr-0" href="#" id="navbarDropdownMenuLink" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="avatar avatar-sm mt-2">
+              <img src="<?= htmlspecialchars($imgUser['imagen_url'] ?? './assets/avatars/default.jpg') ?>"
+                alt="Avatar del usuario" class="avatar-img rounded-circle"
+                style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+            </span>
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
             <a class="dropdown-item" href="Perfil.php">Profile</a>
@@ -195,76 +200,85 @@ $resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
       </ul>
     </nav>
   </div>
-<?php if ($tipoUsuarioId === 5 || $tipoUsuarioId == 3 || $tipoUsuarioId == 4): ?>
+  <?php if ($tipoUsuarioId === 5 || $tipoUsuarioId == 3 || $tipoUsuarioId == 4): ?>
     <!-- Filtro de carreras -->
     <div class="card text-center">
-        <div class="card-body">
-            <h5 class="card-title">Filtrado por carrera</h5>
-            <div class="filter-container">
-                <select id="carreraSelect" class="form-control" style="max-width: 300px; margin: auto;">
-                    <option selected disabled>Seleccionar carrera</option>
-                    <?php foreach ($carreras as $carrera): ?>
-                        <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
-                            <?= htmlspecialchars($carrera['nombre_carrera']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+      <div class="card-body">
+        <h5 class="card-title">Filtrado por carrera</h5>
+        <div class="filter-container">
+          <select id="carreraSelect" class="form-control" style="max-width: 300px; margin: auto;">
+            <option selected disabled>Seleccionar carrera</option>
+            <?php foreach ($carreras as $carrera): ?>
+              <option value="<?= htmlspecialchars($carrera['carrera_id']) ?>">
+                <?= htmlspecialchars($carrera['nombre_carrera']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </div>
+      </div>
     </div>
-<?php endif; ?>
+  <?php endif; ?>
 
- <!-- Código HTML del carrusel -->
- <main role="main" class="main-content">
-<div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="container-fluid mb-3">
-          <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-            PERFIL DOCENTE
-          </div>
-          <div class="row justify-content-center mb-0">
-            <div class="col-12">
-              <div class="row">
-                <div class="col-md-12 col-xl-12 mb-0">
-                  <div class="card box-shadow-div text-red rounded-lg">
-                    <div class="row align-items-center">
-                      <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden"></span>
-                      </button>
+  <!-- Código HTML del carrusel -->
+  <main role="main" class="main-content">
+    <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="container-fluid mb-3">
+        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+          PERFIL DOCENTE
+        </div>
+        <div class="row justify-content-center mb-0">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-md-12 col-xl-12 mb-0">
+                <div class="card box-shadow-div text-red rounded-lg">
+                  <div class="row align-items-center">
+                    <button class="carousel-control-prev col-1 btn btn-primary" type="button" id="anterior">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden"></span>
+                    </button>
 
-                      <div class="col-10">
-                          <div class="carousel-inner" id="carouselContent">
-                            <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
-                              <div class="row">
-                                <div class="col-12 col-md-5 col-xl-3 text-center">
-                                  <strong class="name-line">Foto del Docente:</strong> <br>
-                                  <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid tamanoImg" >
-                                  </div>
-                                <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                                  <p class="teacher-info h4" id="teacherInfo">
-                                    <strong class="name-line">Docente:</strong> <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
-                                    <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años <br>
-                                    <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
-                                    <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
-                                    <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
-                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
-                                    <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
-                                    <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
-                                    <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
-                                  </p>
-                                </div>
-                              </div>
+                    <div class="col-10">
+                      <div class="carousel-inner" id="carouselContent">
+                        <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+                          <div class="row">
+                            <div class="col-12 col-md-5 col-xl-3 text-center">
+                              <strong class="name-line">Foto del Docente:</strong> <br>
+                              <img src="<?= '../' . htmlspecialchars($usuario["imagen_url"]) ?>"
+                                alt="Imagen del docente" class="img-fluid tamanoImg">
                             </div>
-                            <!-- Más elementos del carrusel se generarán dinámicamente -->
+                            <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                              <p class="teacher-info h4" id="teacherInfo">
+                                <strong class="name-line">Docente:</strong>
+                                <?= htmlspecialchars($usuario["nombre_usuario"] . ' ' . $usuario["apellido_p"] . ' ' . $usuario["apellido_m"]) ?><br>
+                                <strong class="name-line">Edad:</strong> <?= htmlspecialchars($usuario["edad"]) ?> años
+                                <br>
+                                <strong class="name-line">Fecha de contratación:</strong>
+                                <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
+                                <strong class="name-line">Antigüedad:</strong>
+                                <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
+                                <strong class="name-line">División Adscrita:</strong>
+                                <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
+                                <strong class="name-line">Número de Empleado:</strong>
+                                <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                                <strong class="name-line">Grado académico:</strong>
+                                <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
+                                <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?>
+                                <br>
+                                <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?>
+                                <br>
+                              </p>
+                            </div>
                           </div>
                         </div>
-
-
-                      <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden"></span>
-                      </button>
+                        <!-- Más elementos del carrusel se generarán dinámicamente -->
+                      </div>
                     </div>
+
+
+                    <button class="carousel-control-next col-1 btn btn-primary" type="button" id="siguiente">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="visually-hidden"></span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -272,138 +286,139 @@ $resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
           </div>
         </div>
       </div>
-      <script>
-function toggleCampos() {
-  var selectElement = document.getElementById('incidencias');
-  var incidenciasDiv = document.getElementById('incidenciasDiv');
-  var otroDiv = document.getElementById('otroDiv');
-  var otroInput = document.getElementById('otro');
-  var documentDiv = document.getElementById('documentDiv');
-  var archivoInput = document.getElementById('documentInput');
-  var selectedValue = selectElement.value;
+    </div>
+    <script>
+      function toggleCampos() {
+        var selectElement = document.getElementById('incidencias');
+        var incidenciasDiv = document.getElementById('incidenciasDiv');
+        var otroDiv = document.getElementById('otroDiv');
+        var otroInput = document.getElementById('otro');
+        var documentDiv = document.getElementById('documentDiv');
+        var archivoInput = document.getElementById('documentInput');
+        var selectedValue = selectElement.value;
 
-  // Manejo del campo "Otro"
-  if (selectedValue == "7") {
-    incidenciasDiv.classList.remove("col-md-12");
-    incidenciasDiv.classList.add("col-md-6");
-    otroDiv.style.display = "block";
-    otroInput.disabled = false;
-  } else {
-    incidenciasDiv.classList.remove("col-md-6");
-    incidenciasDiv.classList.add("col-md-12");
-    otroDiv.style.display = "none";
-    otroInput.disabled = true;
-    otroInput.value = "";
-  }
+        // Manejo del campo "Otro"
+        if (selectedValue == "7") {
+          incidenciasDiv.classList.remove("col-md-12");
+          incidenciasDiv.classList.add("col-md-6");
+          otroDiv.style.display = "block";
+          otroInput.disabled = false;
+        } else {
+          incidenciasDiv.classList.remove("col-md-6");
+          incidenciasDiv.classList.add("col-md-12");
+          otroDiv.style.display = "none";
+          otroInput.disabled = true;
+          otroInput.value = "";
+        }
 
-  // Manejo del campo "Seleccionar documento"
-  if (selectedValue == "1") {
-    documentDiv.style.display = "block";
-    archivoInput.disabled = false;
-  } else {
-    documentDiv.style.display = "none";
-    archivoInput.disabled = true;
-    archivoInput.value = "";
-  }
-}
+        // Manejo del campo "Seleccionar documento"
+        if (selectedValue == "1") {
+          documentDiv.style.display = "block";
+          archivoInput.disabled = false;
+        } else {
+          documentDiv.style.display = "none";
+          archivoInput.disabled = true;
+          archivoInput.value = "";
+        }
+      }
 
 
-</script>
+    </script>
 
-      <script>
-    const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
-    let idusuario = <?= json_encode($idusuario) ?>;
+    <script>
+      const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
+      let idusuario = <?= json_encode($idusuario) ?>;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+      const urlParams = new URLSearchParams(window.location.search);
+      idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
 
-    const anterior = document.getElementById("anterior");
-    const siguiente = document.getElementById("siguiente");
-    const carreraSelect = document.getElementById('carreraSelect');
+      const anterior = document.getElementById("anterior");
+      const siguiente = document.getElementById("siguiente");
+      const carreraSelect = document.getElementById('carreraSelect');
 
-    let usuariosFiltrados = [];
-    let indiceUsuarioActual = 0;
+      let usuariosFiltrados = [];
+      let indiceUsuarioActual = 0;
 
-    if (tipoUsuarioId === 1) {
+      if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
-    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
+      } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
         function actualizarVistaUsuario(index) {
-            const usuario = usuariosFiltrados[index];
-            actualizarCarrusel([usuario]);
+          const usuario = usuariosFiltrados[index];
+          actualizarCarrusel([usuario]);
         }
 
         function updateUrl(newIdusuario) {
-            if (tipoUsuarioId !== 5) {
-                window.location.href = `?idusuario=${newIdusuario}`;
-            }
+          if (tipoUsuarioId !== 5) {
+            window.location.href = `?idusuario=${newIdusuario}`;
+          }
         }
 
         siguiente.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0) {
-                if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
-                    indiceUsuarioActual++;
-                } else {
-                    indiceUsuarioActual = 0;
-                }
-                actualizarVistaUsuario(indiceUsuarioActual);
+          if (usuariosFiltrados.length > 0) {
+            if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
+              indiceUsuarioActual++;
             } else {
-                idusuario++;
-                updateUrl(idusuario);
+              indiceUsuarioActual = 0;
             }
+            actualizarVistaUsuario(indiceUsuarioActual);
+          } else {
+            idusuario++;
+            updateUrl(idusuario);
+          }
         });
 
         anterior.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
-                indiceUsuarioActual--;
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
-            }
+          if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
+            indiceUsuarioActual--;
+            actualizarVistaUsuario(indiceUsuarioActual);
+          } else if (idusuario > 1) {
+            idusuario--;
+            updateUrl(idusuario);
+          }
         });
-    } else {
+      } else {
         anterior.disabled = true;
         siguiente.disabled = true;
-    }
+      }
 
-    carreraSelect.addEventListener('change', function() {
+      carreraSelect.addEventListener('change', function () {
         const carreraId = carreraSelect.value;
 
         $.ajax({
-            url: '../templates/filtrarPorCarrera.php',
-            type: 'POST',
-            data: { carrera_id: carreraId },
-            dataType: 'json',
-            success: function(response) {
-                if (response && response.length > 0) {
-                    usuariosFiltrados = response;
-                    indiceUsuarioActual = 0;
-                    actualizarCarrusel(usuariosFiltrados);
-                } else {
-                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
-                }
-            },
-            error: function() {
-                console.error('Error al obtener los usuarios por carrera.');
+          url: '../templates/filtrarPorCarrera.php',
+          type: 'POST',
+          data: { carrera_id: carreraId },
+          dataType: 'json',
+          success: function (response) {
+            if (response && response.length > 0) {
+              usuariosFiltrados = response;
+              indiceUsuarioActual = 0;
+              actualizarCarrusel(usuariosFiltrados);
+            } else {
+              document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
             }
+          },
+          error: function () {
+            console.error('Error al obtener los usuarios por carrera.');
+          }
         });
-    });
+      });
 
-    function actualizarCarrusel(usuarios) {
+      function actualizarCarrusel(usuarios) {
         const carouselContent = document.getElementById('carouselContent');
         carouselContent.innerHTML = '';
 
         usuarios.forEach((usuario, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            const fechaContratacion = new Date(usuario.fecha_contratacion);
-            const fechaActual = new Date();
-            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-            if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
-                antiguedad--;
-            }
+          const activeClass = index === 0 ? 'active' : '';
+          const fechaContratacion = new Date(usuario.fecha_contratacion);
+          const fechaActual = new Date();
+          let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+          if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
+            antiguedad--;
+          }
 
-            const carouselItem = `
+          const carouselItem = `
                 <div class="carousel-item ${activeClass}">
                     <div class="row">
                         <div class="col-12 col-md-5 col-xl-3 text-center">
@@ -427,845 +442,694 @@ function toggleCampos() {
                 </div>
             `;
 
-            carouselContent.innerHTML += carouselItem;
+          carouselContent.innerHTML += carouselItem;
         });
-    }
-</script>
-
-
-
-      <!-- Parte de recursos humanos -->
-<div class="container-fluid mt-0">
-  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-    RECURSOS HUMANOS
-  </div>
-  
-  <!-- Tarjeta principal -->
-  <div class="card shadow-lg p-4 mb-3">
-    <div class="wrapper">
-      <div class="container-fluid">
-        <!-- Filtros -->
-        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
-          <!-- Filtro de Periodo -->
-          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
-            <span class="fe fe-24 fe-filter me-2"></span>
-            <label class="filter-label">Periodo:</label>
-            <div class="filter-options position-relative">
-              <select class="form-select" id="periodoSelect">
-                <option value="">Selecciona un periodo</option>
-                <?php foreach ($periodos as $periodo): ?>
-                  <option value="<?php echo $periodo['periodo_id']; ?>">
-                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-
-          <!-- Filtro de División -->
-          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
-            <button class="btn-filter d-flex align-items-center">
-              <span class="fe fe-24 fe-filter me-2"></span>
-              <span class="filter-label" data-placeholder="División">
-                <?php echo $nombreCarrera; ?>
-              </span>
-            </button>
-            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-              <ul class="list-unstyled m-0 p-2">
-                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
-              </ul>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Sección de Incidencias -->
-        <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
-        <div class="row d-flex justify-content-center">
-          <!-- Bloque de Días Económicos -->
-          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="card-body-calendar box-shadow-div mb-3">
-              <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-              <div class="text-verde">4</div>
-            </div>
-            <div class="card-body-calendar box-shadow-div">
-              <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
-              <div class="text-verde">1</div>
-            </div>
-          </div>
-
-          <!-- Calendario -->
-          <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
-            <div class="calendar-new box-shadow-div">
-              <div class="header d-flex align-items-center">
-                <div class="month"></div>
-                <div class="btns d-flex justify-content-center">
-                  <div class="btn today-btn mx-1">
-                    <i class="fe fe-24 fe-calendar"></i>
-                  </div>
-                  <div class="btn prev-btn mx-1">
-                    <i class="fe fe-24 fe-arrow-left"></i>
-                  </div>
-                  <div class="btn next-btn mx-1">
-                    <i class="fe fe-24 fe-arrow-right"></i>
-                  </div>
-                </div>
-              </div>
-              <div class="weekdays d-flex">
-                <div class="day">Dom</div>
-                <div class="day">Lun</div>
-                <div class="day">Mar</div>
-                <div class="day">Mie</div>
-                <div class="day">Jue</div>
-                <div class="day">Vie</div>
-                <div class="day">Sab</div>
-              </div>
-              <div class="days">
-                <!-- días agregados dinámicamente -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Bloque de Avisos -->
-          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="card-body-calendar box-shadow-div mb-3">
-              <h3 class="h5">AVISOS</h3>
-              <div class="text-verde"><?php echo count($avisos); ?></div>
-            </div>
-            <div class="card-body-calendar">
-              <?php foreach ($avisos as $aviso): ?>
-                <div class="card-avisos mb-2">
-                  <strong>Motivo:</strong> <?php echo htmlspecialchars($aviso['motivo']); ?><br>
-                  <strong>Fecha de incidencia:</strong> <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal de Incidencias -->
-        <div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body" id="modalContent">
-                <!-- Contenido cargado dinámicamente -->
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-document.getElementById('periodoSelect').addEventListener('change', function() {
-    const selectedPeriodId = this.value;
-    console.log("Periodo seleccionado:", selectedPeriodId);
-    
-    if (selectedPeriodId) {
-        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.fecha_inicio && data.fecha_termino) {
-                    const fechaInicio = new Date(data.fecha_inicio);
-                    const fechaTermino = new Date(data.fecha_termino);
-                    actualizarCalendario(fechaInicio, fechaTermino);
-                }
-            })
-            .catch(error => console.error("Error al obtener las fechas del periodo:", error));
-    }
-});
-
-function actualizarCalendario(fechaInicio, fechaTermino) {
-    currentMonth = fechaInicio.getMonth();
-    currentYear = fechaInicio.getFullYear();
-    renderCalendar();
-}
-</script>
-
-
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="container-fluid">
-      <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-      DESARROLLO ACADÉMICO
-    </div>
-    <div class="card box-shadow-div p-4">
-      <h2 class="text-center">Evaluación Docente</h2>
-      <div class="row justify-content-center my-2">
-        <div class="col-auto ml-auto">
-          <form class="form-inline">
-            <div class="form-group">
-              <label for="reportrange" class="sr-only">Date Ranges</label>
-              <div id="reportrange" class="px-2 py-2 text-muted">
-                <i class="fe fe-calendar fe-16 mx-2"></i>
-                <span class="small"></span>
-              </div>
-            </div>
-            <div class="form-group">
-              <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
-              <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Contenedor del gráfico -->
-      <div class="my-4">
-        <canvas id="evaluacionChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
-
-  <script>
-    // Convertir el JSON de PHP a un objeto JavaScript
-    const datosEvaluacion = <?php echo json_encode($resultados); ?>;
-
-    // Verificar en la consola los datos recibidos
-    console.log('Datos de evaluación:', datosEvaluacion);
-
-    // Extraer los valores para las etiquetas y los datos
-    const nombres = datosEvaluacion.map(item => item.nombre_completo);
-    const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
-    const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
-
-    // Verificar en la consola los valores extraídos
-    console.log('Nombres:', nombres);
-    console.log('Evaluación Técnica:', evaluacionTecnica);
-    console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
-
-    // Crear el gráfico
-    const ctx = document.getElementById('evaluacionChart').getContext('2d');
-    const evaluacionChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: nombres,
-        datasets: [{
-          label: 'Evaluación Técnica',
-          data: evaluacionTecnica,
-          backgroundColor: 'rgba(17, 194, 56, 0.95)',
-          borderColor: 'rgb(54, 235, 111)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }, {
-          label: 'Evaluación Estudiantil',
-          data: evaluacionEstudiantil,
-          backgroundColor: 'rgb(16, 117, 36)',
-          borderColor: 'rgb(16, 117, 36)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Puntaje'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Docentes'
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          title: {
-            display: true,
-            text: 'Evaluación Docente'
-          }
-        }
       }
-    });
-  </script>
+    </script>
 
-</div>
 
-          <div class="container-fluid mt-0">
-            <div class="row">
-              <div class="col-lg-6">
-                <div class="d-flex flex-column">
-                  <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Calificación promedio</h2>
-                      <h1 class="text-success mb-3">85.30</h1>
-                    </div>
-                  </div>
 
-                  <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
-                      <h1 class="text-success mb-3">8ISC22</h1>
-                    </div>
-                  </div>
+    <!-- Parte de recursos humanos -->
+    <div class="container-fluid mt-0">
+      <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+        RECURSOS HUMANOS
+      </div>
 
-                  <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
-                      <h1 class="text-success mb-3">Lunes</h1>
-                    </div>
-                  </div>
+      <!-- Tarjeta principal -->
+      <div class="card shadow-lg p-4 mb-3">
+        <div class="wrapper">
+          <div class="container-fluid">
+            <!-- Filtros -->
+            <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
+              <!-- Filtro de Periodo -->
+              <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
+                <span class="fe fe-24 fe-filter me-2"></span>
+                <label class="filter-label">Periodo:</label>
+                <div class="filter-options position-relative">
+                  <select class="form-select" id="periodoSelect">
+                    <option value="">Selecciona un periodo</option>
+                    <?php foreach ($periodos as $periodo): ?>
+                      <option value="<?php echo $periodo['periodo_id']; ?>">
+                        <?php echo htmlspecialchars($periodo['descripcion']); ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
                 </div>
               </div>
 
-              <!--------Inicio de la tabla ---------->
-              <!-- Columna para la tabla -->
-              <div class="col-lg-6">
-                <div class="card box-shadow-div text-center border-5 mt-1">
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Recent orders -->
-                      <div class="col-12">
-                        <h6 class="mb-3">Capacitación disciplinaria</h6>
-                        <div class="table-responsive">
-                          <table class="table table-borderless table-striped">
-                            <thead>
-                              <tr role="row">
-                                <th>ID</th>
-                                <th>Purchase Date</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th scope="col">1331</th>
-                                <td>2020-12-26 01:32:21</td>
-                                <td>Kasimir Lindsey</td>
-                                <td>(697) 486-2101</td>
-                                <td>996-3523 Et Ave</td>
-                                <td>$3.64</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1156</th>
-                                <td>2020-04-21 00:38:38</td>
-                                <td>Melinda Levy</td>
-                                <td>(748) 927-4423</td>
-                                <td>Ap #516-8821 Vitae Street</td>
-                                <td>$4.18</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1038</th>
-                                <td>2019-06-25 19:13:36</td>
-                                <td>Aubrey Sweeney</td>
-                                <td>(422) 405-2736</td>
-                                <td>Ap #598-7581 Tellus Av.</td>
-                                <td>$4.98</td>
-                                <td>Credit Card </td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1227</th>
-                                <td>2021-01-22 13:28:00</td>
-                                <td>Timon Bauer</td>
-                                <td>(690) 965-1551</td>
-                                <td>840-2188 Placerat, Rd.</td>
-                                <td>$3.46</td>
-                                <td> Paypal</td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1956</th>
-                                <td>2019-11-11 16:23:17</td>
-                                <td>Kelly Barrera</td>
-                                <td>(117) 625-6737</td>
-                                <td>816 Ornare, Street</td>
-                                <td>$4.16</td>
-                                <td>Credit Card </td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1669</th>
-                                <td>2021-04-12 07:07:13</td>
-                                <td>Kellie Roach</td>
-                                <td>(422) 748-1761</td>
-                                <td>5432 A St.</td>
-                                <td>$3.53</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1909</th>
-                                <td>2020-05-14 00:23:11</td>
-                                <td>Lani Diaz</td>
-                                <td>(767) 486-2253</td>
-                                <td>3328 Ut Street</td>
-                                <td>$4.29</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <!-- Fin de las filas de la tabla -->
-                            </tbody>
-                          </table>
-                        </div>
+              <!-- Filtro de División -->
+              <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
+                <button class="btn-filter d-flex align-items-center">
+                  <span class="fe fe-24 fe-filter me-2"></span>
+                  <span class="filter-label" data-placeholder="División">
+                    <?php echo $nombreCarrera; ?>
+                  </span>
+                </button>
+                <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
+                  <ul class="list-unstyled m-0 p-2">
+                    <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Sección de Incidencias -->
+            <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
+            <div class="row d-flex justify-content-center">
+              <!-- Bloque de Días Económicos -->
+              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+                <div class="card-body-calendar box-shadow-div mb-3">
+                  <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
+                  <div class="text-verde">4</div>
+                </div>
+                <div class="card-body-calendar box-shadow-div">
+                  <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
+                  <div class="text-verde">1</div>
+                </div>
+              </div>
+
+              <!-- Calendario -->
+              <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
+                <div class="calendar-new box-shadow-div">
+                  <div class="header d-flex align-items-center">
+                    <div class="month"></div>
+                    <div class="btns d-flex justify-content-center">
+                      <div class="btn today-btn mx-1">
+                        <i class="fe fe-24 fe-calendar"></i>
+                      </div>
+                      <div class="btn prev-btn mx-1">
+                        <i class="fe fe-24 fe-arrow-left"></i>
+                      </div>
+                      <div class="btn next-btn mx-1">
+                        <i class="fe fe-24 fe-arrow-right"></i>
                       </div>
                     </div>
                   </div>
+                  <div class="weekdays d-flex">
+                    <div class="day">Dom</div>
+                    <div class="day">Lun</div>
+                    <div class="day">Mar</div>
+                    <div class="day">Mie</div>
+                    <div class="day">Jue</div>
+                    <div class="day">Vie</div>
+                    <div class="day">Sab</div>
+                  </div>
+                  <div class="days">
+                    <!-- días agregados dinámicamente -->
+                  </div>
                 </div>
               </div>
 
-              <!-- Columna para las tarjetas -->
-            </div>
-          </div>
-
-        </div> <!-- .container-fluid -->
-      </div> <!---- fin de la card principál------>
-
-      <!----Parte de dirección academica---->
-      <div class="container-fluid">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DIRECCIÓN ACADÉMICA
-        </div>
-
-        <!-- Tarjeta principal -->
-        <div class="card box-shadow-div p-4 mb-3">
-          <h2 class="text-center">Ingeniería en Sistemas Computacionales</h2>
-          <div class="row">
-            <div class="col-12 mb-0">
-              <div class="schedule-container">
-                <div class="table-responsive">
-                  <table class="table table-borderless table-striped">
-                    <thead>
-                      <tr  role="row">
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr  scope="col">
-                        <td>07:00 - 08:00</td>
-                        <td>Clase A</td>
-                        <td></td>
-                        <td>Clase B</td>
-                        <td></td>
-                        <td>Clase C</td>
-                      </tr>
-                      <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>09:00 - 10:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>11:00 - 12:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>12:00 - 13:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>13:00 - 14:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>14:00 - 15:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>15:00 - 16:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>16:00 - 17:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>17:00 - 18:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>18:00 - 19:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>19:00 - 20:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>20:00 - 21:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <!-- Bloque de Avisos -->
+              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+                <div class="card-body-calendar box-shadow-div mb-3">
+                  <h3 class="h5">AVISOS</h3>
+                  <div class="text-verde"><?php echo count($avisos); ?></div>
+                </div>
+                <div class="card-body-calendar">
+                  <?php foreach ($avisos as $aviso): ?>
+                    <div class="card-avisos mb-2">
+                      <strong>Motivo:</strong> <?php echo htmlspecialchars($aviso['motivo']); ?><br>
+                      <strong>Fecha de incidencia:</strong> <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
+                    </div>
+                  <?php endforeach; ?>
                 </div>
               </div>
             </div>
-          </div>
 
-
-          <div class="col-12 mb-4">
-            <div class="card shadow">
-              <div class="card-header">
-                <strong class="card-title mb-0">Desglose de horas</strong>
-              </div>
-              <div class="card-body">
-                <div id="barChart"></div>
-              </div> <!-- /.card-body -->
-            </div> <!-- /.card -->
-            <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>
-          </div> <!-- /. col -->
-        <!---------------- Termina la parte de direccion academica -------------->
-
-        <div class="row mb-3">
-          <!-- Card de Días Económicos Totales y Tomados -->
-          <div class="col-lg-6 mb-3">
-            <!-- Card Días Económicos Totales -->
-            <div class="card box-shadow-div text-center border-9">
-              <div class="card-body">
-                <h3 class="font-weight-bold mb-0">CUERPO COLEGIADO</h3>
-                <h1 class="text-success">DESARROLLO CCAI</h1>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-6 mb-3">
-            <!-- Card Lista de Avisos (a la derecha) -->
-            <div class="card box-shadow-div text-left border-5">
-              <div class="card-body mb-3">
-                <h1>PRODUCTOS DE INVESTIGACIÓN</h1>
-                <ul class="list-group">
-                  <li class="list-group-item border-3">
-                    <h3 class="text-success">Investigación del conocimiento aplicado a la IA</h3>
-                  </li>
-                  <li class="list-group-item border-3">(Mayo 2023)</li>
-                  <li class="list-group-item border-3 text-success">
-                    <h3 class="text-success"> Desarrollo de software para el control de bitacoras </h3>
-                  </li>
-                  <li class="list-group-item border-3">(Agosto 2023)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-      </div>
-  </div>
-
-  <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-sm" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="list-group list-group-flush my-n3">
-            <div class="list-group-item bg-transparent">
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <span class="fe fe-box fe-24"></span>
-                </div>
-                <div class="col">
-                  <small><strong>Package has uploaded successfull</strong></small>
-                  <div class="my-0 text-muted small">Package is zipped and uploaded</div>
-                  <small class="badge badge-pill badge-light text-muted">1m ago</small>
+            <!-- Modal de Incidencias -->
+            <div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel"
+              aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body" id="modalContent">
+                    <!-- Contenido cargado dinámicamente -->
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="list-group-item bg-transparent">
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <span class="fe fe-download fe-24"></span>
-                </div>
-                <div class="col">
-                  <small><strong>Widgets are updated successfull</strong></small>
-                  <div class="my-0 text-muted small">Just create new layout Index, form, table</div>
-                  <small class="badge badge-pill badge-light text-muted">2m ago</small>
-                </div>
-              </div>
-            </div>
-            <div class="list-group-item bg-transparent">
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <span class="fe fe-inbox fe-24"></span>
-                </div>
-                <div class="col">
-                  <small><strong>Notifications have been sent</strong></small>
-                  <div class="my-0 text-muted small">Fusce dapibus, tellus ac cursus commodo</div>
-                  <small class="badge badge-pill badge-light text-muted">30m ago</small>
-                </div>
-              </div> <!-- / .row -->
-            </div>
-            <div class="list-group-item bg-transparent">
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <span class="fe fe-link fe-24"></span>
-                </div>
-                <div class="col">
-                  <small><strong>Link was attached to menu</strong></small>
-                  <div class="my-0 text-muted small">New layout has been attached to the menu</div>
-                  <small class="badge badge-pill badge-light text-muted">1h ago</small>
-                </div>
-              </div>
-            </div> <!-- / .row -->
-          </div> <!-- / .list-group -->
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear All</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="defaultModalLabel">Shortcuts</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body px-5">
-          <div class="row align-items-center">
-            <div class="col-6 text-center">
-              <div class="squircle bg-success justify-content-center">
-                <i class="fe fe-cpu fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Control area</p>
-            </div>
-            <div class="col-6 text-center">
-              <div class="squircle bg-primary justify-content-center">
-                <i class="fe fe-activity fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Activity</p>
-            </div>
-          </div>
-          <div class="row align-items-center">
-            <div class="col-6 text-center">
-              <div class="squircle bg-primary justify-content-center">
-                <i class="fe fe-droplet fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Droplet</p>
-            </div>
-            <div class="col-6 text-center">
-              <div class="squircle bg-primary justify-content-center">
-                <i class="fe fe-upload-cloud fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Upload</p>
-            </div>
-          </div>
-          <div class="row align-items-center">
-            <div class="col-6 text-center">
-              <div class="squircle bg-primary justify-content-center">
-                <i class="fe fe-users fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Users</p>
-            </div>
-            <div class="col-6 text-center">
-              <div class="squircle bg-primary justify-content-center">
-                <i class="fe fe-settings fe-32 align-self-center text-white"></i>
-              </div>
-              <p>Settings</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <script>
+      document.getElementById('periodoSelect').addEventListener('change', function () {
+        const selectedPeriodId = this.value;
+        console.log("Periodo seleccionado:", selectedPeriodId);
+
+        if (selectedPeriodId) {
+          fetch(`get_period_dates.php?id=${selectedPeriodId}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data && data.fecha_inicio && data.fecha_termino) {
+                const fechaInicio = new Date(data.fecha_inicio);
+                const fechaTermino = new Date(data.fecha_termino);
+                actualizarCalendario(fechaInicio, fechaTermino);
+              }
+            })
+            .catch(error => console.error("Error al obtener las fechas del periodo:", error));
+        }
+      });
+
+      function actualizarCalendario(fechaInicio, fechaTermino) {
+        currentMonth = fechaInicio.getMonth();
+        currentYear = fechaInicio.getFullYear();
+        renderCalendar();
+      }
+    </script>
+
+
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+        DESARROLLO ACADÉMICO
+      </div>
+      <div class="card box-shadow-div p-4">
+        <h2 class="text-center">Evaluación Docente</h2>
+        <div class="row justify-content-center my-2">
+          <div class="col-auto ml-auto">
+            <form class="form-inline">
+              <div class="form-group">
+                <label for="reportrange" class="sr-only">Date Ranges</label>
+                <div id="reportrange" class="px-2 py-2 text-muted">
+                  <i class="fe fe-calendar fe-16 mx-2"></i>
+                  <span class="small"></span>
+                </div>
+              </div>
+              <div class="form-group">
+                <button type="button" class="btn btn-sm"><span
+                    class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+                <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Contenedor del gráfico -->
+        <div class="my-4">
+          <canvas id="evaluacionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+
+    <script>
+      // Convertir el JSON de PHP a un objeto JavaScript
+      const datosEvaluacion = <?php echo json_encode($resultados); ?>;
+
+      // Verificar en la consola los datos recibidos
+      console.log('Datos de evaluación:', datosEvaluacion);
+
+      // Extraer los valores para las etiquetas y los datos
+      const nombres = datosEvaluacion.map(item => item.nombre_completo);
+      const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
+      const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
+
+      // Verificar en la consola los valores extraídos
+      console.log('Nombres:', nombres);
+      console.log('Evaluación Técnica:', evaluacionTecnica);
+      console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
+
+      // Crear el gráfico
+      const ctx = document.getElementById('evaluacionChart').getContext('2d');
+      const evaluacionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: nombres,
+          datasets: [{
+            label: 'Evaluación Técnica',
+            data: evaluacionTecnica,
+            backgroundColor: 'rgba(17, 194, 56, 0.95)',
+            borderColor: 'rgb(54, 235, 111)',
+            borderWidth: 1,
+            borderRadius: 15,
+          }, {
+            label: 'Evaluación Estudiantil',
+            data: evaluacionEstudiantil,
+            backgroundColor: 'rgb(16, 117, 36)',
+            borderColor: 'rgb(16, 117, 36)',
+            borderWidth: 1,
+            borderRadius: 15,
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Puntaje'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Docentes'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Evaluación Docente'
+            }
+          }
+        }
+      });
+    </script>
+
+    </div>
+
+    <div class="container-fluid mt-0">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="d-flex flex-column">
+            <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
+              <div class="card-body">
+                <h2 class="font-weight-bold mb-4">Calificación promedio</h2>
+                <h1 class="text-success mb-3">85.30</h1>
+              </div>
+            </div>
+
+            <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
+              <div class="card-body">
+                <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
+                <h1 class="text-success mb-3">8ISC22</h1>
+              </div>
+            </div>
+
+            <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+              <div class="card-body">
+                <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+                <h1 class="text-success mb-3">Lunes</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+    <div class="card box-shadow-div text-center border-5 mt-1">
+        <div class="card-body">
+              <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Capacitación disciplinaria</strong></p>
+              </div>
+              <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                  <thead>
+                    <tr>
+                      <th>Certificación</th>
+                      <th>Nombre del Certificado</th>
+                      <th>Mes</th> <!-- Nueva columna para los meses -->
+                      <th>Certificado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <!-- Mostrar el mes -->
+                        <td class="text-center">
+                          <?php if (!empty($certificacionusuario['url'])): ?>
+                            <?php
+                            $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                            ?>
+                            <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver
+                              Certificado</a>
+                          <?php else: ?>
+                            No disponible
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center">
+                          </div>
+                        </td>
+
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!----Parte de dirección academica---->
+        <div class="container-fluid">
+          <div
+            class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
+            DIRECCIÓN ACADÉMICA
+          </div>
+
+          <!-- Tarjeta principal -->
+          <div class="card box-shadow-div p-4 mb-3">
+            <h2 class="text-center">Ingeniería en Sistemas Computacionales</h2>
+            <div class="row">
+              <div class="col-12 mb-0">
+                <div class="schedule-container">
+                  <div class="table-responsive">
+                    <table class="table table-borderless table-striped">
+                      <thead>
+                        <tr role="row">
+                          <th>Hora</th>
+                          <th>Lunes</th>
+                          <th>Martes</th>
+                          <th>Miércoles</th>
+                          <th>Jueves</th>
+                          <th>Viernes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr scope="col">
+                          <td>07:00 - 08:00</td>
+                          <td>Clase A</td>
+                          <td></td>
+                          <td>Clase B</td>
+                          <td></td>
+                          <td>Clase C</td>
+                        </tr>
+                        <tr>
+                          <td>08:00 - 09:00</td>
+                          <td>Clase A</td>
+                          <td>Clase A</td>
+                          <td>Clase A</td>
+                          <td>Clase A</td>
+                          <td>Clase E</td>
+                        </tr>
+                        <tr scope="col">
+                          <td>09:00 - 10:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+                        <tr>
+                          <td>10:00 - 11:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+                        <tr scope="col">
+                          <td>11:00 - 12:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr>
+                          <td>12:00 - 13:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr scope="col">
+                          <td>13:00 - 14:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr>
+                          <td>14:00 - 15:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr scope="col">
+                          <td>15:00 - 16:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr>
+                          <td>16:00 - 17:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr scope="col">
+                          <td>17:00 - 18:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr>
+                          <td>18:00 - 19:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr scope="col">
+                          <td>19:00 - 20:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+
+                        <tr>
+                          <td>20:00 - 21:00</td>
+                          <td>Clase D</td>
+                          <td>Clase D</td>
+                          <td></td>
+                          <td></td>
+                          <td>Clase E</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col-12 mb-4">
+              <div class="card shadow">
+                <div class="card-header">
+                  <strong class="card-title mb-0">Desglose de horas</strong>
+                </div>
+                <div class="card-body">
+                  <div id="barChart"></div>
+                </div> <!-- /.card-body -->
+              </div> <!-- /.card -->
+              <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>
+            </div> <!-- /. col -->
+            <!---------------- Termina la parte de direccion academica -------------->
+
+            <div class="row mb-3">
+              <!-- Card de Días Económicos Totales y Tomados -->
+              <div class="col-lg-6 mb-3">
+                <!-- Card Días Económicos Totales -->
+                <div class="card box-shadow-div text-center border-9">
+                  <div class="card-body">
+                    <h3 class="font-weight-bold mb-0">CUERPO COLEGIADO</h3>
+                    <h1 class="text-success">DESARROLLO CCAI</h1>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6 mb-3">
+                <!-- Card Lista de Avisos (a la derecha) -->
+                <div class="card box-shadow-div text-left border-5">
+                  <div class="card-body mb-3">
+                    <h1>PRODUCTOS DE INVESTIGACIÓN</h1>
+                    <ul class="list-group">
+                      <li class="list-group-item border-3">
+                        <h3 class="text-success">Investigación del conocimiento aplicado a la IA</h3>
+                      </li>
+                      <li class="list-group-item border-3">(Mayo 2023)</li>
+                      <li class="list-group-item border-3 text-success">
+                        <h3 class="text-success"> Desarrollo de software para el control de bitacoras </h3>
+                      </li>
+                      <li class="list-group-item border-3">(Agosto 2023)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+
+        <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="list-group list-group-flush my-n3">
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-box fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Package has uploaded successfull</strong></small>
+                        <div class="my-0 text-muted small">Package is zipped and uploaded</div>
+                        <small class="badge badge-pill badge-light text-muted">1m ago</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-download fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Widgets are updated successfull</strong></small>
+                        <div class="my-0 text-muted small">Just create new layout Index, form, table</div>
+                        <small class="badge badge-pill badge-light text-muted">2m ago</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-inbox fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Notifications have been sent</strong></small>
+                        <div class="my-0 text-muted small">Fusce dapibus, tellus ac cursus commodo</div>
+                        <small class="badge badge-pill badge-light text-muted">30m ago</small>
+                      </div>
+                    </div> <!-- / .row -->
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-link fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Link was attached to menu</strong></small>
+                        <div class="my-0 text-muted small">New layout has been attached to the menu</div>
+                        <small class="badge badge-pill badge-light text-muted">1h ago</small>
+                      </div>
+                    </div>
+                  </div> <!-- / .row -->
+                </div> <!-- / .list-group -->
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog"
+          aria-labelledby="defaultModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="defaultModalLabel">Shortcuts</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body px-5">
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-success justify-content-center">
+                      <i class="fe fe-cpu fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Control area</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-activity fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Activity</p>
+                  </div>
+                </div>
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-droplet fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Droplet</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-upload-cloud fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Upload</p>
+                  </div>
+                </div>
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-users fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Users</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-settings fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Settings</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
   </main> <!-- main -->
   </div> <!-- .wrapper -->
   <!------>
-  
+
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -1285,54 +1149,54 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-  $(document).ready(function() {
-    // Abrir la modal y cargar el contenido
-    $('#openModalButton').on('click', function() {
-      $('#modalContent').load('form_incidencias.php', function() {
-        $('#incidenciasModal').modal('show');
+    $(document).ready(function () {
+      // Abrir la modal y cargar el contenido
+      $('#openModalButton').on('click', function () {
+        $('#modalContent').load('form_incidencias.php', function () {
+          $('#incidenciasModal').modal('show');
+        });
+      });
+
+      // Interceptar el envío del formulario
+      $(document).on('submit', '#formincidencias', function (e) {
+        e.preventDefault(); // Prevenir el envío normal
+
+        // Crear el objeto FormData para enviar los datos del formulario
+        let formData = new FormData(this);
+
+        // Enviar los datos del formulario mediante AJAX
+        $.ajax({
+          url: '../../models/insert.php', // Cambia la ruta si es necesario
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
+            // Mostrar el SweetAlert si el envío fue exitoso
+            Swal.fire({
+              title: '¡Formulario enviado!',
+              text: 'Los datos se han enviado correctamente.',
+              icon: 'success',
+              confirmButtonText: 'Aceptar'
+            }).then(() => {
+              // Cerrar la modal y recargar la página
+              $('#incidenciasModal').modal('hide');
+              location.reload(); // Recarga la página
+            });
+          },
+          error: function () {
+            // Mostrar SweetAlert en caso de error
+            Swal.fire({
+              title: 'Error',
+              text: 'Hubo un problema al enviar el formulario.',
+              icon: 'error',
+              confirmButtonText: 'Intentar de nuevo'
+            });
+          }
+        });
       });
     });
-
-    // Interceptar el envío del formulario
-    $(document).on('submit', '#formincidencias', function(e) {
-      e.preventDefault(); // Prevenir el envío normal
-
-      // Crear el objeto FormData para enviar los datos del formulario
-      let formData = new FormData(this);
-
-      // Enviar los datos del formulario mediante AJAX
-      $.ajax({
-        url: '../../models/insert.php', // Cambia la ruta si es necesario
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-          // Mostrar el SweetAlert si el envío fue exitoso
-          Swal.fire({
-            title: '¡Formulario enviado!',
-            text: 'Los datos se han enviado correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Aceptar'
-          }).then(() => {
-            // Cerrar la modal y recargar la página
-            $('#incidenciasModal').modal('hide');
-            location.reload(); // Recarga la página
-          });
-        },
-        error: function() {
-          // Mostrar SweetAlert en caso de error
-          Swal.fire({
-            title: 'Error',
-            text: 'Hubo un problema al enviar el formulario.',
-            icon: 'error',
-            confirmButtonText: 'Intentar de nuevo'
-          });
-        }
-      });
-    });
-  });
-</script>
+  </script>
   <script>
     /* defind global options */
     Chart.defaults.global.defaultFontFamily = base.defaultFontFamily;
@@ -1564,22 +1428,22 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
 
   </script>
   <script>
-  
-        </script>
-        <script>
+
+  </script>
+  <script>
     // Mostrar las opciones al hacer clic en el botón
-    document.getElementById('periodoDropdown').addEventListener('click', function() {
-        const filterOptions = document.getElementById('filterOptions');
-        filterOptions.classList.toggle('d-none'); // Alternar la visibilidad de las opciones
+    document.getElementById('periodoDropdown').addEventListener('click', function () {
+      const filterOptions = document.getElementById('filterOptions');
+      filterOptions.classList.toggle('d-none'); // Alternar la visibilidad de las opciones
     });
 
     // Manejar el evento de cambio en el combo box
-    document.getElementById('periodoSelect').addEventListener('change', function() {
-        const selectedPeriod = this.value;
-        console.log("Periodo seleccionado:", selectedPeriod);
-        // Aquí puedes realizar más acciones si lo deseas
+    document.getElementById('periodoSelect').addEventListener('change', function () {
+      const selectedPeriod = this.value;
+      console.log("Periodo seleccionado:", selectedPeriod);
+      // Aquí puedes realizar más acciones si lo deseas
     });
-</script>
+  </script>
 </body>
 
 </html>
