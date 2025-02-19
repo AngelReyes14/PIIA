@@ -4,9 +4,7 @@ include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-
 // Crear instancia de Consultas
-
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
@@ -33,6 +31,7 @@ $nombreDocente = isset($usuario['nombre_usuario']) && isset($usuario['apellido_p
     : 'Nombre no disponible';
 
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
+
 
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
@@ -85,7 +84,6 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
 // Obtener el nombre de la carrera del usuario
 $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
 $periodos = $consultas->obtenerPeriodos();
@@ -115,6 +113,25 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
+// Crear una instancia de GraficaEvaluacion
+$evaluacionDocente = new GraficaEvaluacion($conn);
+
+// Obtener el promedio general de evaluaciones
+$promedio = $evaluacionDocente->obtenerPromedioEvaluaciones();
+$promedioGeneral = number_format($promedio['promedio_general'], 2); // Formatear a 2 decimales
+
+// Obtener las evaluaciones según el tipo de usuario
+if ($tipoUsuarioId === 1) {
+  $resultados = $evaluacionDocente->obtenerEvaluacionesUsuario($idusuario);
+} elseif ($tipoUsuarioId === 2) {
+  // Obtener la carrera del usuario
+  $carreraUsuario = $carrera['carrera_id'] ?? null;
+  $resultados = $evaluacionDocente->obtenerEvaluacionesTodosLosDocentes($carreraUsuario);
+} else {
+  $resultados = [];
+}
+
+$resultados_json = json_encode($resultados);
 
 ?>
 
@@ -615,120 +632,301 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
         </div>
       </div>
 
-      <div class="container-fluid">
-      <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-      DESARROLLO ACADÉMICO
+
+      
+<?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
+  <div class="container-fluid">
+    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+        DESARROLLO ACADÉMICO
     </div>
     <div class="card box-shadow-div p-4">
-      <h2 class="text-center">Evaluación Docente</h2>
-      <div class="row justify-content-center my-2">
-        <div class="col-auto ml-auto">
-          <form class="form-inline">
-            <div class="form-group">
-              <label for="reportrange" class="sr-only">Date Ranges</label>
-              <div id="reportrange" class="px-2 py-2 text-muted">
-                <i class="fe fe-calendar fe-16 mx-2"></i>
-                <span class="small"></span>
-              </div>
+        <h2 class="text-center">Evaluación Docente de Todos los Usuarios</h2>
+
+        <!-- Filtro por período -->
+        <div class="row justify-content-center my-2">
+            <div class="col-auto">
+                <label for="filtroPeriodo">Filtrar por período:</label>
+                <select id="filtroPeriodo" class="form-control">
+                    <option value="todos">Todos</option>
+                </select>
             </div>
-            <div class="form-group">
-              <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
-              <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
-            </div>
-          </form>
         </div>
-      </div>
 
-      <!-- Contenedor del gráfico -->
-      <div class="my-4">
-        <canvas id="evaluacionChart"></canvas>
-      </div>
+        <!-- Contenedor del gráfico -->
+        <div class="my-4">
+            <canvas id="evaluacionChart"></canvas>
+        </div>
     </div>
-  </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script>
-    // Convertir el JSON de PHP a un objeto JavaScript
-    const datosEvaluacion = <?php echo json_encode($resultados); ?>;
-
-    // Verificar en la consola los datos recibidos
+<script>
+    const datosEvaluacion = <?php echo $resultados_json; ?>;
     console.log('Datos de evaluación:', datosEvaluacion);
 
-    // Extraer los valores para las etiquetas y los datos
-    const nombres = datosEvaluacion.map(item => item.nombre_completo);
-    const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
-    const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
+    const selectPeriodo = document.getElementById('filtroPeriodo');
 
-    // Verificar en la consola los valores extraídos
-    console.log('Nombres:', nombres);
-    console.log('Evaluación Técnica:', evaluacionTecnica);
-    console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
+    const periodosUnicos = [...new Set(datosEvaluacion.map(item => item.periodo_descripcion))];
 
-    // Crear el gráfico
-    const ctx = document.getElementById('evaluacionChart').getContext('2d');
-    const evaluacionChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: nombres,
-        datasets: [{
-          label: 'Evaluación Técnica',
-          data: evaluacionTecnica,
-          backgroundColor: 'rgba(17, 194, 56, 0.95)',
-          borderColor: 'rgb(54, 235, 111)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }, {
-          label: 'Evaluación Estudiantil',
-          data: evaluacionEstudiantil,
-          backgroundColor: 'rgb(16, 117, 36)',
-          borderColor: 'rgb(16, 117, 36)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }]
-      },
-      options: {
+    periodosUnicos.forEach(periodo => {
+        const option = document.createElement('option');
+        option.value = periodo;
+        option.textContent = periodo;
+        selectPeriodo.appendChild(option);
+    });
+
+    let evaluacionChart = null; // Variable global para la gráfica
+
+    function actualizarGrafico(periodoSeleccionado) {
+        const datosFiltrados = periodoSeleccionado === "todos"
+            ? datosEvaluacion
+            : datosEvaluacion.filter(item => item.periodo_descripcion === periodoSeleccionado);
+
+        if (datosFiltrados.length === 0) {
+            console.warn('No hay datos para este período.');
+            return;
+        }
+
+        // Separar nombre y apellidos y organizarlos en líneas
+        const labels = datosFiltrados.map(item => {
+            const nombreCompleto = item.nombre_completo.trim().split(" ");
+            const nombre = nombreCompleto[0]; // Primer nombre
+            const apellidoPaterno = nombreCompleto[1] || ""; // Segundo elemento como apellido paterno
+            const apellidoMaterno = nombreCompleto[2] || ""; // Tercer elemento como apellido materno
+
+            return `${nombre}\n${apellidoPaterno}\n${apellidoMaterno}`; // Formato en 3 líneas
+        });
+
+        const evaluacionTecnicaData = datosFiltrados.map(item => parseFloat(item.evaluacionTECNM));
+        const evaluacionEstudiantilData = datosFiltrados.map(item => parseFloat(item.evaluacionEstudiantil));
+
+        if (evaluacionChart) {
+            evaluacionChart.destroy();
+        }
+
+        const ctx = document.getElementById('evaluacionChart').getContext('2d');
+evaluacionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Evaluación Técnica',
+                data: evaluacionTecnicaData,
+                backgroundColor: 'rgba(17, 194, 56, 0.95)',
+                borderColor: 'rgb(54, 235, 111)',
+                borderWidth: 1,
+                borderRadius: 15,
+            },
+            {
+                label: 'Evaluación Estudiantil',
+                data: evaluacionEstudiantilData,
+                backgroundColor: 'rgb(16, 117, 36)',
+                borderColor: 'rgb(16, 117, 36)',
+                borderWidth: 1,
+                borderRadius: 15,
+            }
+        ]
+    },
+    options: {
         responsive: true,
+        layout: {
+            padding: {
+                bottom: 30 // Ajusta el espacio inferior del gráfico
+            }
+        },
         scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Puntaje'
+            x: {
+                title: {
+                    display: true,
+                    text: 'Docentes'
+                },
+                ticks: {
+                    autoSkip: false,
+                    font: {
+                        size: 10 // Reduce el tamaño de fuente
+                    },
+                    maxRotation: 0, // Evita la rotación de los nombres
+                    minRotation: 0, // Mantiene los nombres horizontales
+                    padding: 10 // Agrega espacio entre el texto y el eje
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Puntaje'
+                }
             }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Docentes'
-            }
-          }
         },
         plugins: {
-          legend: {
-            position: 'top',
-          },
-          title: {
-            display: true,
-            text: 'Evaluación Docente'
-          }
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Evaluación Docente por Período'
+            }
         }
-      }
-    });
-  </script>
+    }
+});
+    }
 
+    actualizarGrafico("todos");
+
+    selectPeriodo.addEventListener("change", function () {
+        actualizarGrafico(this.value);
+    });
+</script>
+
+<?php endif; ?>
+
+
+
+<?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 1): ?>
+  <div class="container-fluid">
+        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+            DESARROLLO ACADÉMICO
+        </div>
+        <div class="card box-shadow-div p-4">
+            <h2 class="text-center">Mi Evaluación Docente</h2>
+            <div class="row justify-content-center my-2">
+                <div class="col-auto ml-auto">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <label for="reportrange" class="sr-only">Date Ranges</label>
+                            <div id="reportrange" class="px-2 py-2 text-muted">
+                                <i class="fe fe-calendar fe-16 mx-2"></i>
+                                <span class="small"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+                            <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contenedor del gráfico -->
+            <div class="my-4">
+                <canvas id="evaluacionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+
+    <script>
+        // Convertir el JSON de PHP a un objeto JavaScript
+        const datosEvaluacion = <?php echo $resultados_json; ?>;
+
+        // Verificar en la consola los datos recibidos
+        console.log('Datos de evaluación:', datosEvaluacion);
+
+        if (datosEvaluacion.length === 0) {
+            console.error('No hay datos para mostrar.');
+        } else {
+            // Agrupar datos por período
+            const datosPorPeriodo = {};
+            datosEvaluacion.forEach(item => {
+                const periodo = item.periodo_descripcion; // Usamos la descripción del período
+                if (!datosPorPeriodo[periodo]) {
+                    datosPorPeriodo[periodo] = { nombres: [], evaluacionTecnica: [], evaluacionEstudiantil: [] };
+                }
+                datosPorPeriodo[periodo].nombres.push(item.nombre_completo);
+                datosPorPeriodo[periodo].evaluacionTecnica.push(parseFloat(item.evaluacionTECNM));
+                datosPorPeriodo[periodo].evaluacionEstudiantil.push(parseFloat(item.evaluacionEstudiantil));
+            });
+
+            console.log('Datos por período:', datosPorPeriodo);
+
+            // Colores fijos para las evaluaciones
+            const colorEvaluacionTecnica = 'rgba(17, 194, 56, 0.95)'; // Verde claro
+            const colorEvaluacionEstudiantil = 'rgb(16, 117, 36)'; // Verde oscuro
+
+            // Preparar los datos para la gráfica
+            const labels = [];
+            const evaluacionTecnicaData = [];
+            const evaluacionEstudiantilData = [];
+
+            Object.keys(datosPorPeriodo).forEach(periodo => {
+                datosPorPeriodo[periodo].nombres.forEach((nombre, index) => {
+                    labels.push(`${nombre} (${periodo})`); // Combinar nombre y período
+                    evaluacionTecnicaData.push(datosPorPeriodo[periodo].evaluacionTecnica[index]);
+                    evaluacionEstudiantilData.push(datosPorPeriodo[periodo].evaluacionEstudiantil[index]);
+                });
+            });
+
+            // Crear la gráfica
+            const ctx = document.getElementById('evaluacionChart').getContext('2d');
+            const evaluacionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels, // Nombres de los docentes con el período
+                    datasets: [
+                        {
+                            label: 'Evaluación Técnica',
+                            data: evaluacionTecnicaData,
+                            backgroundColor: colorEvaluacionTecnica,
+                            borderColor: 'rgb(54, 235, 111)',
+                            borderWidth: 1,
+                            borderRadius: 15,
+                        },
+                        {
+                            label: 'Evaluación Estudiantil',
+                            data: evaluacionEstudiantilData,
+                            backgroundColor: colorEvaluacionEstudiantil,
+                            borderColor: 'rgb(16, 117, 36)',
+                            borderWidth: 1,
+                            borderRadius: 15,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Puntaje'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Docentes (Período)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evaluación Docente por Período'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<?php endif; ?>
 </div>
 
           <div class="container-fluid mt-0">
             <div class="row">
               <div class="col-lg-6">
                 <div class="d-flex flex-column">
-                  <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
-                    <div class="card-body">
+                <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
+                  <div class="card-body">
                       <h2 class="font-weight-bold mb-4">Calificación promedio</h2>
-                      <h1 class="text-success mb-3">85.30</h1>
-                    </div>
+                      <h1 class="text-success mb-3"><?php echo $promedioGeneral; ?></h1>
                   </div>
+              </div>
 
                   <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
                     <div class="card-body">
