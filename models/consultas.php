@@ -49,15 +49,122 @@ public function obtenerHorario($periodo, $usuarioId, $carrera) {
     }
 }
 
+
+
+public function vistaHorario($periodo, $usuarioId, $carrera) {
+    try {
+        $sql = "
+            SELECT 
+                h.horario_id,
+                h.horas_horas_id,
+                h.dias_dias_id,
+                m.descripcion AS materia,  
+                g.descripcion AS grupo,
+                s.descripcion AS salon
+            FROM horario h
+            JOIN usuario u ON h.usuario_usuario_id = u.usuario_id
+            JOIN periodo p ON h.periodo_periodo_id = p.periodo_id
+            JOIN materia m ON h.materia_materia_id = m.materia_id
+            JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+            JOIN salones s ON h.salones_salon_id = s.salon_id
+            WHERE h.usuario_usuario_id = :usuarioId
+            AND h.periodo_periodo_id = :periodo
+            AND u.carrera_carrera_id = :carrera
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':periodo', $periodo, PDO::PARAM_INT);
+        $stmt->bindParam(':carrera', $carrera, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return ['error' => 'Error en la consulta: ' . $e->getMessage()];
+    }
+}
+
+public function obtenerPeriodoReciente() {
+    $query = "SELECT periodo_id, descripcion FROM periodo ORDER BY fecha_inicio DESC LIMIT 1";
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: ["error" => "No hay periodos registrados"];
+}
+
+public function obtenerCarrerasPorUsuario($usuario_id) {
+    $query = "SELECT c.carrera_id, c.nombre_carrera 
+              FROM usuario_has_carrera uc
+              JOIN carrera c ON uc.carrera_carrera_id = c.carrera_id
+              WHERE uc.usuario_usuario_id = :usuario_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+
+    try {
+        $stmt->execute();
+        $carreras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        error_log("Carreras obtenidas en consulta: " . json_encode($carreras)); // 🛠 Depuración
+        return $carreras;
+    } catch (PDOException $e) {
+        error_log("Error en consulta: " . $e->getMessage());
+        return [];
+    }
+}
+public function obtenerHorasMaterias($idusuario, $periodoId) {
+    $query = "SELECT 
+                CASE 
+                    WHEN h.materia_materia_id = 1 THEN 'horas_tutorias'
+                    WHEN h.materia_materia_id = 2 THEN 'horas_apoyo'
+                    ELSE 'horas_frente_grupo'
+                END AS tipo_hora,
+                COUNT(*) AS cantidad
+              FROM horario h
+              WHERE h.usuario_usuario_id = :idusuario 
+              AND h.periodo_periodo_id = :periodoId
+              GROUP BY tipo_hora";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(":idusuario", $idusuario, PDO::PARAM_INT);
+    $stmt->bindParam(":periodoId", $periodoId, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    // Inicializar con valores en 0
+    $horas = [
+        'horas_tutorias' => 0,
+        'horas_apoyo' => 0,
+        'horas_frente_grupo' => 0
+    ];
+
+    // Mapear resultados
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $horas[$row['tipo_hora']] = $row['cantidad'];
+    }
+
+    return $horas;
+}
+
+
+
+
 public function obtenerCertificacionesPorUsuario($usuarioId) {
     try {
-        $sql = "SELECT c.certificados_id, c.certificaciones_certificaciones_id, 
-                       c.usuario_usuario_id, c.nombre_certificado, c.url, 
-                       cert.descripcion AS certificacion_descripcion
+        // Consulta SQL con la tabla 'meses' en lugar de 'mes'
+        $sql = "SELECT 
+                    c.certificados_id, 
+                    c.certificaciones_certificaciones_id, 
+                    c.usuario_usuario_id, 
+                    c.nombre_certificado, 
+                    c.url, 
+                    cert.descripcion AS certificacion_descripcion,
+                    m.descripcion AS nombre_mes  -- Agregar el nombre del mes
                 FROM certificaciones_has_usuario c
                 INNER JOIN certificaciones cert ON c.certificaciones_certificaciones_id = cert.certificaciones_id
+                INNER JOIN meses m ON c.meses_meses_id = m.meses_id  -- Corregido 'mes_id' a 'meses_meses_id' y 'mes' a 'meses'
                 WHERE c.usuario_usuario_id = :usuarioId
                 ORDER BY c.certificados_id";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
@@ -67,6 +174,125 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
         return []; // Retorna un arreglo vacío en caso de error
     }
 }
+
+
+
+public function obtenerCertificacionesTipo2($cert_id) {
+    $query = "
+        SELECT 
+            chu.nombre_certificado, 
+            ms.descripcion AS nombre_mes, 
+            CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo
+        FROM certificaciones_has_usuario chu
+        INNER JOIN meses ms ON chu.meses_meses_id = ms.meses_id  -- Cambio aquí
+        INNER JOIN usuario u ON chu.usuario_usuario_id = u.usuario_id
+        WHERE chu.certificaciones_certificaciones_id = :cert_id
+        ORDER BY u.usuario_id, chu.meses_meses_id  -- Cambio aquí
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':cert_id', $cert_id, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve todos los resultados como array asociativo
+}
+
+
+public function obtenerIncidenciasConUsuario()
+{
+    // Consulta SQL para obtener los datos de incidencia con el nombre del usuario
+    $sql = "
+        SELECT 
+            ihu.incidencia_has_usuario_id AS `Numero de incidencia`,
+            CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS `Usuario`,
+            ihu.fecha_solicitada AS `Fecha solicitada`,
+            ihu.motivo AS `Motivo`,
+            ihu.horario_inicio AS `Hora de inicio`,
+            ihu.horario_termino AS `Hora de termino`,
+            ihu.horario_incidencia AS `Horario de incidencias`,
+            ihu.dia_incidencia AS `Dia de las incidencias`
+        FROM 
+            incidencia_has_usuario ihu
+        JOIN 
+            usuario u ON u.usuario_id = ihu.usuario_usuario_id
+        ORDER BY 
+            ihu.incidencia_has_usuario_id;
+    ";
+
+    // Preparar y ejecutar la consulta
+    $stmt = $this->conn->prepare($sql);
+    $stmt->execute();
+
+    // Devolver los resultados
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+public function obtenerIncidenciasUsuarios() {
+    try {
+        $query = "
+            SELECT 
+                ihu.incidencia_has_usuario_id AS 'numero_incidencia',
+                CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS 'usuario',
+                ihu.fecha_solicitada AS 'fecha_solicitada',
+                ihu.motivo AS 'motivo',
+                ihu.horario_inicio AS 'hora_inicio',
+                ihu.horario_termino AS 'hora_termino',
+                ihu.horario_incidencia AS 'horario_incidencia',
+                ihu.dia_incidencia AS 'dia_incidencia'
+            FROM incidencia_has_usuario ihu
+            JOIN usuario u ON ihu.usuario_usuario_id = u.usuario_id
+            ORDER BY ihu.fecha_solicitada DESC
+            LIMIT 1000;
+        ";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        die("Error al obtener incidencias: " . $e->getMessage());
+    }
+}
+
+
+public function obtenerGradosAcademicos() {
+    try {
+        // Consulta SQL
+        $sql = "SELECT grado_academico, COUNT(*) AS total_usuarios FROM usuario GROUP BY grado_academico";
+        
+        // Usamos la conexión PDO ($this->pdo) para preparar la consulta
+        $stmt = $this->conn->prepare($sql);
+        
+        // Ejecutamos la consulta
+        $stmt->execute();
+        
+        // Retornamos los resultados
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // En caso de error, mostramos el mensaje
+        die("Error en la consulta: " . $e->getMessage());
+    }
+}
+
+
+public function obtenerCertificacionesPorMes() {
+    $query = "
+        SELECT 
+            ms.descripcion AS nombre_mes,  -- Cambio aquí de 'm' a 'ms'
+            COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 1 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_1,
+            COALESCE(SUM(CASE WHEN chu.certificaciones_certificaciones_id = 2 THEN 1 ELSE 0 END), 0) AS cantidad_certificaciones_tipo_2
+        FROM meses ms  -- Cambio aquí de 'mes' a 'meses'
+        LEFT JOIN certificaciones_has_usuario chu ON chu.meses_meses_id = ms.meses_id  -- Cambio aquí de 'chu.mes_id' a 'chu.meses_meses_id'
+        GROUP BY ms.meses_id, ms.descripcion  -- Cambio aquí de 'm.mes_id' a 'ms.meses_id'
+        ORDER BY ms.meses_id ASC;  -- Cambio aquí de 'm.mes_id' a 'ms.meses_id'
+    ";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 
      // Método para obtener horario filtrado por periodo, carrera y usuario
@@ -113,6 +339,27 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    public function IncidenciasCarreraGrafic()
+{
+    $sql = "
+        SELECT 
+            c.nombre_carrera, 
+            COUNT(*) AS cantidad_registros,
+            (COUNT(*) / (SELECT COUNT(*) FROM incidencia_has_usuario)) * 100 AS porcentaje
+        FROM incidencia_has_usuario ihu
+        JOIN carrera c ON c.carrera_id = ihu.carrera_carrera_id
+        GROUP BY c.carrera_id
+        LIMIT 0, 1000;
+    ";
+
+    $stmt = $this->conn->prepare($sql);  // Usar $this->conn
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
     
     public function obtenerCertificaciones() {
         $query = "SELECT certificaciones_id, descripcion FROM certificaciones ORDER BY descripcion ASC";
@@ -142,6 +389,20 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
         return $periodos;
     }
     
+
+    public function obtenerMeses() {
+        $query = "SELECT meses_id, descripcion FROM meses"; // Asegúrate de que la tabla es "meses"
+        $stmt = $this->conn->query($query);
+        $meses = [];
+        if ($stmt) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $meses[] = $row;
+            }
+        }
+        return $meses;
+    }
+    
+
     public function verCarreras() {
         $query = "SELECT carrera_id, nombre_carrera, organismo_auxiliar, fecha_validacion, fecha_fin_validacion FROM carrera";
         $stmt = $this->conn->prepare($query);
@@ -437,45 +698,20 @@ public function obtenerCarreraPorUsuario($idusuario) {
 
     //*********************** PRUEBA ************************************************************* */    
  
-    
     public function obtenerUsuariosPorCarrera($carrera_id) {
-        // Consulta para obtener usuarios asociados a una carrera específica
-        $query = "SELECT 
-                    u.usuario_id,
-                    u.nombre_usuario,
-                    u.apellido_p,
-                    u.apellido_m,
-                    u.edad,
-                    u.correo,
-                    u.fecha_contratacion,
-                    u.numero_empleado,
-                    u.grado_academico,
-                    u.cedula,
-                    u.imagen_url,
-                    u.sexo_sexo_id,
-                    u.status_status_id,
-                    u.tipo_usuario_tipo_usuario_id,
-                    u.cuerpo_colegiado_cuerpo_colegiado_id,
-                    u.carrera_carrera_id,
-                    c.carrera_id,
-                    c.nombre_carrera 
-                  FROM 
-                    vista_usuarios u
-                  JOIN 
-                    carrera c ON u.carrera_carrera_id = c.carrera_id
-                  WHERE 
-                    c.carrera_id = :carrera_id"; // Usando un parámetro para evitar inyecciones SQL
+        $sql = "SELECT u.usuario_id, u.nombre_usuario, u.apellido_p, u.apellido_m
+                FROM usuario u
+                INNER JOIN usuario_has_carrera uhc ON u.usuario_id = uhc.usuario_usuario_id
+                WHERE uhc.carrera_carrera_id = :carrera_id";
     
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
-        try {
-            $stmt->execute(); // Ejecutamos la consulta
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage(); // Manejo de errores
-            return false; // Devuelve false si ocurre algún error
-        }
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // ✅ Usar bindParam con PDO
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    
     
         
     public function obtenerDocentesPorCarrera($carrera_id) {
@@ -2088,6 +2324,10 @@ class BorrarHorario {
     }
 }
 
+
+
+
+
 class CertificacionUsuario {
     private $conn;
 
@@ -2100,6 +2340,7 @@ class CertificacionUsuario {
             // Obtener datos del formulario
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
             $nombreCertificado = $_POST['nombre_certificado'];
 
             // Manejo de archivo
@@ -2138,20 +2379,22 @@ class CertificacionUsuario {
 
             // Insertar en la base de datos
             $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
-            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $relativeFilePath);
+            $this->insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $relativeFilePath);
         }
     }
 
-    private function insertCertificacionUsuario($certificacionId, $usuarioId, $nombreCertificado, $filePath) {
+    private function insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
         // Consulta para insertar los datos
         $query = "INSERT INTO piia.certificaciones_has_usuario (
                     certificaciones_certificaciones_id,
                     usuario_usuario_id,
+                    meses_meses_id,
                     nombre_certificado,
                     url
                   ) VALUES (
                     :certificacion_id,
                     :usuario_id,
+                    :meses_id,
                     :nombre_certificado,
                     :url
                   )";
@@ -2159,6 +2402,7 @@ class CertificacionUsuario {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':certificacion_id', $certificacionId);
         $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':meses_id', $mesesId);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado);
         $stmt->bindParam(':url', $filePath);
     
@@ -2187,6 +2431,10 @@ class CertificacionUsuario {
         return $newFileName;
     }
 }
+
+
+
+
 
 class ActualizarCertificacionUsuario {
     private $conn;
@@ -2595,5 +2843,5 @@ class GraficaEvaluacion {
         }
     }
 
-    
+   
 }
