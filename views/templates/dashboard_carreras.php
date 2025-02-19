@@ -271,25 +271,25 @@ $promediosJson = json_encode($promedios);
 
 
 
-                <!-- Donut Chart Card -->
-                <div class="col-12 col-md-4 carta_Informacion">
-                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-                    <div class="card-header carta_Informacion">
-                      <strong class="card-title text-green mb-0 carta_Informacion">
-                        Grado académico de docentes en la división
-                      </strong>
-                    </div>
-                    <!-- Incluye Chart.js -->
+           <!-- Donut Chart Card -->
+<div class="col-12 col-md-4 carta_Informacion">
+    <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+        <div class="card-header carta_Informacion">
+            <strong class="card-title text-green mb-0 carta_Informacion">
+                Grado académico de docentes en la división
+            </strong>
+        </div>
 
+        <div class="card-body text-center">
+            <!-- Incluir Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-                    <div class="card-body text-center">
-    <!-- Incluir Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Contenedor de la gráfica tipo donut -->
-    <canvas id="donutChart8"></canvas> 
-</div> <!-- /.card-body -->
+            <!-- Contenedor de la gráfica tipo donut -->
+            <canvas id="donutChart8"></canvas> 
+        </div> <!-- /.card-body -->
+    </div> <!-- /.card -->
+</div> <!-- /.col -->
 
 <script>
     // Pasar los datos desde PHP a JavaScript
@@ -297,18 +297,18 @@ $promediosJson = json_encode($promedios);
     var values = <?php echo json_encode($values); ?>;
 
     window.onload = function() {
-        var ctx = document.getElementById('donutChart8').getContext('2d'); // Obtener el contexto
+        var ctx = document.getElementById('donutChart8').getContext('2d');
 
-        // Crear la gráfica tipo donut
         var donutChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels, 
+                labels: labels,
                 datasets: [{
                     label: 'Total de Usuarios',
                     data: values,
-                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Colores verde oscuro, medio y claro
-                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'] // Colores de hover más oscuros
+                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Verde oscuro, medio y claro
+                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'], // Colores oscuros al pasar el mouse
+                    hoverOffset: 10 // Aumenta el tamaño de la sección en hover
                 }]
             },
             options: {
@@ -320,26 +320,45 @@ $promediosJson = json_encode($promedios);
                     tooltip: {
                         callbacks: {
                             label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios'; 
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios';
                             }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: false,
+                    onHover: function(event, chartElement) {
+                        if (chartElement.length) {
+                            let index = chartElement[0].index;
+                            donutChart.data.datasets[0].backgroundColor = donutChart.data.datasets[0].backgroundColor.map((color, i) => 
+                                i === index ? color : 'rgba(200, 200, 200, 0.5)' // Opaca las secciones no resaltadas
+                            );
+                            donutChart.update();
+                        } else {
+                            // Restaura los colores originales al salir del hover
+                            donutChart.data.datasets[0].backgroundColor = ['#006400', '#228B22', '#32CD32'];
+                            donutChart.update();
                         }
                     }
                 }
             }
         });
-    }
+    };
 </script>
 
 <style>
-    /* Asegurarse de que el gráfico sea más pequeño y redondo */
+    /* Ajustar el tamaño del gráfico */
     #donutChart8 {
-        width: 100px;  /* Ajustar el tamaño más pequeño */
-        height: 100px; /* Mantener la proporción redonda */
+        max-width: 2500px; /* Ajustar el tamaño */
+        max-height: 2500px;
     }
 </style>
 
-                  </div> <!-- /.card -->
-                </div> <!-- /.col -->
 
 
 
