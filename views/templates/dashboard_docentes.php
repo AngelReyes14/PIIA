@@ -115,11 +115,6 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
-// Crea una instancia de la clase
-$evaluacionDocente = new EvaluacionDocente2($conn);
-
-// Llama al método
-$resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
 
 ?>
 
