@@ -666,6 +666,41 @@ public function obtenerEdificio() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerEvaluacionesDocentes($carreraId) {
+        // Query con JOINs para obtener los usuarios que pertenecen a la carrera
+        $query = "
+            SELECT 
+                e.evaluacion_docentes_id,
+                e.evaluacionTECNM,
+                e.evaluacionEstudiantil,
+                CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo,
+                p.descripcion AS periodo
+            FROM 
+                evaluacion_docentes e
+            JOIN 
+                usuario u ON e.usuario_usuario_id = u.usuario_id
+            JOIN 
+                periodo p ON e.periodo_periodo_id = p.periodo_id
+            JOIN
+                usuario_has_carrera uc ON u.usuario_id = uc.usuario_usuario_id
+            WHERE 
+                uc.carrera_carrera_id = :carreraId
+        "; 
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        // Verificar si se encontraron datos
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return $result;
+        } else {
+            return []; // Si no hay datos, retornar un array vacío
+        }
+    }
+    
+    
 public function obtenerSalones() {
     $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio, s.capacidad
             FROM salones s 
@@ -2514,7 +2549,7 @@ class GraficaEvaluacion {
         }
     }
 
-    public function obtenerEvaluacionesTodosLosDocentes() {
+    public function obtenerEvaluacionesTodosLosDocentes($carrera_id = null, $periodo_id = null) {
         try {
             $query = "
                 SELECT 
@@ -2528,9 +2563,30 @@ class GraficaEvaluacion {
                     usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id
                 JOIN 
                     periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+                WHERE 
+                    1 = 1
             ";
-
+    
+            // Filtrar por carrera si se proporciona
+            if (!is_null($carrera_id)) {
+                $query .= " AND usuario.carrera_carrera_id = :carrera_id";
+            }
+    
+            // Filtrar por período si se proporciona
+            if (!is_null($periodo_id)) {
+                $query .= " AND periodo.periodo_id = :periodo_id";
+            }
+    
             $stmt = $this->conn->prepare($query);
+    
+            // Asignar valores a los parámetros si se proporcionan
+            if (!is_null($carrera_id)) {
+                $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+            }
+            if (!is_null($periodo_id)) {
+                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+    
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -2538,42 +2594,6 @@ class GraficaEvaluacion {
             return [];
         }
     }
+
+    
 }
-
-class EvaluacionDocente {
-    private $conn; // Conexión a la base de datos
-
-    public function __construct($conn) {
-        $this->conn = $conn;
-    }
-
-    public function obtenerPromedioDocentes($periodo_id = null) {
-        try {
-            $query = "
-                SELECT 
-                    AVG((ed.evaluacionTECNM + ed.evaluacionEstudiantil) / 2) AS promedio_general
-                FROM 
-                    evaluacion_docentes ed
-                JOIN 
-                    usuario u ON ed.usuario_usuario_id = u.usuario_id
-            ";
-
-            if (!is_null($periodo_id)) {
-                $query .= " WHERE ed.periodo_periodo_id = :periodo_id";
-            }
-
-            $stmt = $this->conn->prepare($query);
-
-            if (!is_null($periodo_id)) {
-                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
-            }
-
-            $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log("Error al calcular el promedio de evaluaciones de docentes: " . $e->getMessage());
-            return ['promedio_general' => 0];
-        }
-    }
-}
-
