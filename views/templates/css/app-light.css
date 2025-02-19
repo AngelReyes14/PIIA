@@ -19783,3 +19783,9 @@ button#downloadPDF:hover {
 
 
 
+/* Ocultar el botón en la impresión */
+@media print {
+  .pdf-container {
+    display: none;
+  }
+}
