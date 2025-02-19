@@ -174,6 +174,73 @@ function filtrarCarreras() {
     .catch(error => console.error('Error:', error));
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    var barChartCtn = document.querySelector("#barChart");
+  
+    if (barChartCtn) {
+        var nombreDocente = barChartCtn.getAttribute("data-docente") || "No definido";
+        console.log("Nombre del docente en JavaScript:", nombreDocente); // 🔍 Debug
+  
+        var tutorias = parseInt(barChartCtn.getAttribute("data-tutorias") || 0);
+        var apoyo = parseInt(barChartCtn.getAttribute("data-apoyo") || 0);
+        var frente = parseInt(barChartCtn.getAttribute("data-frente") || 0);
+  
+        // 🎨 Define los colores de la gráfica y la leyenda
+        var chartColors = ["#008FFB", "#00E396", "#FEB019"]; // Azul, Verde, Amarillo
+  
+        var barChartoptions = {
+            series: [
+                { name: "Tutorías", data: [tutorias] },
+                { name: "Horas de Apoyo", data: [apoyo] },
+                { name: "Horas Frente al Grupo", data: [frente] }
+            ],
+            chart: {
+                type: "bar",
+                height: 150,
+                stacked: true,
+                columnWidth: "70%",
+                zoom: { enabled: false },
+                toolbar: { enabled: false },
+            },
+            theme: { mode: colors.chartTheme },
+            dataLabels: { enabled: true },
+            plotOptions: { bar: { horizontal: true, columnWidth: "30%" } },
+            xaxis: {
+                categories: [nombreDocente], // 🔥 Aquí debería aparecer el nombre correcto
+                labels: {
+                    colors: colors.mutedColor,
+                    fontFamily: base.defaultFontFamily,
+                },
+                axisBorder: { show: false },
+            },
+            yaxis: {
+                labels: {
+                    colors: colors.mutedColor,
+                    fontFamily: base.defaultFontFamily,
+                },
+            },
+            legend: {
+                position: "bottom",
+                fontFamily: base.defaultFontFamily,
+                labels: {
+                    colors: chartColors, // 🔹 La leyenda usa los mismos colores
+                    useSeriesColors: false
+                },
+            },
+            fill: { opacity: 1, colors: chartColors }, // 🔹 Los colores de las barras coinciden con la leyenda
+            grid: {
+                borderColor: colors.borderColor,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } },
+                padding: { left: 10, right: 10 },
+            },
+        };
+  
+        var barChart = new ApexCharts(barChartCtn, barChartoptions);
+        barChart.render();
+    }
+  });
+
 
 document.getElementById("downloadPDF").addEventListener("click", () => {
     const button = document.querySelector('.pdf-container');

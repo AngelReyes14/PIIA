@@ -13,7 +13,7 @@ $consultas = new Consultas($conn);
 $idusuario = (int) $_SESSION['user_id'];
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
-$periodoReciente = $consultas->obtenerPeriodoReciente(); // 🔥 Se agregó esta línea
+
 
 // Validar tipo de usuario
 if (!$tipoUsuarioId) {
@@ -28,6 +28,10 @@ if ($tipoUsuarioId === 1) {
 // Obtener usuario y carrera
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
+$nombreDocente = isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible';
+
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
 // Redirigir si no se encuentra el usuario
@@ -57,10 +61,19 @@ $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['
 // Obtener listas de carreras y períodos
 $carreras = $consultas->obtenerCarreras();
 $periodos = $consultas->obtenerPeriodos();
+// Obtener el último período
+$periodoReciente = $consultas->obtenerPeriodoReciente();
 
-$horas = $consultas->obtenerHorasMaterias();
+// Validar que realmente haya un período disponible
+if (!isset($periodoReciente['periodo_id'])) {
+    die("Error: No se encontró un período activo.");
+}
 
-// Guardar los valores en variables
+// Extraer solo el ID del período
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener horas del usuario autenticado solo del último período
+$horas = $consultas->obtenerHorasMaterias($idusuario, $periodoId);
 $horas_tutorias = $horas['horas_tutorias'];
 $horas_apoyo = $horas['horas_apoyo'];
 $horas_frente_grupo = $horas['horas_frente_grupo'];
@@ -945,14 +958,14 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
     <!-- Tarjeta principal -->
     <div class="card box-shadow-div p-4 mb-3">
       <div class="logo-container">
-        <div class="logo-institucional">
+        <div class="logo-institucional col-md-2">
           <!-- Espacio para el logo institucional -->
           <img src="assets/images/logo.png" alt="Logo Institucional">
         </div>
-        <div class="titulo-container">
+        <div class="titulo-container col-md-8">
           <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
         </div>
-        <div class="form-group">
+        <div class="form-group col-md-2">
           <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
           <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required 
                   <?php if (!empty($periodoReciente)): ?> disabled <?php endif; ?>>
@@ -1028,67 +1041,31 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
   </div>
 </div>
 
+
+
       <!-- Incluir la librería html2pdf.js antes de tu archivo de script personalizado -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
-<div id="barChart" 
-     data-tutorias="<?php echo $horas_tutorias; ?>" 
-     data-apoyo="<?php echo $horas_apoyo; ?>" 
-     data-frente="<?php echo $horas_frente_grupo; ?>">
-</div>
+
+
+
 
     <script src="js/horario_vista.js"></script>
-
-
           <div class="col-12 mb-4">
             <div class="card shadow">
               <div class="card-header">
                 <strong class="card-title mb-0">Desglose de horas</strong>
               </div>
               <div class="card-body">
-                <div id="barChart"></div>
+              <div id="barChart" 
+     data-docente="<?php echo isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible'; ?>"
+     data-tutorias="<?php echo $horas_tutorias; ?>" 
+     data-apoyo="<?php echo $horas_apoyo; ?>" 
+     data-frente="<?php echo $horas_frente_grupo; ?>">
+</div>
+
               </div> <!-- /.card-body -->
-              
-              <script>
-    var barChartOptions = {
-        series: [
-            {
-                name: "Horas",
-                data: [
-                    <?php echo $horas_tutorias; ?>, 
-                    <?php echo $horas_apoyo; ?>, 
-                    <?php echo $horas_frente_grupo; ?>
-                ]
-            }
-        ],
-        chart: {
-            type: "bar",
-            height: 350,
-            stacked: false,
-            toolbar: { enabled: false },
-            zoom: { enabled: false }
-        },
-        dataLabels: { enabled: true },
-        plotOptions: {
-            bar: { 
-                horizontal: true, 
-                columnWidth: "50%" 
-            }
-        },
-        xaxis: {
-            categories: ["Tutorías", "Horas de Apoyo", "Horas Frente al Grupo"],
-            labels: { style: { colors: "#6c757d", fontFamily: "Arial" } }
-        },
-        yaxis: {
-            labels: { style: { colors: "#6c757d", fontFamily: "Arial" } }
-        },
-        fill: { opacity: 1, colors: ["#ff4560", "#008ffb", "#00e396"] }
-    };
-
-    var barChart = new ApexCharts(document.querySelector("#barChart"), barChartOptions);
-    barChart.render();
-</script>
-
-
             </div> <!-- /.card -->
             <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>
           </div> <!-- /. col -->

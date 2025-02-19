@@ -112,18 +112,41 @@ public function obtenerCarrerasPorUsuario($usuario_id) {
         return [];
     }
 }
-
-public function obtenerHorasMaterias() {
+public function obtenerHorasMaterias($idusuario, $periodoId) {
     $query = "SELECT 
-                SUM(CASE WHEN descripcion = 'Tutorias' THEN hora_teorica ELSE 0 END) AS horas_tutorias,
-                SUM(CASE WHEN descripcion = 'Horas Apoyo' THEN hora_teorica ELSE 0 END) AS horas_apoyo,
-                SUM(CASE WHEN descripcion NOT IN ('Tutorias', 'Horas Apoyo') THEN (hora_teorica + hora_practica) ELSE 0 END) AS horas_frente_grupo
-              FROM materia";
+                CASE 
+                    WHEN h.materia_materia_id = 1 THEN 'horas_tutorias'
+                    WHEN h.materia_materia_id = 2 THEN 'horas_apoyo'
+                    ELSE 'horas_frente_grupo'
+                END AS tipo_hora,
+                COUNT(*) AS cantidad
+              FROM horario h
+              WHERE h.usuario_usuario_id = :idusuario 
+              AND h.periodo_periodo_id = :periodoId
+              GROUP BY tipo_hora";
 
     $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(":idusuario", $idusuario, PDO::PARAM_INT);
+    $stmt->bindParam(":periodoId", $periodoId, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Inicializar con valores en 0
+    $horas = [
+        'horas_tutorias' => 0,
+        'horas_apoyo' => 0,
+        'horas_frente_grupo' => 0
+    ];
+
+    // Mapear resultados
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $horas[$row['tipo_hora']] = $row['cantidad'];
+    }
+
+    return $horas;
 }
+
+
+
 
 
 public function obtenerMeses() {
@@ -584,45 +607,20 @@ public function obtenerCarreraPorUsuario($idusuario) {
 
     //*********************** PRUEBA ************************************************************* */    
  
-    
     public function obtenerUsuariosPorCarrera($carrera_id) {
-        // Consulta para obtener usuarios asociados a una carrera específica
-        $query = "SELECT 
-                    u.usuario_id,
-                    u.nombre_usuario,
-                    u.apellido_p,
-                    u.apellido_m,
-                    u.edad,
-                    u.correo,
-                    u.fecha_contratacion,
-                    u.numero_empleado,
-                    u.grado_academico,
-                    u.cedula,
-                    u.imagen_url,
-                    u.sexo_sexo_id,
-                    u.status_status_id,
-                    u.tipo_usuario_tipo_usuario_id,
-                    u.cuerpo_colegiado_cuerpo_colegiado_id,
-                    u.carrera_carrera_id,
-                    c.carrera_id,
-                    c.nombre_carrera 
-                  FROM 
-                    vista_usuarios u
-                  JOIN 
-                    carrera c ON u.carrera_carrera_id = c.carrera_id
-                  WHERE 
-                    c.carrera_id = :carrera_id"; // Usando un parámetro para evitar inyecciones SQL
+        $sql = "SELECT u.usuario_id, u.nombre_usuario, u.apellido_p, u.apellido_m
+                FROM usuario u
+                INNER JOIN usuario_has_carrera uhc ON u.usuario_id = uhc.usuario_usuario_id
+                WHERE uhc.carrera_carrera_id = :carrera_id";
     
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
-        try {
-            $stmt->execute(); // Ejecutamos la consulta
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage(); // Manejo de errores
-            return false; // Devuelve false si ocurre algún error
-        }
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // ✅ Usar bindParam con PDO
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    
     
         
     public function obtenerDocentesPorCarrera($carrera_id) {

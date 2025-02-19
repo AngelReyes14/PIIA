@@ -163,70 +163,7 @@ if (columnChart4Ctn) {
   columnChart4.render();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  var barChartCtn = document.querySelector("#barChart");
 
-  if (barChartCtn) {
-      // Obtener datos desde los atributos del HTML
-      var tutorias = parseInt(barChartCtn.getAttribute("data-tutorias") || 0);
-      var apoyo = parseInt(barChartCtn.getAttribute("data-apoyo") || 0);
-      var frente = parseInt(barChartCtn.getAttribute("data-frente") || 0);
-
-      var barChartoptions = {
-          series: [
-              { name: "Tutorías", data: [tutorias] },
-              { name: "Horas de Apoyo", data: [apoyo] },
-              { name: "Horas Frente al Grupo", data: [frente] }
-          ],
-          chart: {
-              type: "bar",
-              height: 350,
-              stacked: true,
-              columnWidth: "70%",
-              zoom: { enabled: false },
-              toolbar: { enabled: false },
-          },
-          theme: { mode: colors.chartTheme },
-          dataLabels: { enabled: true },
-          responsive: [
-              {
-                  breakpoint: 480,
-                  options: { legend: { position: "bottom", offsetX: -10, offsetY: 0 } },
-              },
-          ],
-          plotOptions: { bar: { horizontal: true, columnWidth: "30%" } },
-          xaxis: {
-              categories: ["Tutorías", "Horas de Apoyo", "Horas Frente al Grupo"],
-              labels: {
-                  colors: colors.mutedColor,
-                  fontFamily: base.defaultFontFamily,
-              },
-              axisBorder: { show: false },
-          },
-          yaxis: {
-              labels: {
-                  colors: colors.mutedColor,
-                  fontFamily: base.defaultFontFamily,
-              },
-          },
-          legend: {
-              position: "bottom",
-              fontFamily: base.defaultFontFamily,
-              labels: { colors: colors.mutedColor, useSeriesColors: false },
-          },
-          fill: { opacity: 1, colors: chartColors },
-          grid: {
-              borderColor: colors.borderColor,
-              xaxis: { lines: { show: true } },
-              yaxis: { lines: { show: false } },
-              padding: { left: 10, right: 10 },
-          },
-      };
-
-      var barChart = new ApexCharts(barChartCtn, barChartoptions);
-      barChart.render();
-  }
-});
 
 
 var lineChart,
