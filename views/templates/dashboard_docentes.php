@@ -338,130 +338,100 @@ function toggleCampos() {
     archivoInput.value = "";
   }
 }
-
-
-</script>
-
-      <script>
+document.addEventListener("DOMContentLoaded", function () {
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
-
     const urlParams = new URLSearchParams(window.location.search);
     idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
 
     const anterior = document.getElementById("anterior");
     const siguiente = document.getElementById("siguiente");
-    const carreraSelect = document.getElementById('carreraSelect');
-
-    let usuariosFiltrados = [];
-    let indiceUsuarioActual = 0;
+    const carouselContent = document.getElementById('carouselContent');
 
     if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
-    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        function actualizarVistaUsuario(index) {
-            const usuario = usuariosFiltrados[index];
-            actualizarCarrusel([usuario]);
-        }
-
-        function updateUrl(newIdusuario) {
-            if (tipoUsuarioId !== 5) {
-                window.location.href = `?idusuario=${newIdusuario}`;
-            }
-        }
-
-        siguiente.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0) {
-                if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
-                    indiceUsuarioActual++;
-                } else {
-                    indiceUsuarioActual = 0;
-                }
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else {
-                idusuario++;
-                updateUrl(idusuario);
-            }
-        });
-
-        anterior.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
-                indiceUsuarioActual--;
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
-            }
-        });
     } else {
-        anterior.disabled = true;
-        siguiente.disabled = true;
+        function updateUrl(incremento) {
+            idusuario += incremento;
+            console.log("Nuevo idusuario:", idusuario);
+
+            if (tipoUsuarioId !== 5) {
+                history.pushState(null, "", `?idusuario=${idusuario}`);
+                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido del carrusel
+            }
+        }
+
+        siguiente.addEventListener("click", () => updateUrl(1));
+        anterior.addEventListener("click", () => updateUrl(-1));
     }
 
-    carreraSelect.addEventListener('change', function() {
-        const carreraId = carreraSelect.value;
+    function cargarUsuario(id) {
+        console.log(`Cargando usuario con idusuario: ${id}`);
 
         $.ajax({
-            url: '../templates/filtrarPorCarrera.php',
-            type: 'POST',
-            data: { carrera_id: carreraId },
+            url: '../templates/obtenerDatosUsuario.php',
+            type: 'GET',
+            data: { idusuario: id },
             dataType: 'json',
             success: function(response) {
-                if (response && response.length > 0) {
-                    usuariosFiltrados = response;
-                    indiceUsuarioActual = 0;
-                    actualizarCarrusel(usuariosFiltrados);
+                console.log("Respuesta del servidor:", response);
+                if (response && !response.error) {
+                    actualizarCarrusel(response);
                 } else {
-                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                    console.warn("No se encontró información del usuario.");
                 }
             },
-            error: function() {
-                console.error('Error al obtener los usuarios por carrera.');
+            error: function(xhr, status, error) {
+                console.error("Error al obtener datos del usuario.");
+                console.error("Estado:", status);
+                console.error("Detalles del error:", error);
+                console.error("Respuesta del servidor:", xhr.responseText);
             }
-        });
-    });
-
-    function actualizarCarrusel(usuarios) {
-        const carouselContent = document.getElementById('carouselContent');
-        carouselContent.innerHTML = '';
-
-        usuarios.forEach((usuario, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            const fechaContratacion = new Date(usuario.fecha_contratacion);
-            const fechaActual = new Date();
-            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-            if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
-                antiguedad--;
-            }
-
-            const carouselItem = `
-                <div class="carousel-item ${activeClass}">
-                    <div class="row">
-                        <div class="col-12 col-md-5 col-xl-3 text-center">
-                            <strong class="name-line">Foto del Docente:</strong> <br>
-                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
-                        </div>
-                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                            <p class="teacher-info h4">
-                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
-                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
-                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
-                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
-                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
-                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
-                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
-                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
-                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            carouselContent.innerHTML += carouselItem;
         });
     }
+
+    function actualizarCarrusel(usuario) {
+        carouselContent.innerHTML = '';
+
+        const fechaContratacion = new Date(usuario.fecha_contratacion);
+        const fechaActual = new Date();
+        let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+        if (fechaActual.getMonth() < fechaContratacion.getMonth() || 
+            (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
+            antiguedad--;
+        }
+
+        const carouselItem = `
+            <div class="carousel-item active">
+                <div class="row">
+                    <div class="col-12 col-md-5 col-xl-3 text-center">
+                        <strong class="name-line">Foto del Docente:</strong> <br>
+                        <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                    </div>
+                    <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                        <p class="teacher-info h4">
+                            <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                            <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                            <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                            <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                            <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                            <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                            <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                            <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                            <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        carouselContent.innerHTML = carouselItem;
+    }
+
+    // Cargar usuario inicial basado en la URL
+    cargarUsuario(idusuario);
+});
 </script>
 
 
