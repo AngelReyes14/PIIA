@@ -78,6 +78,11 @@ $menuItems = [
             'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
             'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
     
+        ],
+        8 => [
+            'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
+            'Evaluacion Docente' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_evaluacion.php']
+    
         ]
 ];
 
