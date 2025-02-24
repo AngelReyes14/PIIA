@@ -12,6 +12,7 @@ $idusuario = (int) $_SESSION['user_id'];
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
+
 // Validar tipo de usuario
 if (!$tipoUsuarioId) {
     die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
@@ -25,7 +26,12 @@ if ($tipoUsuarioId === 1) {
 // Obtener usuario y carrera
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
+$nombreDocente = isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible';
+
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
+
 
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
@@ -54,6 +60,22 @@ $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['
 // Obtener listas de carreras y períodos
 $carreras = $consultas->obtenerCarreras();
 $periodos = $consultas->obtenerPeriodos();
+// Obtener el último período
+$periodoReciente = $consultas->obtenerPeriodoReciente();
+
+// Validar que realmente haya un período disponible
+if (!isset($periodoReciente['periodo_id'])) {
+    die("Error: No se encontró un período activo.");
+}
+
+// Extraer solo el ID del período
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener horas del usuario autenticado solo del último período
+$horas = $consultas->obtenerHorasMaterias($idusuario, $periodoId);
+$horas_tutorias = $horas['horas_tutorias'];
+$horas_apoyo = $horas['horas_apoyo'];
+$horas_frente_grupo = $horas['horas_frente_grupo'];
 
 // Consultar incidencias del usuario
 $query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
@@ -1124,168 +1146,118 @@ evaluacionChart = new Chart(ctx, {
 
         </div> <!-- .container-fluid -->
       </div> <!---- fin de la card principál------>
-
-      <!----Parte de dirección academica---->
       <div class="container-fluid">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DIRECCIÓN ACADÉMICA
+  <div id="contenedor">
+    <!-- Tarjeta principal -->
+    <div class="card box-shadow-div p-4 mb-3">
+      <div class="logo-container">
+        <div class="logo-institucional col-md-2">
+          <!-- Espacio para el logo institucional -->
+          <img src="assets/images/logo.png" alt="Logo Institucional">
         </div>
+        <div class="titulo-container col-md-8">
+          <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+          <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required 
+                  <?php if (!empty($periodoReciente)): ?> disabled <?php endif; ?>>
+            <?php if (!empty($periodoReciente)): ?>
+              <option value="<?php echo $periodoReciente['periodo_id']; ?>" selected>
+                <?php echo htmlspecialchars($periodoReciente['descripcion']); ?>
+              </option>
+            <?php endif; ?>
+            <?php foreach ($periodos as $periodo): ?>
+              <option value="<?php echo $periodo['periodo_id']; ?>" 
+                      <?php if ($periodo['periodo_id'] == $periodoReciente['periodo_id']) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($periodo['descripcion']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>       
+      </div>
 
-        <!-- Tarjeta principal -->
-        <div class="card box-shadow-div p-4 mb-3">
-          <h2 class="text-center">Ingeniería en Sistemas Computacionales</h2>
-          <div class="row">
-            <div class="col-12 mb-0">
-              <div class="schedule-container">
-                <div class="table-responsive">
-                  <table class="table table-borderless table-striped">
-                    <thead>
-                      <tr  role="row">
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr  scope="col">
-                        <td>07:00 - 08:00</td>
-                        <td>Clase A</td>
-                        <td></td>
-                        <td>Clase B</td>
-                        <td></td>
-                        <td>Clase C</td>
-                      </tr>
-                      <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>09:00 - 10:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>11:00 - 12:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+      <!-- Contenido principal -->
+      <div class="row">
+        <div class="col-md-6">
+          <!-- Docente -->
+          <div class="form-group mt-2">
+            <label for="usuario_usuario_id">Docente:</label>
+            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
+              <?php if ($tipoUsuarioId === 1): ?>
+                <option value="<?php echo $idusuario; ?>" selected>
+                  <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
+                </option>
+              <?php else: ?>
+                <option value="">Seleccione un usuario</option>
+                <?php foreach ($usuarios as $user): ?>
+                  <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <!-- Carrera -->
+          <div class="form-group mt-2">
+            <label for="carrera_carrera_id" class="form-label">Carrera:</label>
+            <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarCarreras()">
+              <option value="">Selecciona una carrera</option>
+              <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>  
+      </div>
 
-                      <tr>
-                        <td>12:00 - 13:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>13:00 - 14:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>14:00 - 15:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>15:00 - 16:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>16:00 - 17:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>17:00 - 18:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>18:00 - 19:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>19:00 - 20:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>20:00 - 21:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+      <!-- Tabla -->
+      <div class="row">
+        <div class="col-12 mb-0">
+          <div class="schedule-container">
+            <div class="table-responsive">
+              <table class="table table-borderless table-striped">
+              </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Botón de descarga PDF -->
+      <div class="pdf-container no-print">
+        <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 
+
+      <!-- Incluir la librería html2pdf.js antes de tu archivo de script personalizado -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+
+
+
+    <script src="js/horario_vista.js"></script>
           <div class="col-12 mb-4">
             <div class="card shadow">
               <div class="card-header">
                 <strong class="card-title mb-0">Desglose de horas</strong>
               </div>
               <div class="card-body">
-                <div id="barChart"></div>
+              <div id="barChart" 
+     data-docente="<?php echo isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible'; ?>"
+     data-tutorias="<?php echo $horas_tutorias; ?>" 
+     data-apoyo="<?php echo $horas_apoyo; ?>" 
+     data-frente="<?php echo $horas_frente_grupo; ?>">
+</div>
+
               </div> <!-- /.card-body -->
             </div> <!-- /.card -->
             <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>

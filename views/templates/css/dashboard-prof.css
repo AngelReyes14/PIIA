@@ -15,10 +15,15 @@
 
 }
 
+/* Texto */
 .name-line {
     color: #00861d;
     font-style: normal;
+    text-align: center;
+    font-size: 18px; /* Ajusta según lo necesites */
+    
 }
+
 
 .teacher-info {
     line-height: 1.5;

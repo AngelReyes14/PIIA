@@ -1,26 +1,22 @@
 <?php
+// Incluir los archivos necesarios
 include('../../models/session.php');
+include('../../controllers/db.php'); // Conexión a la base de datos
+include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Initialize carreraData to avoid undefined variable warning
-$carreraData = [];
-
-// Check if the user is logged out and retrieve carrera data
-if (isset($_POST['logout'])) {
-  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
-}
-
-
-$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión  
-
-$imgUser  = $consultas->obtenerImagen($idusuario);
-
-// Retrieve user ID and carrera data
-$idusuario = $sessionManager->getUserId();
+// Crear una instancia de la clase Consultas pasando la conexión
 $consultas = new Consultas($conn);
+
+// Obtener la imagen del usuario actual
+$idusuario = $_SESSION['user_id']; 
+$imgUser = $consultas->obtenerImagen($idusuario);
+
+// Obtener datos de la carrera
 $carreraData = $consultas->datosCarreraPorId($idusuario);
-// Check if carreraData is not null and extract the ID
 $carreraId = $carreraData ? $carreraData['carrera_id'] : null;
+
+// Obtener datos de docentes, grupos y turnos
 $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
@@ -41,7 +37,87 @@ if ($carreraId) {
   $hombres = 0;
 }
 
+$maestros = $consultas->CarreraMaestros($carreraId);
+$incidencia = $consultas->Incidenciausuario($carreraId);
+
+// Verificar y obtener los datos de mujeres y hombres en la carrera
+$mujeres = $carreraId ? $consultas->mujeresCarrera($carreraId) : 0;
+$hombres = $carreraId ? $consultas->hombresCarrera($carreraId) : 0;
+
+// Obtener certificaciones tipo 1 y tipo 2
+$certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
+$certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
+
+// Obtener certificaciones de todos los usuarios por mes
+$certificaciones = $consultas->obtenerCertificacionesPorMes();
+
+// Lista de todos los meses asegurando que la gráfica los muestre
+$todosMeses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+// Inicializar arrays para certificaciones en cada mes
+$certificaciones1PorMes = array_fill(0, 12, 0); 
+$certificaciones2PorMes = array_fill(0, 12, 0);
+
+// Asignar valores desde la consulta SQL a los arrays correspondientes
+foreach ($certificaciones as $row) {
+    $mesIndex = array_search($row['nombre_mes'], $todosMeses);
+    if ($mesIndex !== false) {
+        $certificaciones1PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_1'];
+        $certificaciones2PorMes[$mesIndex] = (int) $row['cantidad_certificaciones_tipo_2'];
+    }
+}
+
+// Obtener incidencias por carrera
+$incidenciasCarrera = $consultas->IncidenciasCarreraGrafic();
+$carreras = [];
+$incidencias = [];
+$promedios = [];
+
+// Recorrer las incidencias por carrera y almacenarlas
+foreach ($incidenciasCarrera as $row) {
+    $carreras[] = $row['nombre_carrera']; 
+    
+    // Validación para evitar Undefined array key
+    $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
+    $porcentaje = isset($row['porcentaje']) ? round($row['porcentaje'], 2) : 0;
+
+    // Agregar los valores al array correspondiente
+    $incidencias[] = $cantidadRegistros;
+    $promedios[] = $porcentaje;
+}
+
+// Obtener incidencias con los nombres de los usuarios
+$incidenciasUsuarios = $consultas->obtenerIncidenciasUsuarios();
+
+// Obtener grados académicos de los docentes
+$grados = $consultas->obtenerGradosAcademicos();
+$labels = [];
+$values = [];
+
+foreach ($grados as $grado) {
+    $labels[] = $grado['grado_academico'];
+    $values[] = $grado['total_usuarios'];
+}
+
+// Convertir datos a JSON para pasarlos a JavaScript
+$mesesJson = json_encode($todosMeses);
+$certificaciones1Json = json_encode($certificaciones1PorMes);
+$certificaciones2Json = json_encode($certificaciones2PorMes);
+$carrerasJson = json_encode($carreras);
+$incidenciasJson = json_encode($incidencias);
+$promediosJson = json_encode($promedios);
+
+
 ?>
+
+
+
+
+
+
 
 
 <!doctype html>
@@ -113,9 +189,9 @@ if ($carreraId) {
           </a>
 
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="Perfil.php">Perfil</a>
-            <a class="dropdown-item" href="#">Ajustes</a>
-            <a class="dropdown-item" href="#">ACtividades</a>
+            <a class="dropdown-item" href="Perfil.php">Profile</a>
+            <a class="dropdown-item" href="#">Settings</a>
+            <a class="dropdown-item" href="#">Activities</a>
             <!-- Formulario oculto para cerrar sesión -->
             <form method="POST" action="" id="logoutForm">
               <button class="dropdown-item" type="submit" name="logout">Cerrar sesión</button>
@@ -162,7 +238,7 @@ if ($carreraId) {
 
                     <!-- Contenedor para centrar la imagen -->
                     <div class="d-flex justify-content-center">
-                      <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="img-fluid">
+                    <img src="<?= '../' . htmlspecialchars($carreraData["imagen_url"]) ?>" alt="Imagen del docente" class="w-25">
                     </div>
                   </div>
 
@@ -212,65 +288,145 @@ if ($carreraId) {
 
 
 
-                <!-- Donut Chart Card -->
-                <div class="col-12 col-md-6 carta_Informacion">
-                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-                    <div class="card-header carta_Informacion">
-                      <strong class="card-title text-green mb-0 carta_Informacion">
-                        Grado académico de docentes en la división
-                      </strong>
-                    </div>
-                    <div class="card-body text-center">
-                      <div id="donutChart"></div> <!-- Contenedor de la gráfica -->
-                    </div> <!-- /.card-body -->
-                  </div> <!-- /.card -->
-                </div> <!-- /.col -->
+           <!-- Donut Chart Card -->
+<div class="col-12 col-md-4 carta_Informacion">
+    <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+        <div class="card-header carta_Informacion">
+            <strong class="card-title text-green mb-0 carta_Informacion">
+                Grado académico de docentes en la división
+            </strong>
+        </div>
+
+        <div class="card-body text-center">
+            <!-- Incluir Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <!-- Contenedor de la gráfica tipo donut -->
+            <canvas id="donutChart8"></canvas> 
+        </div> <!-- /.card-body -->
+    </div> <!-- /.card -->
+</div> <!-- /.col -->
+
+<script>
+    // Pasar los datos desde PHP a JavaScript
+    var labels = <?php echo json_encode($labels); ?>;
+    var values = <?php echo json_encode($values); ?>;
+
+    window.onload = function() {
+        var ctx = document.getElementById('donutChart8').getContext('2d');
+
+        var donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total de Usuarios',
+                    data: values,
+                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Verde oscuro, medio y claro
+                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'], // Colores oscuros al pasar el mouse
+                    hoverOffset: 10 // Aumenta el tamaño de la sección en hover
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: false,
+                    onHover: function(event, chartElement) {
+                        if (chartElement.length) {
+                            let index = chartElement[0].index;
+                            donutChart.data.datasets[0].backgroundColor = donutChart.data.datasets[0].backgroundColor.map((color, i) => 
+                                i === index ? color : 'rgba(200, 200, 200, 0.5)' // Opaca las secciones no resaltadas
+                            );
+                            donutChart.update();
+                        } else {
+                            // Restaura los colores originales al salir del hover
+                            donutChart.data.datasets[0].backgroundColor = ['#006400', '#228B22', '#32CD32'];
+                            donutChart.update();
+                        }
+                    }
+                }
+            }
+        });
+    };
+</script>
+
+<style>
+    /* Ajustar el tamaño del gráfico */
+    #donutChart8 {
+        max-width: 2500px; /* Ajustar el tamaño */
+        max-height: 2500px;
+    }
+</style>
+
 
 
 
                 <!-- Tabla de Docentes -->
-                <div class="col-12 col-md-6 mt-5 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-                    </div>
-                    <table class="table datatables" id="tabla-materias-2">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Edad</th>
-                          <th>Fecha de contratacion</th>
-                          <th>Numero de empleado</th>
-                          <th>cedula</th>
-                          <th>correo</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if ($maestros): ?>
-                          <?php foreach ($maestros as $maestroscarrera): ?>
-                            <tr>
-                            <tr>
-                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
-                            </tr>                  
-                          <?php endforeach; ?>
-                        <?php else: ?>
-                          <tr>
-                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
-                          </tr>
-                        <?php endif; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
+                
 
+<!-- Contenedor de la tabla con scroll y encabezado fijo -->
+<div class="col-12 col-md-8 mt-5 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+        </div>
+
+        <!-- Contenedor con scroll -->
+        <div class="table-responsive" style="max-height: 350px; overflow-y: auto; position: relative;">
+            <table class="table datatables" id="tabla-materias-2">
+                <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Edad</th>
+                        <th>Fecha de contratación</th>
+                        <th>Número de empleado</th>
+                        <th>Cédula</th>
+                        <th>Correo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($maestros): ?>
+                        <?php foreach ($maestros as $maestroscarrera): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
+                            </tr>                  
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No hay maestros registrados.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div> <!-- Fin del contenedor con scroll -->
+    </div>
+</div> <!-- /.col -->
+
+
+              
 
           <!-- Nuevo Contenedor Principal: Incidencias -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
@@ -292,45 +448,131 @@ if ($carreraId) {
 
                     <!-- Cuerpo de la tarjeta -->
                     <div class="card-body text-center">
-                      <!-- Gráfico de dona para incidencias -->
-                      <div id="donutChart3"></div>
+                      <!-- Incluye Chart.js -->
+                   
 
-                      <!-- Tabla de incidencias -->
-                      <table class="table datatables" id="tabla-materias-2">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th>Numero de incidencia</th>
-                          <th>Usuario</th>
-                          <th>Fecha solicitada</th>
-                          <th>Motivo</th>
-                          <th>Hora de inicio</th>
-                          <th>Hora de termino</th>
-                          <th>Horario de incidencias</th>
-                          <th>Dia de las incidencias</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if ($incidencia): ?>
-                          <?php foreach ($incidencia as $incidencias): ?>
-                            <tr>
-                            <tr>
-                              <td><?php echo htmlspecialchars($incidencias['incidencia_incidenciaid']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['usuario_usuario_id']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['fecha_solicitada']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['motivo']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_inicio']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_termino']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['horario_incidencia']); ?></td>
-                              <td><?php echo htmlspecialchars($incidencias['dia_incidencia']); ?></td>
-                            </tr>                  
-                          <?php endforeach; ?>
-                        <?php else: ?>
-                          <tr>
-                            <td colspan="5" class="text-center">No hay incidencias registrados.</td>
-                          </tr>
-                        <?php endif; ?>
-                      </tbody>
-                    </table>
+
+
+
+
+                      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+                      <!-- Nuevo contenedor para el gráfico de pastel -->
+<div id="donutChart4"></div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Obtener datos desde PHP
+    var carreras = <?php echo $carrerasJson; ?>;
+    var incidencias = <?php echo $incidenciasJson; ?>;
+
+    console.log("Carreras:", carreras);
+    console.log("Incidencias:", incidencias);
+
+    // Verificar si hay datos
+    if (carreras.length === 0 || incidencias.length === 0) {
+        console.warn("No hay datos para mostrar en la gráfica.");
+        return;
+    }
+
+    // Verificar si ya existe un gráfico en #donutChart4 y destruirlo
+    if (typeof chart !== 'undefined' && chart !== null) {
+        chart.destroy(); // Destruir el gráfico anterior si existe
+    }
+
+    // Configuración del gráfico de dona (donut)
+    var options = {
+        series: incidencias, // Datos de incidencias
+        chart: {
+            type: 'donut', // Cambiar a tipo 'donut'
+            height: 350
+        },
+        labels: carreras, // Etiquetas de las carreras
+        colors: [
+            '#66BB6A', // Verde claro
+            '#43A047', // Verde medio
+            '#2C6B2F', // Verde más oscuro
+            '#1B5E20', // Verde oscuro
+            '#81C784', // Verde pastel
+            '#388E3C', // Verde fuerte
+            '#4CAF50'  // Verde más brillante
+        ], // Colores verdes
+        legend: {
+            position: 'bottom'
+        },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '60%' // Controlar el tamaño del agujero en el centro
+                }
+            }
+        }
+    };
+
+    // Renderizar el gráfico en el div con ID 'donutChart4'
+    var chart = new ApexCharts(document.querySelector("#donutChart4"), options);
+    chart.render();
+});
+</script>
+
+
+
+
+
+<div id="incidencias-container" style="overflow-y: auto;">
+    <table class="table table-striped table-bordered" id="tabla-incidencias">
+        <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
+            <tr>
+                <th>Número de incidencia</th>
+                <th>Usuario</th>
+                <th>Fecha solicitada</th>
+                <th>Motivo</th>
+                <th>Hora de inicio</th>
+                <th>Hora de término</th>
+                <th>Horario de incidencia</th>
+                <th>Día de la incidencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($incidenciasUsuarios)): ?>
+                <?php foreach ($incidenciasUsuarios as $incidencia): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($incidencia['numero_incidencia']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['usuario']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['fecha_solicitada']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['motivo']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['hora_inicio']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['hora_termino']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['horario_incidencia']); ?></td>
+                        <td><?php echo htmlspecialchars($incidencia['dia_incidencia']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="8" class="text-center">No hay incidencias registradas.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let table = document.getElementById("tabla-incidencias");
+        let container = document.getElementById("incidencias-container");
+        let rowCount = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr").length;
+
+        if (rowCount > 5) {
+            container.style.maxHeight = "400px"; // Agrega el scroll si hay más de 5 registros
+        } else {
+            container.style.maxHeight = "auto"; // Sin scroll si hay 5 o menos
+        }
+    });
+</script>
+
+
                     </div> <!-- /.card-body -->
                   </div> <!-- /.card -->
                 </div> <!-- /.col -->
@@ -343,107 +585,230 @@ if ($carreraId) {
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Diciplinarios
+            Acreditaciones Pedagógicas
             </div>
+
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+                <!-- Aquí se incluye el gráfico -->
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo1"></canvas> <!-- Contenedor para el gráfico tipo 1 -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Cursos Diciplinarios</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Pedagógicas</h4> <!-- Título actualizado -->
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo1)) : ?> <!-- Usamos $certificacionesTipo1 para certificados tipo 1 -->
+                    <?php foreach ($certificacionesTipo1 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP
+    var mesesTipo1 = <?php echo $mesesJson; ?>; // Meses para el gráfico tipo 1
+    var certificaciones1 = <?php echo $certificaciones1Json; ?>; // Certificaciones tipo 1
+
+    // Configuración del gráfico para certificaciones tipo 1
+    var ctxTipo1 = document.getElementById('columnChartTipo1').getContext('2d');
+    var columnChartTipo1 = new Chart(ctxTipo1, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo1, // Los meses
+            datasets: [{
+                label: 'Certificaciones Pedagógicas', 
+                data: certificaciones1, // Cantidades de certificaciones tipo 1
+                backgroundColor: 'rgba(59, 204, 23)', // Azul transparente
+                borderColor: 'rgb(105, 215, 109)', // Azul fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
 
           <!-- Contenedor de Cursos Pedagógicos -->
           <div class="container-fluid mt-5  box-shadow-div p-5">
             <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Cursos Pedagógicos
+            Acreditaciones Profesionales
             </div>
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-                <div class="col-md-12">
-                  <div class="chart-box box-shadow-div mb-4">
-                    <div id="columnChart2"></div> <!-- Gráfico de Cursos Pedagógicos -->
-                  </div>
-                </div> <!-- /.col -->
+               
+                <div class="container-fluid">
+  <div class="row my-4">
+    <div class="col-md-12">
+      <div class="chart-box rounded">
+        <canvas id="columnChartTipo2"></canvas> <!-- Contenedor para el gráfico -->
+      </div>
+    </div> <!-- .col -->
+  </div> <!-- end section -->
+</div> 
 
-                <!-- Tabla de Cursos Pedagógicos -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion ">Cursos Pedagógicos</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Obtener los datos desde PHP para certificaciones tipo 2
+    var mesesTipo2 = <?php echo $mesesJson; ?>;
+    var certificacionesTipo2 = <?php echo $certificaciones2Json; ?>;
+
+    // Configuración del gráfico para certificaciones tipo 2
+    var ctxTipo2 = document.getElementById('columnChartTipo2').getContext('2d');
+    var columnChartTipo2 = new Chart(ctxTipo2, {
+        type: 'bar', // Tipo de gráfico: 'bar' para barras
+        data: {
+            labels: mesesTipo2, // Los meses
+            datasets: [{
+                label: 'Certificaciones Profesionales',
+                data: certificacionesTipo2, // Cantidades de certificaciones tipo 2
+                backgroundColor: 'rgba(7, 118, 24)', // Rojo transparente
+                borderColor: 'rgb(16, 102, 29)', // Rojo fuerte
+                borderWidth: 1,
+                barThickness: 40, // Hacer las barras más delgadas
+                borderRadius: 20, // Esquinas redondeadas
+            }]
+        },
+        options: {
+            responsive: true,
+            layout: {
+                padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Certificaciones'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes'
+                    },
+                    ticks: {
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<div class="col-md-12 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Profesionales</h4>
+        </div>
+        <table class="table table-striped carta_Informacion">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Mes</th>
+                    <th>Docente</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($certificacionesTipo2)) : ?>
+                    <?php foreach ($certificacionesTipo2 as $certificacion) : ?>
                         <tr>
-                          <th>Curso</th>
-                          <th>Fecha</th>
-                          <th>Docente</th>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Curso de Metodologías de Enseñanza</td>
-                          <td>05/10/2024</td>
-                          <td>María López Pérez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Evaluación Pedagógica</td>
-                          <td>12/10/2024</td>
-                          <td>Carlos García Martínez</td>
-                        </tr>
-                        <tr>
-                          <td>Curso de Innovación Educativa</td>
-                          <td>20/10/2024</td>
-                          <td>Lucía Rodríguez Sánchez</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.col -->
+
+
               </div> <!-- /.row -->
             </div> <!-- /.container-fluid -->
           </div> <!-- /.container-fluid -->
-          
+
+          <!-- Contenedor de Promedio de Calificaciones -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
 
@@ -486,7 +851,6 @@ if ($carreraId) {
               </div> <!-- .row -->
             </div> <!-- .container-fluid -->
           </div>
-
 
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
@@ -691,7 +1055,6 @@ if ($carreraId) {
     </div>
     </main> <!-- main -->
   </div> <!-- .wrapper -->
-  
   <script src="js/jquery.min.js"></script>
   <script src="js/popper.min.js"></script>
   <script src="js/moment.min.js"></script>
@@ -724,9 +1087,7 @@ if ($carreraId) {
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <!-- SweetAlert2 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+  <script>
     $('.select2').select2({
       theme: 'bootstrap4',
     });
