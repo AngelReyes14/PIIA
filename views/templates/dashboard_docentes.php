@@ -153,7 +153,14 @@ $resultados_json = json_encode($resultados);
 
 ?>
 
-
+<?php
+// Si tipoUsuario es 2 y aún no tiene idusuario en la URL, lo establecemos antes de renderizar la página.
+if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
+    // Redirigir con el idusuario
+    header("Location: dashboard_docentes.php?idusuario=" . $idusuario);
+    exit();
+}
+?>
 
 
 <!doctype html>
@@ -356,11 +363,21 @@ function toggleCampos() {
     archivoInput.value = "";
   }
 }
+
 document.addEventListener("DOMContentLoaded", function () {
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
     const urlParams = new URLSearchParams(window.location.search);
-    idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+    
+    if (!urlParams.has("idusuario")) {
+        // Si no hay idusuario en la URL, agregamos el que tenemos en PHP y recargamos
+        history.replaceState(null, "", `?idusuario=${idusuario}`);
+    } else {
+        // Si sí hay idusuario en la URL, lo usamos
+        idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+    }
+
+    console.log("ID de usuario obtenido:", idusuario);
 
     const anterior = document.getElementById("anterior");
     const siguiente = document.getElementById("siguiente");
@@ -376,7 +393,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (tipoUsuarioId !== 5) {
                 history.pushState(null, "", `?idusuario=${idusuario}`);
-                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido del carrusel
+                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido
             }
         }
 
@@ -450,6 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Cargar usuario inicial basado en la URL
     cargarUsuario(idusuario);
 });
+
 </script>
 
 
@@ -1019,20 +1037,22 @@ evaluacionChart = new Chart(ctx, {
           <!-- Docente -->
           <div class="form-group mt-2">
             <label for="usuario_usuario_id">Docente:</label>
-            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
-              <?php if ($tipoUsuarioId === 1): ?>
-                <option value="<?php echo $idusuario; ?>" selected>
-                  <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
-                </option>
-              <?php else: ?>
-                <option value="">Seleccione un usuario</option>
-                <?php foreach ($usuarios as $user): ?>
-                  <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
-                  </option>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </select>
+            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" 
+        <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
+    <?php if ($tipoUsuarioId === 1 || isset($_GET['idusuario'])): ?>
+        <option value="<?php echo $idusuario; ?>" selected>
+            <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
+        </option>
+    <?php else: ?>
+        <option value="">Seleccione un usuario</option>
+        <?php foreach ($usuarios as $user): ?>
+            <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
+            </option>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</select>
+
           </div>
         </div>
         <div class="col-md-6">
@@ -1070,6 +1090,9 @@ evaluacionChart = new Chart(ctx, {
   </div>
 </div>
 
+<script>
+    const tipoUsuario = <?php echo json_encode($tipoUsuarioId); ?>;
+</script>
 
 
       <!-- Incluir la librería html2pdf.js antes de tu archivo de script personalizado -->
@@ -1093,10 +1116,12 @@ evaluacionChart = new Chart(ctx, {
      data-apoyo="<?php echo $horas_apoyo; ?>" 
      data-frente="<?php echo $horas_frente_grupo; ?>">
 </div>
+<div id="total-horas" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
+
 
               </div> <!-- /.card-body -->
             </div> <!-- /.card -->
-            <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>
+
           </div> <!-- /. col -->
         <!---------------- Termina la parte de direccion academica -------------->
 

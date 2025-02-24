@@ -327,7 +327,8 @@ if (isset($_POST['logout'])) {
                                         <tr>
                                             <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
-                                            <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
+                                            <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
+
                                             <td class="text-center">
                                                 <?php if (!empty($certificacionusuario['url'])): ?>
                                                     <?php 
@@ -347,7 +348,7 @@ if (isset($_POST['logout'])) {
                 data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
                 data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
                 data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
-                data-mes="<?= htmlspecialchars($certificacionusuario['meses_meses_id']) ?>"
+                data-mes="<?= htmlspecialchars($certificacionusuario['nombre_mes']) ?>"
                 data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
             Actualizar
         </button>
