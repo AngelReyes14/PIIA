@@ -62,6 +62,24 @@ $carreras = $consultas->obtenerCarreras();
 $periodos = $consultas->obtenerPeriodos();
 // Obtener el último período
 $periodoReciente = $consultas->obtenerPeriodoReciente();
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener información de tutoría para el usuario actual
+$tutoria = $consultas->obtenerTutoriaPorUsuario($idusuario, $periodoId);
+
+if (isset($tutoria['error'])) {
+    // Manejar el caso donde no se encontró información de tutoría
+    $nombreGrupo = 'No asignado';
+    $diaTutoria = 'No asignado';
+} else {
+    $nombreGrupo = htmlspecialchars($tutoria['nombre_grupo']);
+    $diaTutoria = htmlspecialchars($tutoria['nombre_dia']);
+}
+
+
+$certificaciones = $consultas->obtenerCertificaciones();
+$certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
 
 // Validar que realmente haya un período disponible
 if (!isset($periodoReciente['periodo_id'])) {
@@ -338,130 +356,100 @@ function toggleCampos() {
     archivoInput.value = "";
   }
 }
-
-
-</script>
-
-      <script>
+document.addEventListener("DOMContentLoaded", function () {
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
-
     const urlParams = new URLSearchParams(window.location.search);
     idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
 
     const anterior = document.getElementById("anterior");
     const siguiente = document.getElementById("siguiente");
-    const carreraSelect = document.getElementById('carreraSelect');
-
-    let usuariosFiltrados = [];
-    let indiceUsuarioActual = 0;
+    const carouselContent = document.getElementById('carouselContent');
 
     if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
-    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        function actualizarVistaUsuario(index) {
-            const usuario = usuariosFiltrados[index];
-            actualizarCarrusel([usuario]);
-        }
-
-        function updateUrl(newIdusuario) {
-            if (tipoUsuarioId !== 5) {
-                window.location.href = `?idusuario=${newIdusuario}`;
-            }
-        }
-
-        siguiente.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0) {
-                if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
-                    indiceUsuarioActual++;
-                } else {
-                    indiceUsuarioActual = 0;
-                }
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else {
-                idusuario++;
-                updateUrl(idusuario);
-            }
-        });
-
-        anterior.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
-                indiceUsuarioActual--;
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
-            }
-        });
     } else {
-        anterior.disabled = true;
-        siguiente.disabled = true;
+        function updateUrl(incremento) {
+            idusuario += incremento;
+            console.log("Nuevo idusuario:", idusuario);
+
+            if (tipoUsuarioId !== 5) {
+                history.pushState(null, "", `?idusuario=${idusuario}`);
+                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido del carrusel
+            }
+        }
+
+        siguiente.addEventListener("click", () => updateUrl(1));
+        anterior.addEventListener("click", () => updateUrl(-1));
     }
 
-    carreraSelect.addEventListener('change', function() {
-        const carreraId = carreraSelect.value;
+    function cargarUsuario(id) {
+        console.log(`Cargando usuario con idusuario: ${id}`);
 
         $.ajax({
-            url: '../templates/filtrarPorCarrera.php',
-            type: 'POST',
-            data: { carrera_id: carreraId },
+            url: '../templates/obtenerDatosUsuario.php',
+            type: 'GET',
+            data: { idusuario: id },
             dataType: 'json',
             success: function(response) {
-                if (response && response.length > 0) {
-                    usuariosFiltrados = response;
-                    indiceUsuarioActual = 0;
-                    actualizarCarrusel(usuariosFiltrados);
+                console.log("Respuesta del servidor:", response);
+                if (response && !response.error) {
+                    actualizarCarrusel(response);
                 } else {
-                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                    console.warn("No se encontró información del usuario.");
                 }
             },
-            error: function() {
-                console.error('Error al obtener los usuarios por carrera.');
+            error: function(xhr, status, error) {
+                console.error("Error al obtener datos del usuario.");
+                console.error("Estado:", status);
+                console.error("Detalles del error:", error);
+                console.error("Respuesta del servidor:", xhr.responseText);
             }
-        });
-    });
-
-    function actualizarCarrusel(usuarios) {
-        const carouselContent = document.getElementById('carouselContent');
-        carouselContent.innerHTML = '';
-
-        usuarios.forEach((usuario, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            const fechaContratacion = new Date(usuario.fecha_contratacion);
-            const fechaActual = new Date();
-            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-            if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
-                antiguedad--;
-            }
-
-            const carouselItem = `
-                <div class="carousel-item ${activeClass}">
-                    <div class="row">
-                        <div class="col-12 col-md-5 col-xl-3 text-center">
-                            <strong class="name-line">Foto del Docente:</strong> <br>
-                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
-                        </div>
-                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                            <p class="teacher-info h4">
-                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
-                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
-                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
-                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
-                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
-                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
-                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
-                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
-                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            carouselContent.innerHTML += carouselItem;
         });
     }
+
+    function actualizarCarrusel(usuario) {
+        carouselContent.innerHTML = '';
+
+        const fechaContratacion = new Date(usuario.fecha_contratacion);
+        const fechaActual = new Date();
+        let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+        if (fechaActual.getMonth() < fechaContratacion.getMonth() || 
+            (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
+            antiguedad--;
+        }
+
+        const carouselItem = `
+            <div class="carousel-item active">
+                <div class="row">
+                    <div class="col-12 col-md-5 col-xl-3 text-center">
+                        <strong class="name-line">Foto del Docente:</strong> <br>
+                        <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                    </div>
+                    <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                        <p class="teacher-info h4">
+                            <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                            <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                            <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                            <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                            <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                            <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                            <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                            <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                            <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        carouselContent.innerHTML = carouselItem;
+    }
+
+    // Cargar usuario inicial basado en la URL
+    cargarUsuario(idusuario);
+});
 </script>
 
 
@@ -927,224 +915,72 @@ evaluacionChart = new Chart(ctx, {
                       <h1 class="text-success mb-3"><?php echo $promedioGeneral; ?></h1>
                   </div>
               </div>
+              <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
+        <h1 class="text-success mb-3"><?php echo $nombreGrupo; ?></h1>
+    </div>
+</div>
 
-                  <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
-                      <h1 class="text-success mb-3">8ISC22</h1>
-                    </div>
-                  </div>
-
-                  <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
-                      <h1 class="text-success mb-3">Lunes</h1>
-                    </div>
-                  </div>
-                </div>
+<div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+        <h1 class="text-success mb-3"><?php echo $diaTutoria; ?></h1>
+    </div>
+</div>
+              </div>
               </div>
 
               <!--------Inicio de la tabla ---------->
-              <!-- Columna para la tabla -->
               <div class="col-lg-6">
-                <div class="card box-shadow-div text-center border-5 mt-1">
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Recent orders -->
-                      <div class="col-12">
-                        <h6 class="mb-3">Capacitación disciplinaria</h6>
-                        <div class="table-responsive">
-                          <table class="table table-borderless table-striped">
-                            <thead>
-                              <tr role="row">
-                                <th>ID</th>
-                                <th>Purchase Date</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th scope="col">1331</th>
-                                <td>2020-12-26 01:32:21</td>
-                                <td>Kasimir Lindsey</td>
-                                <td>(697) 486-2101</td>
-                                <td>996-3523 Et Ave</td>
-                                <td>$3.64</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1156</th>
-                                <td>2020-04-21 00:38:38</td>
-                                <td>Melinda Levy</td>
-                                <td>(748) 927-4423</td>
-                                <td>Ap #516-8821 Vitae Street</td>
-                                <td>$4.18</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1038</th>
-                                <td>2019-06-25 19:13:36</td>
-                                <td>Aubrey Sweeney</td>
-                                <td>(422) 405-2736</td>
-                                <td>Ap #598-7581 Tellus Av.</td>
-                                <td>$4.98</td>
-                                <td>Credit Card </td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1227</th>
-                                <td>2021-01-22 13:28:00</td>
-                                <td>Timon Bauer</td>
-                                <td>(690) 965-1551</td>
-                                <td>840-2188 Placerat, Rd.</td>
-                                <td>$3.46</td>
-                                <td> Paypal</td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1956</th>
-                                <td>2019-11-11 16:23:17</td>
-                                <td>Kelly Barrera</td>
-                                <td>(117) 625-6737</td>
-                                <td>816 Ornare, Street</td>
-                                <td>$4.16</td>
-                                <td>Credit Card </td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1669</th>
-                                <td>2021-04-12 07:07:13</td>
-                                <td>Kellie Roach</td>
-                                <td>(422) 748-1761</td>
-                                <td>5432 A St.</td>
-                                <td>$3.53</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1909</th>
-                                <td>2020-05-14 00:23:11</td>
-                                <td>Lani Diaz</td>
-                                <td>(767) 486-2253</td>
-                                <td>3328 Ut Street</td>
-                                <td>$4.29</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <!-- Fin de las filas de la tabla -->
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+    <div class="card box-shadow-div text-center border-5 mt-1">
+        <div class="card-body">
+              <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Capacitación disciplinaria</strong></p>
               </div>
+              <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                  <thead>
+                    <tr>
+                      <th>Certificación</th>
+                      <th>Nombre del Certificado</th>
+                      <th>Mes</th> <!-- Nueva columna para los meses -->
+                      <th>Certificado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <!-- Mostrar el mes -->
+                        <td class="text-center">
+                          <?php if (!empty($certificacionusuario['url'])): ?>
+                            <?php
+                            $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                            ?>
+                            <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver
+                              Certificado</a>
+                          <?php else: ?>
+                            No disponible
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center">
+                          </div>
+                        </td>
 
-              <!-- Columna para las tarjetas -->
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-        </div> <!-- .container-fluid -->
+        </div>
+
       </div> <!---- fin de la card principál------>
       <div class="container-fluid">
   <div id="contenedor">
