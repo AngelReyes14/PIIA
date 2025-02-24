@@ -89,7 +89,7 @@ function renderCalendar() {
 
     daysHtml += `<div class="day${isToday ? ' today' : ''}${isEconomicDay ? ' economic-day' : ''}${disabledClass}" data-day="${i}" data-month="${currentMonth}" data-year="${currentYear}">
       ${i}
-      ${isEconomicDay ? '<img src="assets/icon/DiaEconomico.png" class="economic-icon" alt="Día Económico">' : ''}
+      ${isEconomicDay ? '<img src="../assets/icon/DiaEconomico.png" class="economic-icon" alt="Día Económico">' : ''}
     </div>`;
   }
 

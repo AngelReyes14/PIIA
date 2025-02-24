@@ -19779,4 +19779,15 @@ button#downloadPDF:hover {
 
 #dataTable-certificaciones a:hover {
   background: #1e8449;
+
 }
+
+
+
+/* Ocultar el botón en la impresión */
+@media print {
+  .pdf-container {
+    display: none;
+  }
+}
+
