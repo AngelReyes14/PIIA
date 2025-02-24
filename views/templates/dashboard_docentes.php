@@ -63,6 +63,10 @@ $periodos = $consultas->obtenerPeriodos();
 // Obtener el último período
 $periodoReciente = $consultas->obtenerPeriodoReciente();
 
+$certificaciones = $consultas->obtenerCertificaciones();
+$certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
+
 // Validar que realmente haya un período disponible
 if (!isset($periodoReciente['periodo_id'])) {
     die("Error: No se encontró un período activo.");
@@ -915,200 +919,54 @@ evaluacionChart = new Chart(ctx, {
               </div>
 
               <!--------Inicio de la tabla ---------->
-              <!-- Columna para la tabla -->
               <div class="col-lg-6">
-                <div class="card box-shadow-div text-center border-5 mt-1">
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Recent orders -->
-                      <div class="col-12">
-                        <h6 class="mb-3">Capacitación disciplinaria</h6>
-                        <div class="table-responsive">
-                          <table class="table table-borderless table-striped">
-                            <thead>
-                              <tr role="row">
-                                <th>ID</th>
-                                <th>Purchase Date</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th scope="col">1331</th>
-                                <td>2020-12-26 01:32:21</td>
-                                <td>Kasimir Lindsey</td>
-                                <td>(697) 486-2101</td>
-                                <td>996-3523 Et Ave</td>
-                                <td>$3.64</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1156</th>
-                                <td>2020-04-21 00:38:38</td>
-                                <td>Melinda Levy</td>
-                                <td>(748) 927-4423</td>
-                                <td>Ap #516-8821 Vitae Street</td>
-                                <td>$4.18</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1038</th>
-                                <td>2019-06-25 19:13:36</td>
-                                <td>Aubrey Sweeney</td>
-                                <td>(422) 405-2736</td>
-                                <td>Ap #598-7581 Tellus Av.</td>
-                                <td>$4.98</td>
-                                <td>Credit Card </td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1227</th>
-                                <td>2021-01-22 13:28:00</td>
-                                <td>Timon Bauer</td>
-                                <td>(690) 965-1551</td>
-                                <td>840-2188 Placerat, Rd.</td>
-                                <td>$3.46</td>
-                                <td> Paypal</td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1956</th>
-                                <td>2019-11-11 16:23:17</td>
-                                <td>Kelly Barrera</td>
-                                <td>(117) 625-6737</td>
-                                <td>816 Ornare, Street</td>
-                                <td>$4.16</td>
-                                <td>Credit Card </td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1669</th>
-                                <td>2021-04-12 07:07:13</td>
-                                <td>Kellie Roach</td>
-                                <td>(422) 748-1761</td>
-                                <td>5432 A St.</td>
-                                <td>$3.53</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1909</th>
-                                <td>2020-05-14 00:23:11</td>
-                                <td>Lani Diaz</td>
-                                <td>(767) 486-2253</td>
-                                <td>3328 Ut Street</td>
-                                <td>$4.29</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <!-- Fin de las filas de la tabla -->
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+    <div class="card box-shadow-div text-center border-5 mt-1">
+        <div class="card-body">
+              <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Capacitación disciplinaria</strong></p>
               </div>
+              <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                  <thead>
+                    <tr>
+                      <th>Certificación</th>
+                      <th>Nombre del Certificado</th>
+                      <th>Mes</th> <!-- Nueva columna para los meses -->
+                      <th>Certificado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <!-- Mostrar el mes -->
+                        <td class="text-center">
+                          <?php if (!empty($certificacionusuario['url'])): ?>
+                            <?php
+                            $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                            ?>
+                            <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver
+                              Certificado</a>
+                          <?php else: ?>
+                            No disponible
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center">
+                          </div>
+                        </td>
+
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
 
               <!-- Columna para las tarjetas -->
             </div>
