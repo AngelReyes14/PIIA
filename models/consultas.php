@@ -202,7 +202,7 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
 
 public function obtenerCertificacionesTipo2($cert_id) {
     $query = "
-
+        SELECT 
             chu.nombre_certificado, 
             ms.descripcion AS nombre_mes, 
             CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo

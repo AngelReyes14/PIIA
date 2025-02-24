@@ -1,3 +1,27 @@
+document.addEventListener("DOMContentLoaded", function () {
+    // Función para obtener parámetros de la URL
+    function obtenerParametroURL(nombre) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(nombre);
+    }
+
+    let usuarioId = document.getElementById("usuario_usuario_id").value;
+
+    // Verifica si tipoUsuario está definido (debe venir desde el script PHP)
+    if (typeof tipoUsuario !== "undefined" && tipoUsuario === 2) {
+        const usuarioDesdeURL = obtenerParametroURL("idusuario");
+        if (usuarioDesdeURL) {
+            usuarioId = usuarioDesdeURL;
+            document.getElementById("usuario_usuario_id").value = usuarioId;
+        }
+    }
+
+    // Llamar a filtrarHorario() con el usuario correcto
+    if (usuarioId) {
+        filtrarHorario();
+    }
+});
+
 
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById("usuario_usuario_id").value !== "") {
@@ -184,6 +208,8 @@ document.addEventListener("DOMContentLoaded", function () {
         var tutorias = parseInt(barChartCtn.getAttribute("data-tutorias") || 0);
         var apoyo = parseInt(barChartCtn.getAttribute("data-apoyo") || 0);
         var frente = parseInt(barChartCtn.getAttribute("data-frente") || 0);
+        // ✅ Calculamos el total de horas
+        var totalHoras = tutorias + apoyo + frente;
   
         // 🎨 Define los colores de la gráfica y la leyenda
         var chartColors = ["#008FFB", "#00E396", "#FEB019"]; // Azul, Verde, Amarillo
@@ -238,6 +264,10 @@ document.addEventListener("DOMContentLoaded", function () {
   
         var barChart = new ApexCharts(barChartCtn, barChartoptions);
         barChart.render();
+               // ✅ Mostrar el total de horas debajo de la gráfica
+               document.getElementById("total-horas").innerHTML = `
+               Total de Horas: <span style="color: #ff5733;">${totalHoras}</span>
+           `;
     }
   });
 
