@@ -971,6 +971,60 @@ evaluacionChart = new Chart(ctx, {
               <!-- Columna para las tarjetas -->
             </div>
           </div>
+            <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+              <div class="card-body">
+                <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+                <h1 class="text-success mb-3">Lunes</h1>
+              </div>
+            </div>
+          </div>
+          
+
+        </div>
+        <div class="col-lg-6">
+    <div class="card box-shadow-div text-center border-5 mt-1">
+        <div class="card-body">
+              <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Capacitación disciplinaria</strong></p>
+              </div>
+              <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                  <thead>
+                    <tr>
+                      <th>Certificación</th>
+                      <th>Nombre del Certificado</th>
+                      <th>Mes</th> <!-- Nueva columna para los meses -->
+                      <th>Certificado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <!-- Mostrar el mes -->
+                        <td class="text-center">
+                          <?php if (!empty($certificacionusuario['url'])): ?>
+                            <?php
+                            $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                            ?>
+                            <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver
+                              Certificado</a>
+                          <?php else: ?>
+                            No disponible
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center">
+                          </div>
+                        </td>
+
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
 
         </div> <!-- .container-fluid -->
       </div> <!---- fin de la card principál------>

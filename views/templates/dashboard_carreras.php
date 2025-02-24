@@ -49,7 +49,9 @@ $certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
 $certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
+
 $certificaciones = $consultas->obtenerCertificacionesPorMes();
+
 
 // Lista de todos los meses asegurando que la gráfica los muestre
 $todosMeses = [
