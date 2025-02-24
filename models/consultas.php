@@ -9,6 +9,27 @@ class Consultas {
     }
 
     
+    public function obtenerTutoriaPorUsuario($usuarioId, $periodoId) {
+        $query = "SELECT 
+                    g.descripcion AS nombre_grupo, 
+                   d.descripcion AS nombre_dia
+
+                  FROM horario h
+                  JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                  JOIN dias d ON h.dias_dias_id = d.dias_id
+                  WHERE h.usuario_usuario_id = :usuarioId 
+                    AND h.materia_materia_id = 1
+                    AND h.periodo_periodo_id = :periodoId
+                  LIMIT 1";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ["nombre_grupo" => "No asignado", "nombre_dia" => "No asignado"];
+    }
+    
     
 // Método para obtener el horario filtrado por periodo, usuarioId y carrera
 public function obtenerHorario($periodo, $usuarioId, $carrera) {

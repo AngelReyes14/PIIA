@@ -62,6 +62,20 @@ $carreras = $consultas->obtenerCarreras();
 $periodos = $consultas->obtenerPeriodos();
 // Obtener el último período
 $periodoReciente = $consultas->obtenerPeriodoReciente();
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener información de tutoría para el usuario actual
+$tutoria = $consultas->obtenerTutoriaPorUsuario($idusuario, $periodoId);
+
+if (isset($tutoria['error'])) {
+    // Manejar el caso donde no se encontró información de tutoría
+    $nombreGrupo = 'No asignado';
+    $diaTutoria = 'No asignado';
+} else {
+    $nombreGrupo = htmlspecialchars($tutoria['nombre_grupo']);
+    $diaTutoria = htmlspecialchars($tutoria['nombre_dia']);
+}
+
 
 $certificaciones = $consultas->obtenerCertificaciones();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
@@ -901,21 +915,20 @@ evaluacionChart = new Chart(ctx, {
                       <h1 class="text-success mb-3"><?php echo $promedioGeneral; ?></h1>
                   </div>
               </div>
+              <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
+        <h1 class="text-success mb-3"><?php echo $nombreGrupo; ?></h1>
+    </div>
+</div>
 
-                  <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
-                      <h1 class="text-success mb-3">8ISC22</h1>
-                    </div>
-                  </div>
-
-                  <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
-                      <h1 class="text-success mb-3">Lunes</h1>
-                    </div>
-                  </div>
-                </div>
+<div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+        <h1 class="text-success mb-3"><?php echo $diaTutoria; ?></h1>
+    </div>
+</div>
+              </div>
               </div>
 
               <!--------Inicio de la tabla ---------->
