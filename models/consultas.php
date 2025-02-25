@@ -2663,7 +2663,7 @@ class EvaluacionDocentes {
             }
 
             // Redirigimos a la página de éxito
-            header("Location: ../views/templates/dashboard_carreras.php?success=true");
+            header("Location: ../views/templates/form_evaluacion.php?success=true");
         }
     }
 
@@ -2681,7 +2681,7 @@ class EvaluacionDocentes {
             $stmt->execute();
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error: " . $e->getMessage();
-            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+            header("Location: ../views/templates/form_evaluacion.php?success=false");
         }
     }
 
@@ -2700,7 +2700,7 @@ class EvaluacionDocentes {
             $stmt->execute();
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error: " . $e->getMessage();
-            header("Location: ../views/templates/dashboard_carreras.php?success=false");
+            header("Location: ../views/templates/form_evaluacion.php?success=false");
         }
     }
 
