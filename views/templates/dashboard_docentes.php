@@ -4,15 +4,14 @@ include('../../controllers/db.php'); // Conexión a la base de datos
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-
 // Crear instancia de Consultas
-
 $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
 $idusuario = (int) $_SESSION['user_id'];
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
+
 
 // Validar tipo de usuario
 if (!$tipoUsuarioId) {
@@ -27,6 +26,10 @@ if ($tipoUsuarioId === 1) {
 // Obtener usuario y carrera
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
+$nombreDocente = isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible';
+
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
 
@@ -57,6 +60,40 @@ $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['
 // Obtener listas de carreras y períodos
 $carreras = $consultas->obtenerCarreras();
 $periodos = $consultas->obtenerPeriodos();
+// Obtener el último período
+$periodoReciente = $consultas->obtenerPeriodoReciente();
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener información de tutoría para el usuario actual
+$tutoria = $consultas->obtenerTutoriaPorUsuario($idusuario, $periodoId);
+
+if (isset($tutoria['error'])) {
+    // Manejar el caso donde no se encontró información de tutoría
+    $nombreGrupo = 'No asignado';
+    $diaTutoria = 'No asignado';
+} else {
+    $nombreGrupo = htmlspecialchars($tutoria['nombre_grupo']);
+    $diaTutoria = htmlspecialchars($tutoria['nombre_dia']);
+}
+
+
+$certificaciones = $consultas->obtenerCertificaciones();
+$certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
+$meses = $consultas->obtenerMeses();
+
+// Validar que realmente haya un período disponible
+if (!isset($periodoReciente['periodo_id'])) {
+    die("Error: No se encontró un período activo.");
+}
+
+// Extraer solo el ID del período
+$periodoId = $periodoReciente['periodo_id'];
+
+// Obtener horas del usuario autenticado solo del último período
+$horas = $consultas->obtenerHorasMaterias($idusuario, $periodoId);
+$horas_tutorias = $horas['horas_tutorias'];
+$horas_apoyo = $horas['horas_apoyo'];
+$horas_frente_grupo = $horas['horas_frente_grupo'];
 
 // Consultar incidencias del usuario
 $query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
@@ -64,7 +101,6 @@ $stmt = $conn->prepare($query);
 $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 
 // Obtener el nombre de la carrera del usuario
 $nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
@@ -95,15 +131,36 @@ $stmt->bindParam(':user_id', $idusuario);
 $stmt->execute();
 $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC); // Recupera todos los registros
 
-// Crea una instancia de la clase
-$evaluacionDocente = new EvaluacionDocente2($conn);
+// Crear una instancia de GraficaEvaluacion
+$evaluacionDocente = new GraficaEvaluacion($conn);
 
-// Llama al método
-$resultados = $evaluacionDocente->obtenerEvaluacionesDocentes();
+// Obtener el promedio general de evaluaciones
+$promedio = $evaluacionDocente->obtenerPromedioEvaluaciones();
+$promedioGeneral = number_format($promedio['promedio_general'], 2); // Formatear a 2 decimales
+
+// Obtener las evaluaciones según el tipo de usuario
+if ($tipoUsuarioId === 1) {
+  $resultados = $evaluacionDocente->obtenerEvaluacionesUsuario($idusuario);
+} elseif ($tipoUsuarioId === 2) {
+  // Obtener la carrera del usuario
+  $carreraUsuario = $carrera['carrera_id'] ?? null;
+  $resultados = $evaluacionDocente->obtenerEvaluacionesTodosLosDocentes($carreraUsuario);
+} else {
+  $resultados = [];
+}
+
+$resultados_json = json_encode($resultados);
 
 ?>
 
-
+<?php
+// Si tipoUsuario es 2 y aún no tiene idusuario en la URL, lo establecemos antes de renderizar la página.
+if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
+    // Redirigir con el idusuario
+    header("Location: dashboard_docentes.php?idusuario=" . $idusuario);
+    exit();
+}
+?>
 
 
 <!doctype html>
@@ -307,129 +364,110 @@ function toggleCampos() {
   }
 }
 
-
-</script>
-
-      <script>
+document.addEventListener("DOMContentLoaded", function () {
     const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
     let idusuario = <?= json_encode($idusuario) ?>;
-
     const urlParams = new URLSearchParams(window.location.search);
-    idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+    
+    if (!urlParams.has("idusuario")) {
+        // Si no hay idusuario en la URL, agregamos el que tenemos en PHP y recargamos
+        history.replaceState(null, "", `?idusuario=${idusuario}`);
+    } else {
+        // Si sí hay idusuario en la URL, lo usamos
+        idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
+    }
+
+    console.log("ID de usuario obtenido:", idusuario);
 
     const anterior = document.getElementById("anterior");
     const siguiente = document.getElementById("siguiente");
-    const carreraSelect = document.getElementById('carreraSelect');
-
-    let usuariosFiltrados = [];
-    let indiceUsuarioActual = 0;
+    const carouselContent = document.getElementById('carouselContent');
 
     if (tipoUsuarioId === 1) {
         anterior.disabled = true;
         siguiente.disabled = true;
-    } else if ([2, 3, 4, 5].includes(tipoUsuarioId)) {
-        function actualizarVistaUsuario(index) {
-            const usuario = usuariosFiltrados[index];
-            actualizarCarrusel([usuario]);
-        }
-
-        function updateUrl(newIdusuario) {
-            if (tipoUsuarioId !== 5) {
-                window.location.href = `?idusuario=${newIdusuario}`;
-            }
-        }
-
-        siguiente.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0) {
-                if (indiceUsuarioActual < usuariosFiltrados.length - 1) {
-                    indiceUsuarioActual++;
-                } else {
-                    indiceUsuarioActual = 0;
-                }
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else {
-                idusuario++;
-                updateUrl(idusuario);
-            }
-        });
-
-        anterior.addEventListener("click", () => {
-            if (usuariosFiltrados.length > 0 && indiceUsuarioActual > 0) {
-                indiceUsuarioActual--;
-                actualizarVistaUsuario(indiceUsuarioActual);
-            } else if (idusuario > 1) {
-                idusuario--;
-                updateUrl(idusuario);
-            }
-        });
     } else {
-        anterior.disabled = true;
-        siguiente.disabled = true;
+        function updateUrl(incremento) {
+            idusuario += incremento;
+            console.log("Nuevo idusuario:", idusuario);
+
+            if (tipoUsuarioId !== 5) {
+                history.pushState(null, "", `?idusuario=${idusuario}`);
+                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido
+            }
+        }
+
+        siguiente.addEventListener("click", () => updateUrl(1));
+        anterior.addEventListener("click", () => updateUrl(-1));
     }
 
-    carreraSelect.addEventListener('change', function() {
-        const carreraId = carreraSelect.value;
+    function cargarUsuario(id) {
+        console.log(`Cargando usuario con idusuario: ${id}`);
 
         $.ajax({
-            url: '../templates/filtrarPorCarrera.php',
-            type: 'POST',
-            data: { carrera_id: carreraId },
+            url: '../templates/obtenerDatosUsuario.php',
+            type: 'GET',
+            data: { idusuario: id },
             dataType: 'json',
             success: function(response) {
-                if (response && response.length > 0) {
-                    usuariosFiltrados = response;
-                    indiceUsuarioActual = 0;
-                    actualizarCarrusel(usuariosFiltrados);
+                console.log("Respuesta del servidor:", response);
+                if (response && !response.error) {
+                    actualizarCarrusel(response);
                 } else {
-                    document.getElementById('carouselContent').innerHTML = "<p>No hay docentes en esta división.</p>";
+                    console.warn("No se encontró información del usuario.");
                 }
             },
-            error: function() {
-                console.error('Error al obtener los usuarios por carrera.');
+            error: function(xhr, status, error) {
+                console.error("Error al obtener datos del usuario.");
+                console.error("Estado:", status);
+                console.error("Detalles del error:", error);
+                console.error("Respuesta del servidor:", xhr.responseText);
             }
-        });
-    });
-
-    function actualizarCarrusel(usuarios) {
-        const carouselContent = document.getElementById('carouselContent');
-        carouselContent.innerHTML = '';
-
-        usuarios.forEach((usuario, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            const fechaContratacion = new Date(usuario.fecha_contratacion);
-            const fechaActual = new Date();
-            let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-            if (fechaActual.getMonth() < fechaContratacion.getMonth() || (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
-                antiguedad--;
-            }
-
-            const carouselItem = `
-                <div class="carousel-item ${activeClass}">
-                    <div class="row">
-                        <div class="col-12 col-md-5 col-xl-3 text-center">
-                            <strong class="name-line">Foto del Docente:</strong> <br>
-                            <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
-                        </div>
-                        <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                            <p class="teacher-info h4">
-                                <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
-                                <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
-                                <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
-                                <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
-                                <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
-                                <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
-                                <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
-                                <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
-                                <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            carouselContent.innerHTML += carouselItem;
         });
     }
+
+    function actualizarCarrusel(usuario) {
+        carouselContent.innerHTML = '';
+
+        const fechaContratacion = new Date(usuario.fecha_contratacion);
+        const fechaActual = new Date();
+        let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
+        if (fechaActual.getMonth() < fechaContratacion.getMonth() || 
+            (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
+            antiguedad--;
+        }
+
+        const carouselItem = `
+            <div class="carousel-item active">
+                <div class="row">
+                    <div class="col-12 col-md-5 col-xl-3 text-center">
+                        <strong class="name-line">Foto del Docente:</strong> <br>
+                        <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                    </div>
+                    <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                        <p class="teacher-info h4">
+                            <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                            <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                            <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                            <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
+                            <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                            <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                            <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                            <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                            <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        carouselContent.innerHTML = carouselItem;
+    }
+
+    // Cargar usuario inicial basado en la URL
+    cargarUsuario(idusuario);
+});
+
 </script>
 
 
@@ -600,504 +638,490 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
         </div>
       </div>
 
-      <div class="container-fluid">
-      <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
-      DESARROLLO ACADÉMICO
+
+      
+<?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 2): ?>
+  <div class="container-fluid">
+    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+        DESARROLLO ACADÉMICO
     </div>
     <div class="card box-shadow-div p-4">
-      <h2 class="text-center">Evaluación Docente</h2>
-      <div class="row justify-content-center my-2">
-        <div class="col-auto ml-auto">
-          <form class="form-inline">
-            <div class="form-group">
-              <label for="reportrange" class="sr-only">Date Ranges</label>
-              <div id="reportrange" class="px-2 py-2 text-muted">
-                <i class="fe fe-calendar fe-16 mx-2"></i>
-                <span class="small"></span>
-              </div>
+        <h2 class="text-center">Evaluación Docente de Todos los Usuarios</h2>
+
+        <!-- Filtro por período -->
+        <div class="row justify-content-center my-2">
+            <div class="col-auto">
+                <label for="filtroPeriodo">Filtrar por período:</label>
+                <select id="filtroPeriodo" class="form-control">
+                    <option value="todos">Todos</option>
+                </select>
             </div>
-            <div class="form-group">
-              <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
-              <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
-            </div>
-          </form>
         </div>
-      </div>
 
-      <!-- Contenedor del gráfico -->
-      <div class="my-4">
-        <canvas id="evaluacionChart"></canvas>
-      </div>
+        <!-- Contenedor del gráfico -->
+        <div class="my-4">
+            <canvas id="evaluacionChart"></canvas>
+        </div>
     </div>
-  </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script>
-    // Convertir el JSON de PHP a un objeto JavaScript
-    const datosEvaluacion = <?php echo json_encode($resultados); ?>;
-
-    // Verificar en la consola los datos recibidos
+<script>
+    const datosEvaluacion = <?php echo $resultados_json; ?>;
     console.log('Datos de evaluación:', datosEvaluacion);
 
-    // Extraer los valores para las etiquetas y los datos
-    const nombres = datosEvaluacion.map(item => item.nombre_completo);
-    const evaluacionTecnica = datosEvaluacion.map(item => parseFloat(item.evaluacionTECNM)); // Convertir a número
-    const evaluacionEstudiantil = datosEvaluacion.map(item => parseFloat(item.evaluacionEstudiantil)); // Convertir a número
+    const selectPeriodo = document.getElementById('filtroPeriodo');
 
-    // Verificar en la consola los valores extraídos
-    console.log('Nombres:', nombres);
-    console.log('Evaluación Técnica:', evaluacionTecnica);
-    console.log('Evaluación Estudiantil:', evaluacionEstudiantil);
+    const periodosUnicos = [...new Set(datosEvaluacion.map(item => item.periodo_descripcion))];
 
-    // Crear el gráfico
-    const ctx = document.getElementById('evaluacionChart').getContext('2d');
-    const evaluacionChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: nombres,
-        datasets: [{
-          label: 'Evaluación Técnica',
-          data: evaluacionTecnica,
-          backgroundColor: 'rgba(17, 194, 56, 0.95)',
-          borderColor: 'rgb(54, 235, 111)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }, {
-          label: 'Evaluación Estudiantil',
-          data: evaluacionEstudiantil,
-          backgroundColor: 'rgb(16, 117, 36)',
-          borderColor: 'rgb(16, 117, 36)',
-          borderWidth: 1,
-          borderRadius: 15,
-        }]
-      },
-      options: {
+    periodosUnicos.forEach(periodo => {
+        const option = document.createElement('option');
+        option.value = periodo;
+        option.textContent = periodo;
+        selectPeriodo.appendChild(option);
+    });
+
+    let evaluacionChart = null; // Variable global para la gráfica
+
+    function actualizarGrafico(periodoSeleccionado) {
+        const datosFiltrados = periodoSeleccionado === "todos"
+            ? datosEvaluacion
+            : datosEvaluacion.filter(item => item.periodo_descripcion === periodoSeleccionado);
+
+        if (datosFiltrados.length === 0) {
+            console.warn('No hay datos para este período.');
+            return;
+        }
+
+        // Separar nombre y apellidos y organizarlos en líneas
+        const labels = datosFiltrados.map(item => {
+            const nombreCompleto = item.nombre_completo.trim().split(" ");
+            const nombre = nombreCompleto[0]; // Primer nombre
+            const apellidoPaterno = nombreCompleto[1] || ""; // Segundo elemento como apellido paterno
+            const apellidoMaterno = nombreCompleto[2] || ""; // Tercer elemento como apellido materno
+
+            return `${nombre}\n${apellidoPaterno}\n${apellidoMaterno}`; // Formato en 3 líneas
+        });
+
+        const evaluacionTecnicaData = datosFiltrados.map(item => parseFloat(item.evaluacionTECNM));
+        const evaluacionEstudiantilData = datosFiltrados.map(item => parseFloat(item.evaluacionEstudiantil));
+
+        if (evaluacionChart) {
+            evaluacionChart.destroy();
+        }
+
+        const ctx = document.getElementById('evaluacionChart').getContext('2d');
+evaluacionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Evaluación Técnica',
+                data: evaluacionTecnicaData,
+                backgroundColor: 'rgba(17, 194, 56, 0.95)',
+                borderColor: 'rgb(54, 235, 111)',
+                borderWidth: 1,
+                borderRadius: 15,
+            },
+            {
+                label: 'Evaluación Estudiantil',
+                data: evaluacionEstudiantilData,
+                backgroundColor: 'rgb(16, 117, 36)',
+                borderColor: 'rgb(16, 117, 36)',
+                borderWidth: 1,
+                borderRadius: 15,
+            }
+        ]
+    },
+    options: {
         responsive: true,
+        layout: {
+            padding: {
+                bottom: 30 // Ajusta el espacio inferior del gráfico
+            }
+        },
         scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Puntaje'
+            x: {
+                title: {
+                    display: true,
+                    text: 'Docentes'
+                },
+                ticks: {
+                    autoSkip: false,
+                    font: {
+                        size: 10 // Reduce el tamaño de fuente
+                    },
+                    maxRotation: 0, // Evita la rotación de los nombres
+                    minRotation: 0, // Mantiene los nombres horizontales
+                    padding: 10 // Agrega espacio entre el texto y el eje
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Puntaje'
+                }
             }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Docentes'
-            }
-          }
         },
         plugins: {
-          legend: {
-            position: 'top',
-          },
-          title: {
-            display: true,
-            text: 'Evaluación Docente'
-          }
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Evaluación Docente por Período'
+            }
         }
-      }
-    });
-  </script>
+    }
+});
+    }
 
+    actualizarGrafico("todos");
+
+    selectPeriodo.addEventListener("change", function () {
+        actualizarGrafico(this.value);
+    });
+</script>
+
+<?php endif; ?>
+
+
+
+<?php if ($usuario && $usuario['tipo_usuario_tipo_usuario_id'] == 1): ?>
+  <div class="container-fluid">
+        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
+            DESARROLLO ACADÉMICO
+        </div>
+        <div class="card box-shadow-div p-4">
+            <h2 class="text-center">Mi Evaluación Docente</h2>
+            <div class="row justify-content-center my-2">
+                <div class="col-auto ml-auto">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <label for="reportrange" class="sr-only">Date Ranges</label>
+                            <div id="reportrange" class="px-2 py-2 text-muted">
+                                <i class="fe fe-calendar fe-16 mx-2"></i>
+                                <span class="small"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-sm"><span class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+                            <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contenedor del gráfico -->
+            <div class="my-4">
+                <canvas id="evaluacionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluir Chart.js -->
+
+    <script>
+        // Convertir el JSON de PHP a un objeto JavaScript
+        const datosEvaluacion = <?php echo $resultados_json; ?>;
+
+        // Verificar en la consola los datos recibidos
+        console.log('Datos de evaluación:', datosEvaluacion);
+
+        if (datosEvaluacion.length === 0) {
+            console.error('No hay datos para mostrar.');
+        } else {
+            // Agrupar datos por período
+            const datosPorPeriodo = {};
+            datosEvaluacion.forEach(item => {
+                const periodo = item.periodo_descripcion; // Usamos la descripción del período
+                if (!datosPorPeriodo[periodo]) {
+                    datosPorPeriodo[periodo] = { nombres: [], evaluacionTecnica: [], evaluacionEstudiantil: [] };
+                }
+                datosPorPeriodo[periodo].nombres.push(item.nombre_completo);
+                datosPorPeriodo[periodo].evaluacionTecnica.push(parseFloat(item.evaluacionTECNM));
+                datosPorPeriodo[periodo].evaluacionEstudiantil.push(parseFloat(item.evaluacionEstudiantil));
+            });
+
+            console.log('Datos por período:', datosPorPeriodo);
+
+            // Colores fijos para las evaluaciones
+            const colorEvaluacionTecnica = 'rgba(17, 194, 56, 0.95)'; // Verde claro
+            const colorEvaluacionEstudiantil = 'rgb(16, 117, 36)'; // Verde oscuro
+
+            // Preparar los datos para la gráfica
+            const labels = [];
+            const evaluacionTecnicaData = [];
+            const evaluacionEstudiantilData = [];
+
+            Object.keys(datosPorPeriodo).forEach(periodo => {
+                datosPorPeriodo[periodo].nombres.forEach((nombre, index) => {
+                    labels.push(`${nombre} (${periodo})`); // Combinar nombre y período
+                    evaluacionTecnicaData.push(datosPorPeriodo[periodo].evaluacionTecnica[index]);
+                    evaluacionEstudiantilData.push(datosPorPeriodo[periodo].evaluacionEstudiantil[index]);
+                });
+            });
+
+            // Crear la gráfica
+            const ctx = document.getElementById('evaluacionChart').getContext('2d');
+            const evaluacionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels, // Nombres de los docentes con el período
+                    datasets: [
+                        {
+                            label: 'Evaluación Técnica',
+                            data: evaluacionTecnicaData,
+                            backgroundColor: colorEvaluacionTecnica,
+                            borderColor: 'rgb(54, 235, 111)',
+                            borderWidth: 1,
+                            borderRadius: 15,
+                        },
+                        {
+                            label: 'Evaluación Estudiantil',
+                            data: evaluacionEstudiantilData,
+                            backgroundColor: colorEvaluacionEstudiantil,
+                            borderColor: 'rgb(16, 117, 36)',
+                            borderWidth: 1,
+                            borderRadius: 15,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Puntaje'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Docentes (Período)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evaluación Docente por Período'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<?php endif; ?>
 </div>
 
           <div class="container-fluid mt-0">
             <div class="row">
               <div class="col-lg-6">
                 <div class="d-flex flex-column">
-                  <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
-                    <div class="card-body">
+                <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
+                  <div class="card-body">
                       <h2 class="font-weight-bold mb-4">Calificación promedio</h2>
-                      <h1 class="text-success mb-3">85.30</h1>
-                    </div>
+                      <h1 class="text-success mb-3"><?php echo $promedioGeneral; ?></h1>
                   </div>
+              </div>
+              <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
+        <h1 class="text-success mb-3"><?php echo $nombreGrupo; ?></h1>
+    </div>
+</div>
 
-                  <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
-                      <h1 class="text-success mb-3">8ISC22</h1>
-                    </div>
-                  </div>
-
-                  <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
-                    <div class="card-body">
-                      <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
-                      <h1 class="text-success mb-3">Lunes</h1>
-                    </div>
-                  </div>
-                </div>
+<div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+    <div class="card-body">
+        <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+        <h1 class="text-success mb-3"><?php echo $diaTutoria; ?></h1>
+    </div>
+</div>
+              </div>
               </div>
 
               <!--------Inicio de la tabla ---------->
-              <!-- Columna para la tabla -->
               <div class="col-lg-6">
-                <div class="card box-shadow-div text-center border-5 mt-1">
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Recent orders -->
-                      <div class="col-12">
-                        <h6 class="mb-3">Capacitación disciplinaria</h6>
-                        <div class="table-responsive">
-                          <table class="table table-borderless table-striped">
-                            <thead>
-                              <tr role="row">
-                                <th>ID</th>
-                                <th>Purchase Date</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <th scope="col">1331</th>
-                                <td>2020-12-26 01:32:21</td>
-                                <td>Kasimir Lindsey</td>
-                                <td>(697) 486-2101</td>
-                                <td>996-3523 Et Ave</td>
-                                <td>$3.64</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1156</th>
-                                <td>2020-04-21 00:38:38</td>
-                                <td>Melinda Levy</td>
-                                <td>(748) 927-4423</td>
-                                <td>Ap #516-8821 Vitae Street</td>
-                                <td>$4.18</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1038</th>
-                                <td>2019-06-25 19:13:36</td>
-                                <td>Aubrey Sweeney</td>
-                                <td>(422) 405-2736</td>
-                                <td>Ap #598-7581 Tellus Av.</td>
-                                <td>$4.98</td>
-                                <td>Credit Card </td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1227</th>
-                                <td>2021-01-22 13:28:00</td>
-                                <td>Timon Bauer</td>
-                                <td>(690) 965-1551</td>
-                                <td>840-2188 Placerat, Rd.</td>
-                                <td>$3.46</td>
-                                <td> Paypal</td>
-                                <td>Processing</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1956</th>
-                                <td>2019-11-11 16:23:17</td>
-                                <td>Kelly Barrera</td>
-                                <td>(117) 625-6737</td>
-                                <td>816 Ornare, Street</td>
-                                <td>$4.16</td>
-                                <td>Credit Card </td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1669</th>
-                                <td>2021-04-12 07:07:13</td>
-                                <td>Kellie Roach</td>
-                                <td>(422) 748-1761</td>
-                                <td>5432 A St.</td>
-                                <td>$3.53</td>
-                                <td> Paypal</td>
-                                <td>Shipped</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <tr>
-                                <th scope="col">1909</th>
-                                <td>2020-05-14 00:23:11</td>
-                                <td>Lani Diaz</td>
-                                <td>(767) 486-2253</td>
-                                <td>3328 Ut Street</td>
-                                <td>$4.29</td>
-                                <td> Paypal</td>
-                                <td>Pending</td>
-                                <td>
-                                  <div class="dropdown">
-                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <span class="text-muted sr-only">Action</span>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                      <a class="dropdown-item" href="#">Edit</a>
-                                      <a class="dropdown-item" href="#">Remove</a>
-                                      <a class="dropdown-item" href="#">Assign</a>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                              <!-- Fin de las filas de la tabla -->
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+    <div class="card box-shadow-div text-center border-5 mt-1">
+        <div class="card-body">
+              <div class="d-flex justify-content-center align-items-center mb-3">
+                <p class="titulo-grande"><strong>Capacitación disciplinaria</strong></p>
               </div>
+              <div class="table-responsive">
+                <table class="table datatables" id="dataTable-certificaciones">
+                  <thead>
+                    <tr>
+                      <th>Certificación</th>
+                      <th>Nombre del Certificado</th>
+                      <th>Mes</th> <!-- Nueva columna para los meses -->
+                      <th>Certificado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
+                      <tr>
+                        <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
+                        <!-- Mostrar el mes -->
+                        <td class="text-center">
+                          <?php if (!empty($certificacionusuario['url'])): ?>
+                            <?php
+                            $correctFilePath = str_replace('views/', '', $certificacionusuario['url']);
+                            ?>
+                            <a href="<?php echo $correctFilePath; ?>" target="_blank" class="btn btn-sm btn-primary">Ver
+                              Certificado</a>
+                          <?php else: ?>
+                            No disponible
+                          <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex justify-content-center">
+                          </div>
+                        </td>
 
-              <!-- Columna para las tarjetas -->
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-        </div> <!-- .container-fluid -->
-      </div> <!---- fin de la card principál------>
-
-      <!----Parte de dirección academica---->
-      <div class="container-fluid">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DIRECCIÓN ACADÉMICA
         </div>
 
-        <!-- Tarjeta principal -->
-        <div class="card box-shadow-div p-4 mb-3">
-          <h2 class="text-center">Ingeniería en Sistemas Computacionales</h2>
-          <div class="row">
-            <div class="col-12 mb-0">
-              <div class="schedule-container">
-                <div class="table-responsive">
-                  <table class="table table-borderless table-striped">
-                    <thead>
-                      <tr  role="row">
-                        <th>Hora</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr  scope="col">
-                        <td>07:00 - 08:00</td>
-                        <td>Clase A</td>
-                        <td></td>
-                        <td>Clase B</td>
-                        <td></td>
-                        <td>Clase C</td>
-                      </tr>
-                      <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase A</td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>09:00 - 10:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                      <tr  scope="col">
-                        <td>11:00 - 12:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+      </div> <!---- fin de la card principál------>
+      <div class="container-fluid">
+  <div id="contenedor">
+    <!-- Tarjeta principal -->
+    <div class="card box-shadow-div p-4 mb-3">
+      <div class="logo-container">
+        <div class="logo-institucional col-md-2">
+          <!-- Espacio para el logo institucional -->
+          <img src="assets/images/logo.png" alt="Logo Institucional">
+        </div>
+        <div class="titulo-container col-md-8">
+          <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
+        </div>
+        <div class="form-group col-md-2">
+          <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+          <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required 
+                  <?php if (!empty($periodoReciente)): ?> disabled <?php endif; ?>>
+            <?php if (!empty($periodoReciente)): ?>
+              <option value="<?php echo $periodoReciente['periodo_id']; ?>" selected>
+                <?php echo htmlspecialchars($periodoReciente['descripcion']); ?>
+              </option>
+            <?php endif; ?>
+            <?php foreach ($periodos as $periodo): ?>
+              <option value="<?php echo $periodo['periodo_id']; ?>" 
+                      <?php if ($periodo['periodo_id'] == $periodoReciente['periodo_id']) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($periodo['descripcion']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>       
+      </div>
 
-                      <tr>
-                        <td>12:00 - 13:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+      <!-- Contenido principal -->
+      <div class="row">
+        <div class="col-md-6">
+          <!-- Docente -->
+          <div class="form-group mt-2">
+            <label for="usuario_usuario_id">Docente:</label>
+            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" 
+        <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
+    <?php if ($tipoUsuarioId === 1 || isset($_GET['idusuario'])): ?>
+        <option value="<?php echo $idusuario; ?>" selected>
+            <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
+        </option>
+    <?php else: ?>
+        <option value="">Seleccione un usuario</option>
+        <?php foreach ($usuarios as $user): ?>
+            <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
+            </option>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</select>
 
-                      <tr  scope="col">
-                        <td>13:00 - 14:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <!-- Carrera -->
+          <div class="form-group mt-2">
+            <label for="carrera_carrera_id" class="form-label">Carrera:</label>
+            <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarCarreras()">
+              <option value="">Selecciona una carrera</option>
+              <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>  
+      </div>
 
-                      <tr>
-                        <td>14:00 - 15:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>15:00 - 16:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>16:00 - 17:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>17:00 - 18:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>18:00 - 19:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr  scope="col">
-                        <td>19:00 - 20:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-
-                      <tr>
-                        <td>20:00 - 21:00</td>
-                        <td>Clase D</td>
-                        <td>Clase D</td>
-                        <td></td>
-                        <td></td>
-                        <td>Clase E</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+      <!-- Tabla -->
+      <div class="row">
+        <div class="col-12 mb-0">
+          <div class="schedule-container">
+            <div class="table-responsive">
+              <table class="table table-borderless table-striped">
+              </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Botón de descarga PDF -->
+      <div class="pdf-container no-print">
+        <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+    const tipoUsuario = <?php echo json_encode($tipoUsuarioId); ?>;
+</script>
 
 
+      <!-- Incluir la librería html2pdf.js antes de tu archivo de script personalizado -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+
+
+
+    <script src="js/horario_vista.js"></script>
           <div class="col-12 mb-4">
             <div class="card shadow">
               <div class="card-header">
                 <strong class="card-title mb-0">Desglose de horas</strong>
               </div>
               <div class="card-body">
-                <div id="barChart"></div>
+              <div id="barChart" 
+     data-docente="<?php echo isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+    ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
+    : 'Nombre no disponible'; ?>"
+     data-tutorias="<?php echo $horas_tutorias; ?>" 
+     data-apoyo="<?php echo $horas_apoyo; ?>" 
+     data-frente="<?php echo $horas_frente_grupo; ?>">
+</div>
+<div id="total-horas" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
+
+
               </div> <!-- /.card-body -->
             </div> <!-- /.card -->
-            <h2 class="col-12 col-lg-6 mt-4 mb-4">Total de horas: 40</h2>
+
           </div> <!-- /. col -->
         <!---------------- Termina la parte de direccion academica -------------->
 
