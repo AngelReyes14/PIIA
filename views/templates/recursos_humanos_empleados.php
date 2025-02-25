@@ -11,6 +11,8 @@ $imgUser  = $consultas->obtenerImagen($idusuario);
 // Crear una instancia de la clase Consultas
 $consultas = new Consultas($conn);
 
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
 // Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 
@@ -46,6 +48,12 @@ if (isset($_POST['logout'])) {
   $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
+$incidenciasConPorcentaje = $consultas->obtenerIncidenciasPorcentaje();
+
+// Puedes ver los resultados para asegurarte de que los datos están correctos
+$incidenciasData = json_encode($incidenciasConPorcentaje); // Codificamos el array en formato JSON
+
+$datosIncidencias = $consultas->obtenerDatosIncidencias2();
 ?>
 <!doctype html>
 <html lang="en">
@@ -505,48 +513,132 @@ if (isset($_POST['logout'])) {
               </div>
               <div class="card-body">
                 <!-- Donut Chart de Incidencias -->
-                <div id="donutChart3" style="height: 300px;"></div> <!-- Ajusta la altura según sea necesario -->
+                <div id="donutChart3" style="height: 300px; width: 100%;"></div> <!-- Ajusta la altura según sea necesario -->
               </div> <!-- /.card-body -->
             </div> <!-- /.card -->
           </div> <!-- /.col -->
+          
+          <script>
+            // Recibimos los datos PHP en formato JSON y los convertimos a un objeto JavaScript
+            var incidenciasData = <?php echo $incidenciasData; ?>;
 
-          <!-- Tarjeta de Tabla de Incidencias -->
-          <div class="col-12">
-            <div class="card box-shadow-div p-4 mb-3">
-              <div class="card-header carta_Informacion">
-                <strong class="card-title text-green mb-0 carta_Informacion">Tabla de Incidencias</strong>
-              </div>
-              <div class="card-body">
-                <!-- Ejemplo de tabla para incidencias -->
-                <table class="table table-striped mt-3">
-                  <thead>
-                    <tr>
-                      <th>ID Incidencia</th>
-                      <th>Descripción</th>
-                      <th>Fecha</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>001</td>
-                      <td>Incidencia de ejemplo 1</td>
-                      <td>12/09/2024</td>
-                      <td>Resuelta</td>
-                    </tr>
-                    <tr>
-                      <td>002</td>
-                      <td>Incidencia de ejemplo 2</td>
-                      <td>13/09/2024</td>
-                      <td>Pendiente</td>
-                    </tr>
-                    <!-- Añadir más filas según sea necesario -->
-                  </tbody>
-                </table>
-              </div> <!-- /.card-body -->
-            </div> <!-- /.card-body -->
+            // Extraemos las descripciones (nuevas etiquetas), los valores (porcentajes), y las cantidades
+            var labels = incidenciasData.map(function(item) {
+              return item.descripcion; // Usamos la descripción
+            });
 
-          </div> <!-- /.col -->
+            var values = incidenciasData.map(function(item) {
+              return item.porcentaje; // Los porcentajes calculados en PHP
+            });
+
+            var cantidades = incidenciasData.map(function(item) {
+              return item.cantidad_incidencias; // Las cantidades de incidencias
+            });
+
+            // Ahora podemos pasar estos datos a la configuración de la gráfica
+var donutChartOptions2 = {
+    series: values, // Usamos los porcentajes como series
+    chart: {
+      type: "donut",
+      height: '300px',
+      width: '100%',
+      responsive: [{
+        breakpoint: 768,
+        options: {
+          chart: {
+            height: 200
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }]
+    },
+    labels: labels, // Etiquetas que corresponderán a los tipos de incidencia
+    legend: {
+      position: "bottom",
+      markers: {
+        width: 10,
+        height: 10,
+        radius: 6
+      }
+    },
+    stroke: {
+      colors: ["#ffffff"],
+      width: 1
+    },
+    fill: {
+      opacity: 1,
+      colors: ["#33701b", "#78d249", "#274c1b"] // Aquí puedes ajustar los colores
+    },
+    tooltip: {
+      y: {
+        formatter: function(val, opt) {
+          // Usamos el índice del segmento para acceder a las cantidades
+          var index = opt.seriesIndex;  // Obtenemos el índice del segmento
+          return cantidades[index] + ' incidencias';  // Mostramos la cantidad
+        }
+      }
+    }
+};
+
+// Inicializar y renderizar el gráfico
+var donutChart3Ctn = document.querySelector("#donutChart3");
+if (donutChart3Ctn) {
+  var donutChart3 = new ApexCharts(donutChart3Ctn, donutChartOptions2);
+  donutChart3.render();
+}
+          </script>
+
+<div class="col-12">
+  <div class="card box-shadow-div p-4 mb-3">
+    <div class="card-header carta_Informacion">
+      <strong class="card-title text-green mb-0 carta_Informacion">Tabla de Incidencias</strong>
+    </div>
+    <div class="card-body">
+      <!-- Ejemplo de tabla para incidencias -->
+      <table class="table table-striped mt-3">
+        <thead>
+          <tr>
+            <th>ID Incidencia</th>
+            <th>Motivo</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($datosIncidencias as $incidencia): ?>
+            <tr>
+              <td><?php echo $incidencia['incidencia_has_usuario_id']; ?></td>
+              <td><?php echo $incidencia['motivo']; ?></td>
+              <td><?php echo $incidencia['dia_incidencia']; ?></td>
+              <td>
+                <?php 
+                  // Aquí puedes agregar una lógica para mostrar el estado de la incidencia
+                  // Asumiendo que status_incidencia_id es un número y tienes una tabla de estados
+                  switch ($incidencia['status_incidencia_id']) {
+                    case 1:
+                      echo 'Pendiente';
+                      break;
+                    case 2:
+                      echo 'Resuelta';
+                      break;
+                    case 3:
+                      echo 'En proceso';
+                      break;
+                    default:
+                      echo 'Desconocido';
+                      break;
+                  }
+                ?>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div> <!-- /.card-body -->
+  </div> <!-- /.card-body -->
+</div> <!-- /.col -->
         </div> <!-- /.row -->
       </div> <!-- /.container-fluid -->
 
@@ -748,6 +840,7 @@ if (isset($_POST['logout'])) {
       <script src="js/fullcalendar.custom.js"></script>
       <script src="js/fullcalendar.js"></script>
       <script src="js/apps.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
       <script>
         $('.select2').select2({
@@ -929,6 +1022,48 @@ if (isset($_POST['logout'])) {
         }
         gtag('js', new Date());
         gtag('config', 'UA-56159088-1');
+
+
+        // Datos dinámicos desde PHP
+        const labels = <?php echo $labelsJSON; ?>;
+        const series = <?php echo $seriesJSON; ?>;
+
+        // Configuración de la gráfica
+        const donutChartOptions = {
+            series: series,
+            chart: {
+                type: "donut",
+                height: '300px',
+                width: '100%',
+                responsive: [{
+                    breakpoint: 768,
+                    options: {
+                        chart: { height: 200 },
+                        legend: { position: 'bottom' }
+                    }
+                }]
+            },
+            plotOptions: {
+                pie: {
+                    donut: { size: "40%" },
+                    expandOnClick: false
+                }
+            },
+            labels: labels,
+            legend: {
+                position: "bottom",
+                markers: { width: 10, height: 10, radius: 6 }
+            },
+            stroke: { colors: ["#ffffff"], width: 1 },
+            fill: { opacity: 1, colors: ["#33701b", "#78d249", "#274c1b", "#ff6f61", "#6a0572"] }
+        };
+
+        // Renderizar la gráfica
+        const donutChart3Ctn = document.querySelector("#donutChart3");
+        if (donutChart3Ctn) {
+            const donutChart3 = new ApexCharts(donutChart3Ctn, donutChartOptions);
+            donutChart3.render();
+        }
       </script>
 </body>
 

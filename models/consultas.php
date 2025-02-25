@@ -168,7 +168,61 @@ public function obtenerHorasMaterias($idusuario, $periodoId) {
     return $horas;
 }
 
+public function obtenerIncidenciasPorcentaje() {
+    try {
+        $query = "
+            SELECT 
+                i.descripcion, 
+                COUNT(*) AS cantidad_incidencias
+            FROM 
+                incidencia_has_usuario ihu
+            JOIN 
+                incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+            GROUP BY i.descripcion
+        ";
 
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Obtener el total de incidencias
+        $totalIncidencias = array_sum(array_column($resultados, 'cantidad_incidencias'));
+
+        // Calcular el porcentaje de cada incidencia
+        foreach ($resultados as &$resultado) {
+            $resultado['porcentaje'] = ($resultado['cantidad_incidencias'] / $totalIncidencias) * 100;
+        }
+
+        return $resultados;
+    } catch (PDOException $e) {
+        error_log("Error al obtener incidencias: " . $e->getMessage());
+        return [];
+    }
+}
+
+public function obtenerDatosIncidencias2() {
+    try {
+        $query = "
+            SELECT 
+                ihu.incidencia_has_usuario_id, 
+                ihu.motivo, 
+                ihu.dia_incidencia, 
+                ihu.status_incidencia_id
+            FROM 
+                incidencia_has_usuario ihu
+        ";
+
+        // Preparamos y ejecutamos la consulta
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $resultados;
+    } catch (PDOException $e) {
+        error_log("Error al obtener incidencias: " . $e->getMessage());
+        return [];
+    }
+}
 
 
 public function obtenerCertificacionesPorUsuario($usuarioId) {

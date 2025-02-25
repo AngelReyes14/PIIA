@@ -19791,3 +19791,22 @@ button#downloadPDF:hover {
   }
 }
 
+
+.chart-box {
+  width: 100%;  /* El contenedor se adapta al ancho del padre */
+  height: 400px;  /* Ajusta la altura en pantallas grandes */
+  max-width: 100%; /* El ancho no puede exceder el 100% del contenedor */
+}
+
+/* Hacer que la altura se ajuste en pantallas pequeñas */
+@media (max-width: 768px) {
+  .chart-box {
+      height: 250px;  /* Menor altura para dispositivos móviles */
+  }
+}
+
+@media (min-width: 769px) {
+  .chart-box {
+      height: 400px;  /* Altura más grande para pantallas de escritorio */
+  }
+}
