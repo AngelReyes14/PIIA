@@ -15,7 +15,6 @@ $menuItems = [
         'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Incidencias' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_incidencias.php'],
         'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php'],
-        'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
 
     ],
 
@@ -54,7 +53,6 @@ $menuItems = [
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
-            'Grupos con carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
             'Registro de Escenario' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
        ],
         'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
@@ -66,19 +64,27 @@ $menuItems = [
         'Perfil docente' => ['icon' => 'fe fe-user fe-16', 'link' => 'dashboard_docentes.php'],
         'Dashboard' => [
             'Docentes' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_docentes.php'],
-            'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php']
+            'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php'],
+            'Desarrollo academico' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'desarrollo_academico_docentes.php'],
+            'Recursos Humanos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'recursos_humanos_empleados.php']
         ],
-        'Formularios' => [
-            'Registro de Carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
-            'Estado Incidencia' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'validacion_incidencia.php']
-        ]
-        ],
+        
+    ],
+    6 => [
+        'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php']
+    ],
 
-        7 => [
+    7 => [
             'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
             'Estado Incidencia' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'validacion_incidencia.php']
+    ],
+    8 => [
+        'Inicio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'index.php'],
+        'Evaluacion Docente' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_evaluacion.php']
+    ]
+
     
-        ]
+        
 ];
 
 // Verificar si $tipoUsuarioId es un valor válido (un número entero)

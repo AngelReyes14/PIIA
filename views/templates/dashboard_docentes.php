@@ -971,7 +971,7 @@ evaluacionChart = new Chart(ctx, {
                       <tr>
                         <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                         <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
-                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
                         <!-- Mostrar el mes -->
                         <td class="text-center">
                           <?php if (!empty($certificacionusuario['url'])): ?>
