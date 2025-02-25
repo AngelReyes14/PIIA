@@ -19791,3 +19791,24 @@ button#downloadPDF:hover {
   }
 }
 
+.economic-day {
+  background-color: #ffeb3b !important; /* Amarillo */
+  border-radius: 50%;
+  font-weight: bold;
+}
+.economic-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+}
+.day.registered::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid red;
+}

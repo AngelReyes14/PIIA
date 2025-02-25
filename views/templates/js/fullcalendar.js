@@ -1,3 +1,4 @@
+
 const daysContainer = document.querySelector(".days"),
   nextBtn = document.querySelector(".next-btn"),
   prevBtn = document.querySelector(".prev-btn"),
@@ -76,21 +77,25 @@ function renderCalendar() {
       currentMonth === new Date().getMonth() &&
       currentYear === new Date().getFullYear();
 
-    const isEconomicDay = economicDays.some(day =>
-      day.date.getDate() === i &&
-      day.date.getMonth() === currentMonth &&
-      day.date.getFullYear() === currentYear
-    );
-
+      const isEconomicDay = economicDays.some(day =>
+        day.getFullYear() === currentDay.getFullYear() &&
+        day.getMonth() === currentDay.getMonth() &&
+        day.getDate() === currentDay.getDate()
+      );
+      
+      
+      console.log(`Día ${i} es económico?`, isEconomicDay);
+      
     // Check if the day is within the valid range
     const isWithinRange = currentDay >= minDate && currentDay <= maxDate && 
                           currentDay.getDay() !== 0 && currentDay.getDay() !== 6;
     const disabledClass = isWithinRange ? "" : " disabled-day";
-
+    
     daysHtml += `<div class="day${isToday ? ' today' : ''}${isEconomicDay ? ' economic-day' : ''}${disabledClass}" data-day="${i}" data-month="${currentMonth}" data-year="${currentYear}">
-      ${i}
-      ${isEconomicDay ? '<img src="../assets/icon/DiaEconomico.png" class="economic-icon" alt="Día Económico">' : ''}
-    </div>`;
+    ${i}
+    ${isEconomicDay ? '<img src="../assets/icon/DiaEconomico.png" class="economic-icon" alt="Día Económico">' : ''}
+  </div>`;
+    
   }
 
   // Next month days
@@ -101,8 +106,20 @@ function renderCalendar() {
   daysContainer.innerHTML = daysHtml;
   hideTodayBtn();
 }
+// Convertir cada fecha de string a un objeto Date
+if (Array.isArray(economicDays) && economicDays.length > 0) {
+  economicDays = economicDays.map(dateStr => {
+    let dateObj = new Date(dateStr + "T00:00:00"); // Asegura que la fecha se tome en local
+    console.log(`Fecha Convertida: ${dateStr} -> ${dateObj.toDateString()}`);
+    return dateObj;
+  });
+} else {
+  console.log("⚠ No hay días económicos disponibles.");
+}
+
 
 renderCalendar();
+
 
 // Event Listeners
 nextBtn.addEventListener("click", () => {
