@@ -11,6 +11,7 @@ $consultas = new Consultas($conn);
 $idusuario = (int) $_SESSION['user_id'];
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
+$periodoReciente = $consultas->obtenerPeriodoReciente(); // 🔥 Se agregó esta línea
 
 // Validar tipo de usuario
 if (!$tipoUsuarioId) {
@@ -62,6 +63,13 @@ foreach ($incidenciasCarrera as $row) {
 // Convertir datos a JSON para pasarlos a JavaScript
 $carrerasJson = json_encode($carrerasGrafic);
 $incidenciasJson = json_encode($incidenciasGrafic);
+
+$horas = $consultas->obtenerHorasMaterias();
+
+// Guardar los valores en variables
+$horas_tutorias = $horas['horas_tutorias'];
+$horas_apoyo = $horas['horas_apoyo'];
+$horas_frente_grupo = $horas['horas_frente_grupo'];
 
 // Consultar incidencias del usuario
 $query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
@@ -530,12 +538,386 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
 }
 </script>
 
+<<<<<<< HEAD
       <div class="container-fluid ">
         <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
           DATOS DE INCIDENCIAS
         </div>
         <div class="row">
           <!-- Tarjeta de Gráfica de Incidencias -->
+=======
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid">
+        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
+          DESARROLLO ACADÉMICO
+        </div>
+        <div class="card box-shadow-div p-4">
+          <h2 class="text-center">Evaluación Docente</h2>
+          <div class="row justify-content-center my-2">
+            <div class="col-auto ml-auto">
+              <form class="form-inline">
+                <div class="form-group">
+                  <label for="reportrange" class="sr-only">Date Ranges</label>
+                  <div id="reportrange" class="px-2 py-2 text-muted">
+                    <i class="fe fe-calendar fe-16 mx-2"></i>
+                    <span class="small"></span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <button type="button" class="btn btn-sm"><span
+                      class="fe fe-refresh-ccw fe-12 text-muted"></span></button>
+                  <button type="button" class="btn btn-sm"><span class="fe fe-filter fe-12 text-muted"></span></button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- charts-->
+          <div class="container-fluid">
+            <div class="row my-4">
+              <div class="col-md-12">
+                <div class="chart-box rounded">
+                  <div id="columnChart"></div>
+                </div>
+              </div> <!-- .col -->
+            </div> <!-- end section -->
+          </div>
+          <div class="container-fluid mt-0">
+            <div class="row">
+              <div class="col-lg-6">
+                <div class="d-flex flex-column">
+                  <div class="card box-shadow-div text-center border-5 mt-1 mb-1">
+                    <div class="card-body">
+                      <h2 class="font-weight-bold mb-4">Calificación promedio</h2>
+                      <h1 class="text-success mb-3">85.30</h1>
+                    </div>
+                  </div>
+
+                  <div class="card box-shadow-div text-center border-5 mt-5 mb-5">
+                    <div class="card-body">
+                      <h2 class="font-weight-bold mb-4">Grupo tutor</h2>
+                      <h1 class="text-success mb-3">8ISC22</h1>
+                    </div>
+                  </div>
+
+                  <div class="card box-shadow-div text-center border-5 mt-3 mb-3">
+                    <div class="card-body">
+                      <h2 class="font-weight-bold mb-4">Día de tutoría</h2>
+                      <h1 class="text-success mb-3">Lunes</h1>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!--------Inicio de la tabla ---------->
+              <!-- Columna para la tabla -->
+              <div class="col-lg-6">
+                <div class="card box-shadow-div text-center border-5 mt-1">
+                  <div class="card-body">
+                    <div class="row">
+                      <!-- Recent orders -->
+                      <div class="col-12">
+                        <h6 class="mb-3">Capacitación disciplinaria</h6>
+                        <div class="table-responsive">
+                          <table class="table table-borderless table-striped">
+                            <thead>
+                              <tr role="row">
+                                <th>ID</th>
+                                <th>Purchase Date</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="col">1331</th>
+                                <td>2020-12-26 01:32:21</td>
+                                <td>Kasimir Lindsey</td>
+                                <td>(697) 486-2101</td>
+                                <td>996-3523 Et Ave</td>
+                                <td>$3.64</td>
+                                <td> Paypal</td>
+                                <td>Shipped</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1156</th>
+                                <td>2020-04-21 00:38:38</td>
+                                <td>Melinda Levy</td>
+                                <td>(748) 927-4423</td>
+                                <td>Ap #516-8821 Vitae Street</td>
+                                <td>$4.18</td>
+                                <td> Paypal</td>
+                                <td>Pending</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1038</th>
+                                <td>2019-06-25 19:13:36</td>
+                                <td>Aubrey Sweeney</td>
+                                <td>(422) 405-2736</td>
+                                <td>Ap #598-7581 Tellus Av.</td>
+                                <td>$4.98</td>
+                                <td>Credit Card </td>
+                                <td>Processing</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1227</th>
+                                <td>2021-01-22 13:28:00</td>
+                                <td>Timon Bauer</td>
+                                <td>(690) 965-1551</td>
+                                <td>840-2188 Placerat, Rd.</td>
+                                <td>$3.46</td>
+                                <td> Paypal</td>
+                                <td>Processing</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1956</th>
+                                <td>2019-11-11 16:23:17</td>
+                                <td>Kelly Barrera</td>
+                                <td>(117) 625-6737</td>
+                                <td>816 Ornare, Street</td>
+                                <td>$4.16</td>
+                                <td>Credit Card </td>
+                                <td>Shipped</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1669</th>
+                                <td>2021-04-12 07:07:13</td>
+                                <td>Kellie Roach</td>
+                                <td>(422) 748-1761</td>
+                                <td>5432 A St.</td>
+                                <td>$3.53</td>
+                                <td> Paypal</td>
+                                <td>Shipped</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="col">1909</th>
+                                <td>2020-05-14 00:23:11</td>
+                                <td>Lani Diaz</td>
+                                <td>(767) 486-2253</td>
+                                <td>3328 Ut Street</td>
+                                <td>$4.29</td>
+                                <td> Paypal</td>
+                                <td>Pending</td>
+                                <td>
+                                  <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle more-vertical" type="button"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span class="text-muted sr-only">Action</span>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                      <a class="dropdown-item" href="#">Edit</a>
+                                      <a class="dropdown-item" href="#">Remove</a>
+                                      <a class="dropdown-item" href="#">Assign</a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              <!-- Fin de las filas de la tabla -->
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Columna para las tarjetas -->
+            </div>
+          </div>
+
+        </div> <!-- .container-fluid -->
+      </div> <!---- fin de la card principál------>
+      <div class="container-fluid">
+  <div id="contenedor">
+    <!-- Tarjeta principal -->
+    <div class="card box-shadow-div p-4 mb-3">
+      <div class="logo-container">
+        <div class="logo-institucional">
+          <!-- Espacio para el logo institucional -->
+          <img src="assets/images/logo.png" alt="Logo Institucional">
+        </div>
+        <div class="titulo-container">
+          <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
+        </div>
+        <div class="form-group">
+          <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
+          <select class="form-control" id="periodo_periodo_id" name="periodo_periodo_id" required 
+                  <?php if (!empty($periodoReciente)): ?> disabled <?php endif; ?>>
+            <?php if (!empty($periodoReciente)): ?>
+              <option value="<?php echo $periodoReciente['periodo_id']; ?>" selected>
+                <?php echo htmlspecialchars($periodoReciente['descripcion']); ?>
+              </option>
+            <?php endif; ?>
+            <?php foreach ($periodos as $periodo): ?>
+              <option value="<?php echo $periodo['periodo_id']; ?>" 
+                      <?php if ($periodo['periodo_id'] == $periodoReciente['periodo_id']) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($periodo['descripcion']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>       
+      </div>
+
+      <!-- Contenido principal -->
+      <div class="row">
+        <div class="col-md-6">
+          <!-- Docente -->
+          <div class="form-group mt-2">
+            <label for="usuario_usuario_id">Docente:</label>
+            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
+              <?php if ($tipoUsuarioId === 1): ?>
+                <option value="<?php echo $idusuario; ?>" selected>
+                  <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
+                </option>
+              <?php else: ?>
+                <option value="">Seleccione un usuario</option>
+                <?php foreach ($usuarios as $user): ?>
+                  <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <!-- Carrera -->
+          <div class="form-group mt-2">
+            <label for="carrera_carrera_id" class="form-label">Carrera:</label>
+            <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarCarreras()">
+              <option value="">Selecciona una carrera</option>
+              <?php foreach ($carreras as $carrera): ?>
+                <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>  
+      </div>
+
+      <!-- Tabla -->
+      <div class="row">
+        <div class="col-12 mb-0">
+          <div class="schedule-container">
+            <div class="table-responsive">
+              <table class="table table-borderless table-striped">
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón de descarga PDF -->
+      <div class="pdf-container no-print">
+        <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+      <!-- Incluir la librería html2pdf.js antes de tu archivo de script personalizado -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+<div id="barChart" 
+     data-tutorias="<?php echo $horas_tutorias; ?>" 
+     data-apoyo="<?php echo $horas_apoyo; ?>" 
+     data-frente="<?php echo $horas_frente_grupo; ?>">
+</div>
+
+    <script src="js/horario_vista.js"></script>
+
+
+>>>>>>> 42ae625e0ecb6377fd8f62efe9d61a995851b68a
           <div class="col-12 mb-4">
             <div class="card shadow box-shadow-div h-100 carta_Informacion">
               <div class="card-header carta_Informacion">
@@ -545,6 +927,48 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
                 <!-- Donut Chart de Incidencias -->
                 <div id="donutChart3" style="height: 300px;"></div> <!-- Ajusta la altura según sea necesario -->
               </div> <!-- /.card-body -->
+              
+              <script>
+    var barChartOptions = {
+        series: [
+            {
+                name: "Horas",
+                data: [
+                    <?php echo $horas_tutorias; ?>, 
+                    <?php echo $horas_apoyo; ?>, 
+                    <?php echo $horas_frente_grupo; ?>
+                ]
+            }
+        ],
+        chart: {
+            type: "bar",
+            height: 350,
+            stacked: false,
+            toolbar: { enabled: false },
+            zoom: { enabled: false }
+        },
+        dataLabels: { enabled: true },
+        plotOptions: {
+            bar: { 
+                horizontal: true, 
+                columnWidth: "50%" 
+            }
+        },
+        xaxis: {
+            categories: ["Tutorías", "Horas de Apoyo", "Horas Frente al Grupo"],
+            labels: { style: { colors: "#6c757d", fontFamily: "Arial" } }
+        },
+        yaxis: {
+            labels: { style: { colors: "#6c757d", fontFamily: "Arial" } }
+        },
+        fill: { opacity: 1, colors: ["#ff4560", "#008ffb", "#00e396"] }
+    };
+
+    var barChart = new ApexCharts(document.querySelector("#barChart"), barChartOptions);
+    barChart.render();
+</script>
+
+
             </div> <!-- /.card -->
           </div> <!-- /.col -->
 
