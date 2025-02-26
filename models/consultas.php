@@ -344,6 +344,24 @@ public function obtenerIncidenciasUsuarios() {
 }
 
 
+public function GraficaSexo() {
+    $query = "
+        SELECT 
+            s.descripcion AS sexo, 
+            COUNT(*) AS cantidad 
+        FROM usuario u
+        JOIN sexo s ON u.sexo_sexo_id = s.sexo_id
+        WHERE u.sexo_sexo_id IN (1, 2)
+        GROUP BY s.descripcion
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve los resultados como un array asociativo
+}
+
+
 public function obtenerGradosAcademicos() {
     try {
         // Consulta SQL
