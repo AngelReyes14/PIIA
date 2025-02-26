@@ -362,6 +362,25 @@ public function GraficaSexo() {
 }
 
 
+public function obtenerUsuariosPorSexo($sexoSeleccionado) {
+    // Asumiendo que 'sexo' es una columna en la base de datos
+    $sql = "SELECT nombre_usuario, apellido_p, apellido_m, edad, fecha_contratacion, numero_empleado, cedula, correo 
+            FROM usuario WHERE sexo_sexo_id = :sexo";  // Cambié 'usuarios' por 'usuario' y la columna 'sexo' por 'sexo_sexo_id'
+    
+    // Preparar la consulta
+    $stmt = $this->conn->prepare($sql);
+
+    // Vincular el parámetro
+    $stmt->bindParam(':sexo', $sexoSeleccionado);
+
+    // Ejecutar la consulta
+    $stmt->execute();
+
+    // Devolver los resultados
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 public function obtenerGradosAcademicos() {
     try {
         // Consulta SQL
