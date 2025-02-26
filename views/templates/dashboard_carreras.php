@@ -22,7 +22,7 @@ $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
 $maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
-$incidencia = $consultas -> Incidenciausuario($carreraId);
+$incidencia = $consultas->Incidenciausuario($carreraId);
 $periodos = $consultas->obtenerPeriodo();
 $carreras = $consultas->obtenerCarreras();
 $evaluaciones = $consultas->obtenerEvaluacionesDocentes($carreraId);
@@ -37,21 +37,17 @@ if ($carreraId) {
   $hombres = 0;
 }
 
-$maestros = $consultas->CarreraMaestros($carreraId);
-$incidencia = $consultas->Incidenciausuario($carreraId);
 
-// Verificar y obtener los datos de mujeres y hombres en la carrera
-$mujeres = $carreraId ? $consultas->mujeresCarrera($carreraId) : 0;
-$hombres = $carreraId ? $consultas->hombresCarrera($carreraId) : 0;
+// Obtener usuarios filtrados por sexo (por defecto 0: Todos)
+$sexoSeleccionado = isset($_POST['sexo']) ? $_POST['sexo'] : 0;  // 0: Todos, 1: Masculino, 2: Femenino
+$usuariosPorSexo = $consultas->obtenerUsuariosPorSexo($sexoSeleccionado);
 
 // Obtener certificaciones tipo 1 y tipo 2
 $certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
 $certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
-
 $certificaciones = $consultas->obtenerCertificacionesPorMes();
-
 
 // Lista de todos los meses asegurando que la gráfica los muestre
 $todosMeses = [
@@ -81,12 +77,8 @@ $promedios = [];
 // Recorrer las incidencias por carrera y almacenarlas
 foreach ($incidenciasCarrera as $row) {
     $carreras[] = $row['nombre_carrera']; 
-    
-    // Validación para evitar Undefined array key
     $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
     $porcentaje = isset($row['porcentaje']) ? round($row['porcentaje'], 2) : 0;
-
-    // Agregar los valores al array correspondiente
     $incidencias[] = $cantidadRegistros;
     $promedios[] = $porcentaje;
 }
@@ -104,6 +96,17 @@ foreach ($grados as $grado) {
     $values[] = $grado['total_usuarios'];
 }
 
+// Obtener datos de la gráfica de sexo
+$graficaSexo = $consultas->GraficaSexo();
+
+$labelsSexo = [];
+$valoresSexo = [];
+
+foreach ($graficaSexo as $fila) {
+    $labelsSexo[] = $fila['sexo']; // 'Masculino' o 'Femenino'
+    $valoresSexo[] = (int) $fila['cantidad']; // Cantidad de usuarios
+}
+
 // Convertir datos a JSON para pasarlos a JavaScript
 $mesesJson = json_encode($todosMeses);
 $certificaciones1Json = json_encode($certificaciones1PorMes);
@@ -112,9 +115,14 @@ $carrerasJson = json_encode($carreras);
 $incidenciasJson = json_encode($incidencias);
 $promediosJson = json_encode($promedios);
 
+$labelsSexoJson = json_encode($labelsSexo);
+$valoresSexoJson = json_encode($valoresSexo);
+
+$usuariosMasculinos = $consultas->obtenerUsuariosPorSexo(1); // 1 para Masculino
+$usuariosFemeninos = $consultas->obtenerUsuariosPorSexo(2); // 2 para Femenino
+
 
 ?>
-
 
 
 
@@ -288,145 +296,128 @@ $promediosJson = json_encode($promedios);
                 </div>
 
 
+  <!-- Nuevo Contenedor Principal: PERSONAL -->
+  <div class="container-fluid mt-5 box-shadow-div p-5">
+            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+              DIRECCIÓN ACADÉMICA
+            </div>
+            <div class="container-fluid p-3">
+              <div class="row">
 
-
-           <!-- Donut Chart Card -->
-<div class="col-12 col-md-4 carta_Informacion">
+              <div class="col-12 col-md-6 carta_Informacion">
     <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
         <div class="card-header carta_Informacion">
-            <strong class="card-title text-green mb-0 carta_Informacion">
-                Grado académico de docentes en la división
-            </strong>
+            <strong class="card-title text-green mb-0 carta_Informacion">Grafica por Sexo</strong>
         </div>
-
         <div class="card-body text-center">
-            <!-- Incluir Chart.js -->
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <div id="donutChart6" style="max-width: 250px; margin: auto;"></div> <!-- Reducir tamaño -->
+        </div> 
+    </div> 
+</div>
 
-            <!-- Contenedor de la gráfica tipo donut -->
-            <canvas id="donutChart8"></canvas> 
-        </div> <!-- /.card-body -->
-    </div> <!-- /.card -->
-</div> <!-- /.col -->
+<!-- Incluir ApexCharts (si no está ya en tu proyecto) -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
-    // Pasar los datos desde PHP a JavaScript
-    var labels = <?php echo json_encode($labels); ?>;
-    var values = <?php echo json_encode($values); ?>;
+document.addEventListener("DOMContentLoaded", function () {
+    // Datos obtenidos desde PHP
+    var labelsSexo = <?php echo $labelsSexoJson; ?>;
+    var valoresSexo = <?php echo $valoresSexoJson; ?>;
 
-    window.onload = function() {
-        var ctx = document.getElementById('donutChart8').getContext('2d');
-
-        var donutChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Total de Usuarios',
-                    data: values,
-                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Verde oscuro, medio y claro
-                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'], // Colores oscuros al pasar el mouse
-                    hoverOffset: 10 // Aumenta el tamaño de la sección en hover
-                }]
-            },
+    var options = {
+        chart: {
+            type: 'donut',
+            width: 500 // Reducir tamaño del gráfico
+        },
+        series: valoresSexo, // Cantidades
+        labels: labelsSexo, // Masculino, Femenino
+        colors: ['#1E90FF', '#FF69B4'], // Azul y rosa
+        legend: {
+            position: 'bottom',
+            fontSize: '12px' // Reducir tamaño del texto en la leyenda
+        },
+        responsive: [{
+            breakpoint: 480,
             options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios';
-                            }
-                        }
-                    }
+                chart: {
+                    width: 200 // Más pequeño en pantallas pequeñas
                 },
-                animation: {
-                    animateScale: true,
-                    animateRotate: true
-                },
-                hover: {
-                    mode: 'nearest',
-                    intersect: false,
-                    onHover: function(event, chartElement) {
-                        if (chartElement.length) {
-                            let index = chartElement[0].index;
-                            donutChart.data.datasets[0].backgroundColor = donutChart.data.datasets[0].backgroundColor.map((color, i) => 
-                                i === index ? color : 'rgba(200, 200, 200, 0.5)' // Opaca las secciones no resaltadas
-                            );
-                            donutChart.update();
-                        } else {
-                            // Restaura los colores originales al salir del hover
-                            donutChart.data.datasets[0].backgroundColor = ['#006400', '#228B22', '#32CD32'];
-                            donutChart.update();
-                        }
-                    }
+                legend: {
+                    position: 'bottom'
                 }
             }
-        });
+        }]
     };
+
+    var chart = new ApexCharts(document.querySelector("#donutChart6"), options);
+    chart.render();
+});
 </script>
 
-<style>
-    /* Ajustar el tamaño del gráfico */
-    #donutChart8 {
-        max-width: 2500px; /* Ajustar el tamaño */
-        max-height: 2500px;
-    }
-</style>
 
-
-
-
-                <!-- Tabla de Docentes -->
-                
-
-<!-- Contenedor de la tabla con scroll y encabezado fijo -->
-<div class="col-12 col-md-8 mt-5 carta_Informacion">
-    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-        </div>
-
-        <!-- Contenedor con scroll -->
-        <div class="table-responsive" style="max-height: 350px; overflow-y: auto; position: relative;">
-            <table class="table datatables" id="tabla-materias-2">
-                <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Edad</th>
-                        <th>Fecha de contratación</th>
-                        <th>Número de empleado</th>
-                        <th>Cédula</th>
-                        <th>Correo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($maestros): ?>
-                        <?php foreach ($maestros as $maestroscarrera): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
-                                <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
-                                <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
-                                <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
-                                <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
-                                <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
-                            </tr>                  
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="text-center">No hay maestros registrados.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div> <!-- Fin del contenedor con scroll -->
+<!-- Tabla de Docentes -->
+<div class="col-12 col-md-6 mt-5 carta_Informacion">
+  <!-- Formulario para filtro de sexo -->
+  <form method="POST" class="mb-4">
+    <div class="form-group">
+      <label for="sexo">Filtrar por sexo</label>
+      <select name="sexo" id="sexo" class="form-control" onchange="this.form.submit()">
+        <option value="0" <?php echo $sexoSeleccionado == 0 ? 'selected' : ''; ?>>Selecciona un sexo</option>
+        <option value="1" <?php echo $sexoSeleccionado == 1 ? 'selected' : ''; ?>>Masculino</option>
+        <option value="2" <?php echo $sexoSeleccionado == 2 ? 'selected' : ''; ?>>Femenino</option>
+      </select>
     </div>
+  </form>
+
+  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+    </div>
+    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+      <table class="table datatables" id="tabla-materias-2">
+        <thead class="thead-dark" style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+          <tr>
+            <th>Nombre</th>
+            <th>Edad</th>
+            <th>Fecha de contratación</th>
+            <th>Número de empleado</th>
+            <th>Cédula</th>
+            <th>Correo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if ($usuariosPorSexo): ?>
+            <?php foreach ($usuariosPorSexo as $usuario): ?>
+              <tr>
+                <td><?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?></td>
+                <td><?php echo htmlspecialchars($usuario['edad']); ?></td>
+                <td><?php echo htmlspecialchars($usuario['fecha_contratacion']); ?></td>
+                <td><?php echo htmlspecialchars($usuario['numero_empleado']); ?></td>
+                <td><?php echo htmlspecialchars($usuario['cedula']); ?></td>
+                <td><?php echo htmlspecialchars($usuario['correo']); ?></td>
+              </tr>                  
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="6" class="text-center">No hay usuarios registrados.</td>
+            </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div> <!-- /.col -->
 
+
+
+
+
+              </div>
+            </div>
+
+              </div>
+
+       
 
               
 
@@ -460,7 +451,7 @@ $promediosJson = json_encode($promedios);
                       <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
                       <!-- Nuevo contenedor para el gráfico de pastel -->
-<div id="donutChart4"></div>
+                    <div id="donutChart4"></div>
 
 
 
@@ -855,76 +846,147 @@ document.addEventListener("DOMContentLoaded", function() {
           </div>
 
 
-          <!-- Nuevo Contenedor Principal: PERSONAL -->
-          <div class="container-fluid mt-5 box-shadow-div p-5">
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              DIRECCIÓN ACADÉMICA
-            </div>
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Donut Chart Card -->
-                <div class="col-12 col-md-6 carta_Informacion">
-                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-                    <div class="card-header carta_Informacion">
-                      <strong class="card-title text-green mb-0 carta_Informacion">Grado académico de docentes en la división</strong>
-                    </div>
-                    <div class="card-body text-center">
-                      <div id="donutChart2"></div>
-                    </div> <!-- /.card-body -->
-                  </div> <!-- /.card -->
-                </div> <!-- /.col -->
+        
+    <!-- Donut Chart Card -->
+    <div class="col-12 col-md-4 carta_Informacion">
+    <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+        <div class="card-header carta_Informacion">
+            <strong class="card-title text-green mb-0 carta_Informacion">
+                Grado académico de docentes en la división
+            </strong>
+        </div>
+
+        <div class="card-body text-center">
+            <!-- Incluir Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+            <!-- Contenedor de la gráfica tipo donut -->
+            <canvas id="donutChart8"></canvas> 
+        </div> <!-- /.card-body -->
+    </div> <!-- /.card -->
+</div> <!-- /.col -->
+
+<script>
+    // Pasar los datos desde PHP a JavaScript
+    var labels = <?php echo json_encode($labels); ?>;
+    var values = <?php echo json_encode($values); ?>;
+
+    window.onload = function() {
+        var ctx = document.getElementById('donutChart8').getContext('2d');
+
+        var donutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total de Usuarios',
+                    data: values,
+                    backgroundColor: ['#006400', '#228B22', '#32CD32'], // Verde oscuro, medio y claro
+                    hoverBackgroundColor: ['#004d00', '#1e7e1e', '#28a745'], // Colores oscuros al pasar el mouse
+                    hoverOffset: 10 // Aumenta el tamaño de la sección en hover
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' usuarios';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: false,
+                    onHover: function(event, chartElement) {
+                        if (chartElement.length) {
+                            let index = chartElement[0].index;
+                            donutChart.data.datasets[0].backgroundColor = donutChart.data.datasets[0].backgroundColor.map((color, i) => 
+                                i === index ? color : 'rgba(200, 200, 200, 0.5)' // Opaca las secciones no resaltadas
+                            );
+                            donutChart.update();
+                        } else {
+                            // Restaura los colores originales al salir del hover
+                            donutChart.data.datasets[0].backgroundColor = ['#006400', '#228B22', '#32CD32'];
+                            donutChart.update();
+                        }
+                    }
+                }
+            }
+        });
+    };
+</script>
+
+<style>
+    /* Ajustar el tamaño del gráfico */
+    #donutChart8 {
+        max-width: 2500px; /* Ajustar el tamaño */
+        max-height: 2500px;
+    }
+</style>
+
+
+
+
                 <!-- Tabla de Docentes -->
-                <div class="col-12 col-md-6 mt-5 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-                    </div>
-                    <table class="table datatables" id="tabla-materias-2">
-                      <thead class="thead-dark">
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Edad</th>
-                          <th>Fecha de contratacion</th>
-                          <th>Numero de empleado</th>
-                          <th>cedula</th>
-                          <th>correo</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if ($maestros): ?>
-                          <?php foreach ($maestros as $maestroscarrera): ?>
+                
+
+<!-- Contenedor de la tabla con scroll y encabezado fijo -->
+<div class="col-12 col-md-8 mt-5 carta_Informacion">
+    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+            <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+        </div>
+
+        <!-- Contenedor con scroll -->
+        <div class="table-responsive" style="max-height: 350px; overflow-y: auto; position: relative;">
+            <table class="table datatables" id="tabla-materias-2">
+                <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Edad</th>
+                        <th>Fecha de contratación</th>
+                        <th>Número de empleado</th>
+                        <th>Cédula</th>
+                        <th>Correo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($maestros): ?>
+                        <?php foreach ($maestros as $maestroscarrera): ?>
                             <tr>
-                            <tr>
-                              <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
-                              <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
+                                <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
                             </tr>                  
-                          <?php endforeach; ?>
-                        <?php else: ?>
-                          <tr>
-                            <td colspan="5" class="text-center">No hay maestros registrados.</td>
-                          </tr>
-                        <?php endif; ?>
-                      </tbody>
-                    </table>
-                    <!-- Card para TOTAL DE HORAS MAXIMAS -->
-                    <div class="card mt-3 text-center">
-                      <div class="card-body  box-shadow-div">
-                        <h5 class="card-title font-weight-bold">TOTAL DE HORAS MÁXIMAS</h5>
-                        <p class="card-text font-weight-bold">40</p>
-                      </div>
-                    </div>
-                  </div>
-                </div> <!-- /.col -->
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No hay maestros registrados.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div> <!-- Fin del contenedor con scroll -->
+    </div>
+</div> <!-- /.col -->
 
 
-              </div>
-            </div>
 
-              </div>
+
             </div>
 
           </div>
