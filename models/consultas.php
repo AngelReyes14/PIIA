@@ -60,11 +60,7 @@ class Consultas {
             $stmt->execute();
             $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
     
-            // Depuración
-            echo "<pre>";
-            print_r($resultado);
-            echo "</pre>";
-    
+
             return $resultado;
         } catch (PDOException $e) {
             error_log("Error al obtener cuerpo colegiado: " . $e->getMessage());

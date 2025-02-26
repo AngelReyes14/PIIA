@@ -37,11 +37,6 @@ $diasEconomicosTotales = 3; // Máximo permitido
 $diasEconomicosTomados = $consultas->obtenerDiasEconomicosTomados($idusuario);
 $diasEconomicos = $consultas->obtenerDiasEconomicos($idusuario);
 
-// Verificar si PHP realmente tiene datos antes de enviarlos a JS
-echo "<pre>";
-print_r($diasEconomicos);
-echo "</pre>";
-
 
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
