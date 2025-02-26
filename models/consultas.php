@@ -128,19 +128,6 @@ public function obtenerIncidenciasConUsuario()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-public function resumenUsuarios() {
-    $sql = "SELECT 
-                CONCAT(nombre_usuario, ' ', apellido_p, ' ', apellido_m) AS nombre_completo, 
-                edad, 
-                fecha_contratacion, 
-                numero_empleado, 
-                cedula, 
-                correo 
-            FROM usuario";
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
 
 public function obtenerIncidenciasUsuarios() {
@@ -167,6 +154,24 @@ public function obtenerIncidenciasUsuarios() {
     } catch (PDOException $e) {
         die("Error al obtener incidencias: " . $e->getMessage());
     }
+}
+
+
+public function GraficaSexo() {
+    $query = "
+        SELECT 
+            s.descripcion AS sexo, 
+            COUNT(*) AS cantidad 
+        FROM usuario u
+        JOIN sexo s ON u.sexo_sexo_id = s.sexo_id
+        WHERE u.sexo_sexo_id IN (1, 2)
+        GROUP BY s.descripcion
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve los resultados como un array asociativo
 }
 
 
