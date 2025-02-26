@@ -1,16 +1,50 @@
 <?php
-include('../../models/session.php'); // Manejador de sesión
 include('../../controllers/db.php');
 include('../../models/consultas.php');
 
-// En obtener_usuarios.php
-if (isset($_GET['carrera_id'])) {
-    // Tu código existente...
-    header('Content-Type: application/json');
-    echo json_encode($usuarios);
+
+
+header('Content-Type: application/json');
+
+if (isset($_GET['idusuario'])) {
+    $idusuario = intval($_GET['idusuario']);
+    error_log("ID usuario recibido: " . $idusuario);
+
+    $sql = "SELECT 
+                u.usuario_id, 
+                u.nombre_usuario, 
+                u.apellido_p, 
+                u.apellido_m, 
+                u.edad, 
+                u.correo, 
+                u.fecha_contratacion, 
+                u.numero_empleado, 
+                u.grado_academico, 
+                u.cedula, 
+                u.imagen_url, 
+                c.nombre_carrera 
+            FROM usuario u
+            JOIN carrera c ON u.carrera_carrera_id = c.carrera_id
+            WHERE u.usuario_id = ?";
+
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $idusuario);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            echo json_encode($row);
+        } else {
+            echo json_encode(["error" => "No se encontró el usuario."]);
+        }
+
+        $stmt->close();
+    } else {
+        echo json_encode(["error" => "Error en la consulta"]);
+    }
 } else {
-    // Para depuración, imprime esto en caso de que no se reciba el ID
-    echo json_encode(["error" => "ID de carrera no proporcionado."]);
+    echo json_encode(["error" => "ID de usuario no proporcionado"]);
 }
 
+$conn->close();
 ?>

@@ -7,6 +7,94 @@ class Consultas {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
+
+    public function obtenerDiasEconomicos($usuarioId) {
+        try {
+            $sql = "SELECT dia_incidencia FROM incidencia_has_usuario
+                    WHERE usuario_usuario_id = :usuario_id
+                    AND incidencia_incidenciaid = 3";  // Solo obtiene días económicos
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultados = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+            return $resultados ? $resultados : [];
+        } catch (PDOException $e) {
+            error_log("Error al obtener días económicos: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    
+
+    public function obtenerDiasEconomicosTomados($usuarioId) {
+        try {
+            $sql = "SELECT COUNT(*) AS total_tomados
+                    FROM incidencia_has_usuario
+                    WHERE usuario_usuario_id = :usuario_id
+                    AND incidencia_incidenciaid = 3";  // Solo cuenta días económicos
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            return $resultado ? $resultado['total_tomados'] : 0;
+        } catch (PDOException $e) {
+            error_log("Error al obtener días económicos tomados: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    
+    public function obtenerCuerpoColegiadoPorUsuario($usuarioId) {
+        try {
+            $sql = "SELECT cc.descripcion 
+                    FROM usuario u
+                    INNER JOIN cuerpo_colegiado cc ON u.cuerpo_colegiado_cuerpo_colegiado_id = cc.cuerpo_colegiado_id
+                    WHERE u.usuario_id = :usuario_id";
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            // Depuración
+            echo "<pre>";
+            print_r($resultado);
+            echo "</pre>";
+    
+            return $resultado;
+        } catch (PDOException $e) {
+            error_log("Error al obtener cuerpo colegiado: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    
+    
+    public function obtenerTutoriaPorUsuario($usuarioId, $periodoId) {
+        $query = "SELECT 
+                    g.descripcion AS nombre_grupo, 
+                   d.descripcion AS nombre_dia
+
+                  FROM horario h
+                  JOIN grupo g ON h.grupo_grupo_id = g.grupo_id
+                  JOIN dias d ON h.dias_dias_id = d.dias_id
+                  WHERE h.usuario_usuario_id = :usuarioId 
+                    AND h.materia_materia_id = 1
+                    AND h.periodo_periodo_id = :periodoId
+                  LIMIT 1";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':periodoId', $periodoId, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ["nombre_grupo" => "No asignado", "nombre_dia" => "No asignado"];
+    }
+    
     
 // Método para obtener el horario filtrado por periodo, usuarioId y carrera
 public function obtenerHorario($periodo, $usuarioId, $carrera) {
@@ -112,35 +200,43 @@ public function obtenerCarrerasPorUsuario($usuario_id) {
         return [];
     }
 }
-
-public function obtenerHorasMaterias() {
+public function obtenerHorasMaterias($idusuario, $periodoId) {
     $query = "SELECT 
-                SUM(CASE WHEN descripcion = 'Tutorias' THEN hora_teorica ELSE 0 END) AS horas_tutorias,
-                SUM(CASE WHEN descripcion = 'Horas Apoyo' THEN hora_teorica ELSE 0 END) AS horas_apoyo,
-                SUM(CASE WHEN descripcion NOT IN ('Tutorias', 'Horas Apoyo') THEN (hora_teorica + hora_practica) ELSE 0 END) AS horas_frente_grupo
-              FROM materia";
+                CASE 
+                    WHEN h.materia_materia_id = 1 THEN 'horas_tutorias'
+                    WHEN h.materia_materia_id = 2 THEN 'horas_apoyo'
+                    ELSE 'horas_frente_grupo'
+                END AS tipo_hora,
+                COUNT(*) AS cantidad
+              FROM horario h
+              WHERE h.usuario_usuario_id = :idusuario 
+              AND h.periodo_periodo_id = :periodoId
+              GROUP BY tipo_hora";
 
     $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(":idusuario", $idusuario, PDO::PARAM_INT);
+    $stmt->bindParam(":periodoId", $periodoId, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
+    
+    // Inicializar con valores en 0
+    $horas = [
+        'horas_tutorias' => 0,
+        'horas_apoyo' => 0,
+        'horas_frente_grupo' => 0
+    ];
 
-
-public function obtenerMeses() {
-    $query = "SELECT meses_id, descripcion FROM meses";
-    $result = $this->conn->query($query);
-
-    $mes = [];
-    if ($result) {
-        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-            $meses[] = $row;
-        }
+    // Mapear resultados
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $horas[$row['tipo_hora']] = $row['cantidad'];
     }
-    return $meses;
+
+    return $horas;
 }
 
 
-public function obtenerCertificacionesPorUsuario($usuarioId) {
+
+
+public function obtenerCertificacionesPorUsuario($idusuario) {
     try {
         // Consulta SQL con la tabla 'meses' en lugar de 'mes'
         $sql = "SELECT 
@@ -158,7 +254,7 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
                 ORDER BY c.certificados_id";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $idusuario, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -708,47 +804,82 @@ public function obtenerCarreraPorUsuario($idusuario) {
 
     //*********************** PRUEBA ************************************************************* */    
  
-    
     public function obtenerUsuariosPorCarrera($carrera_id) {
-        // Consulta para obtener usuarios asociados a una carrera específica
-        $query = "SELECT 
-                    u.usuario_id,
-                    u.nombre_usuario,
-                    u.apellido_p,
-                    u.apellido_m,
-                    u.edad,
-                    u.correo,
-                    u.fecha_contratacion,
-                    u.numero_empleado,
-                    u.grado_academico,
-                    u.cedula,
-                    u.imagen_url,
-                    u.sexo_sexo_id,
-                    u.status_status_id,
-                    u.tipo_usuario_tipo_usuario_id,
-                    u.cuerpo_colegiado_cuerpo_colegiado_id,
-                    u.carrera_carrera_id,
-                    c.carrera_id,
-                    c.nombre_carrera 
-                  FROM 
-                    vista_usuarios u
-                  JOIN 
-                    carrera c ON u.carrera_carrera_id = c.carrera_id
-                  WHERE 
-                    c.carrera_id = :carrera_id"; // Usando un parámetro para evitar inyecciones SQL
+        $sql = "SELECT u.usuario_id, u.nombre_usuario, u.apellido_p, u.apellido_m
+                FROM usuario u
+                INNER JOIN usuario_has_carrera uhc ON u.usuario_id = uhc.usuario_usuario_id
+                WHERE uhc.carrera_carrera_id = :carrera_id";
     
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
-        try {
-            $stmt->execute(); // Ejecutamos la consulta
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage(); // Manejo de errores
-            return false; // Devuelve false si ocurre algún error
-        }
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // ✅ Usar bindParam con PDO
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     
+    
+        
+    public function obtenerDocentesPorCarrera($carrera_id) {
+        // Consulta para obtener usuarios asociados a una carrera específica
+        $query = "SELECT 
+        u.usuario_id,
+        CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo,
+        u.edad,
+        u.correo,
+        u.fecha_contratacion,
+        u.numero_empleado,
+        u.grado_academico,
+        u.cedula,
+        u.imagen_url,
+        u.sexo_sexo_id,
+        u.status_status_id,
+        u.tipo_usuario_tipo_usuario_id,
+        u.cuerpo_colegiado_cuerpo_colegiado_id,
+        u.carrera_carrera_id,
+        c.carrera_id,
+        c.nombre_carrera 
+      FROM 
+        vista_usuarios u
+      JOIN 
+        carrera c ON u.carrera_carrera_id = c.carrera_id
+      WHERE 
+        c.carrera_id = :carrera_id AND u.tipo_usuario_tipo_usuario_id = 1"; // Filtra por tipo_usuario = 1 (docente)
+
+$stmt = $this->conn->prepare($query);
+$stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT); // Enlazamos el parámetro
+try {
+$stmt->execute(); // Ejecutamos la consulta
+return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devolvemos los resultados como un array asociativo
+} catch (PDOException $e) {
+return ['error' => 'Error en la consulta: ' . $e->getMessage()]; // Devolvemos el error
+}
+}
+
+public function obtenerEvaluacionesPorDocenteYPeriodo($usuario_id, $periodo_id) {
+    // Consulta para obtener las evaluaciones de un docente en un periodo específico
+    $query = "SELECT 
+                evaluacion_tecnm, 
+                evaluacion_estudiantil
+              FROM 
+                evaluaciones
+              WHERE 
+                usuario_usuario_id = :usuario_id
+              AND 
+                periodo_periodo_id = :periodo_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+    $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+    try {
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna los resultados como un array asociativo
+    } catch (PDOException $e) {
+        return ['error' => 'Error en la consulta: ' . $e->getMessage()];
+    }
+}
+
+
     
     public function obtenerTodosLosUsuarios() {
         $sql = "SELECT * FROM vista_usuarios";
@@ -877,6 +1008,41 @@ public function obtenerEdificio() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerEvaluacionesDocentes($carreraId) {
+        // Query con JOINs para obtener los usuarios que pertenecen a la carrera
+        $query = "
+            SELECT 
+                e.evaluacion_docentes_id,
+                e.evaluacionTECNM,
+                e.evaluacionEstudiantil,
+                CONCAT(u.nombre_usuario, ' ', u.apellido_p, ' ', u.apellido_m) AS nombre_completo,
+                p.descripcion AS periodo
+            FROM 
+                evaluacion_docentes e
+            JOIN 
+                usuario u ON e.usuario_usuario_id = u.usuario_id
+            JOIN 
+                periodo p ON e.periodo_periodo_id = p.periodo_id
+            JOIN
+                usuario_has_carrera uc ON u.usuario_id = uc.usuario_usuario_id
+            WHERE 
+                uc.carrera_carrera_id = :carreraId
+        "; 
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':carreraId', $carreraId, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        // Verificar si se encontraron datos
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return $result;
+        } else {
+            return []; // Si no hay datos, retornar un array vacío
+        }
+    }
+    
+    
 public function obtenerSalones() {
     $sql = "SELECT s.salon_id, s.descripcion, e.descripcion AS edificio, s.capacidad
             FROM salones s 
@@ -2280,15 +2446,8 @@ class CertificacionUsuario {
             // Obtener datos del formulario
             $certificacionId = $_POST['certificaciones_certificaciones_id'];
             $usuarioId = $_POST['usuario_usuario_id'];
+            $mesesId = $_POST['meses_meses_id']; // Nuevo campo
             $nombreCertificado = $_POST['nombre_certificado'];
-
-            $nombreMes = isset($_POST['mes_mes_id']) ? $_POST['mes_mes_id'] : null;
-    
-            // Verificar que el campo 'mes_mes_id' no esté vacío
-            if (empty($nombreMes)) {
-                echo "El campo 'Mes' es obligatorio.";
-                return;
-            }
 
             // Manejo de archivo
             $filePath = null;
@@ -2297,7 +2456,7 @@ class CertificacionUsuario {
                 $fileName = $_FILES['certificado']['name'];
                 $fileSize = $_FILES['certificado']['size'];
                 $fileType = $_FILES['certificado']['type'];
-    
+
                 // Verificar que el archivo sea un PDF
                 $fileInfo = pathinfo($fileName);
                 $fileExtension = strtolower($fileInfo['extension']);
@@ -2305,23 +2464,16 @@ class CertificacionUsuario {
                     echo "El archivo debe ser un PDF.";
                     return;
                 }
-    
-                // Verificar el tamaño máximo del archivo (por ejemplo, 5MB)
-                $maxFileSize = 5 * 1024 * 1024; // 5MB en bytes
-                if ($fileSize > $maxFileSize) {
-                    echo "El archivo excede el tamaño máximo permitido (5MB).";
-                    return;
-                }
-    
+
                 // Directorio de subida
                 $uploadDir = __DIR__ . '/../views/templates/assets/certificados/';
                 $filePath = $this->generateUniqueFileName('certificado', $fileExtension, $uploadDir);
-    
+
                 // Verificar si la carpeta existe
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-    
+
                 // Mover el archivo al destino
                 if (move_uploaded_file($fileTmpPath, $uploadDir . $filePath)) {
                     echo "Archivo subido correctamente.";
@@ -2329,35 +2481,27 @@ class CertificacionUsuario {
                     echo "Error al subir el archivo.";
                     return;
                 }
-            } else {
-                // Si no se subió ningún archivo
-                if (isset($_FILES['certificado'])) {
-                    echo "Error en la carga del archivo. Código de error: " . $_FILES['certificado']['error'];
-                    return;
-                }
+                
             }
-    
+
             // Insertar en la base de datos
             $relativeFilePath = ($filePath) ? '../views/templates/assets/certificados/' . $filePath : null;
             $this->insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $relativeFilePath);
-
         }
     }
-    
-
 
     private function insertCertificacionUsuario($certificacionId, $usuarioId, $mesesId, $nombreCertificado, $filePath) {
-
         // Consulta para insertar los datos
         $query = "INSERT INTO piia.certificaciones_has_usuario (
                     certificaciones_certificaciones_id,
                     usuario_usuario_id,
+                    meses_meses_id,
                     nombre_certificado,
-                    meses_meses_id,  -- Corregido el nombre de la columna aquí
                     url
                   ) VALUES (
                     :certificacion_id,
                     :usuario_id,
+                    :meses_id,
                     :nombre_certificado,
                     :url
                   )";
@@ -2365,6 +2509,7 @@ class CertificacionUsuario {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':certificacion_id', $certificacionId);
         $stmt->bindParam(':usuario_id', $usuarioId);
+        $stmt->bindParam(':meses_id', $mesesId);
         $stmt->bindParam(':nombre_certificado', $nombreCertificado);
         $stmt->bindParam(':url', $filePath);
     
@@ -2392,23 +2537,10 @@ class CertificacionUsuario {
         }
         return $newFileName;
     }
-
-    public function obtenerMes() {
-        // Actualizamos el nombre de la tabla 'mes' por 'meses'
-        $query = "SELECT meses_id, descripcion FROM meses";  // Corregido el nombre de la tabla
-        $result = $this->conn->query($query);
-    
-        $meses = [];
-        if ($result) {
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                $meses[] = $row;
-            }
-        }
-        return $meses;
-    }
 }
 
-}
+
+
 
 
 class ActualizarCertificacionUsuario {
@@ -2507,6 +2639,7 @@ class ActualizarCertificacionUsuario {
             exit();
         }
     }
+    
 
     private function generateUniqueFileName($baseName, $extension, $directory) {
         $counter = 1;
@@ -2582,4 +2715,242 @@ class BorrarCertificacion {
             }
         }
     }
+}
+
+
+class EvaluacionDocentes {
+    private $conn;
+
+    public function __construct($dbConnection) {
+        $this->conn = $dbConnection;
+    }
+
+    public function gestionarEvaluacion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $evaluacionTecnm = floatval($_POST['evaluacionTECNM']);
+            $evaluacionEstudiantil = floatval($_POST['evaluacionEstudiantil']);
+            
+            if ($evaluacionTecnm < 0 || $evaluacionTecnm > 100 || $evaluacionEstudiantil < 0 || $evaluacionEstudiantil > 100) {
+                die("Error: Las calificaciones deben estar entre 0 y 100.");
+            }
+            $usuarioId = $_POST['usuario_usuario_id'];
+            $periodoId = $_POST['periodo_periodo_id'];
+
+            // Verificamos si ya existen evaluaciones para ese usuario y periodo
+            if ($this->existeEvaluacion($usuarioId, $periodoId)) {
+                // Si existen, actualizamos la evaluación
+                $this->actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            } else {
+                // Si no existen, insertamos una nueva evaluación
+                $this->insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId);
+            }
+
+            // Redirigimos a la página de éxito
+            header("Location: ../views/templates/form_evaluacion.php?success=true");
+        }
+    }
+
+    private function insertarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "INSERT INTO evaluacion_docentes (evaluacionTECNM, evaluacionEstudiantil, usuario_usuario_id, periodo_periodo_id) 
+                VALUES (:evaluacionTecnm, :evaluacionEstudiantil, :usuarioId, :periodoId)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/form_evaluacion.php?success=false");
+        }
+    }
+
+    private function actualizarEvaluacion($evaluacionTecnm, $evaluacionEstudiantil, $usuarioId, $periodoId) {
+        $sql = "UPDATE evaluacion_docentes 
+                SET evaluacionTECNM = :evaluacionTecnm, evaluacionEstudiantil = :evaluacionEstudiantil 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':evaluacionTecnm', $evaluacionTecnm);
+        $stmt->bindParam(':evaluacionEstudiantil', $evaluacionEstudiantil);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+            header("Location: ../views/templates/form_evaluacion.php?success=false");
+        }
+    }
+
+    // Método para verificar si ya existe una evaluación para el docente en el periodo
+    private function existeEvaluacion($usuarioId, $periodoId) {
+        $sql = "SELECT 1 FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            // Si existe un resultado, retornamos true
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+
+    // Método para obtener las evaluaciones de un docente por su usuario_id y periodo_id
+    public function obtenerEvaluaciones($usuarioId, $periodoId) {
+        $sql = "SELECT evaluacionTECNM, evaluacionEstudiantil 
+                FROM evaluacion_docentes 
+                WHERE usuario_usuario_id = :usuarioId AND periodo_periodo_id = :periodoId";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuarioId', $usuarioId);
+        $stmt->bindParam(':periodoId', $periodoId);
+
+        try {
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC); // Retorna la evaluación del docente
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return false;
+        }
+    }
+}
+
+// EvaluacionDocente.php
+class GraficaEvaluacion {
+    private $conn;
+
+    public function __construct($conn) {
+        $this->conn = $conn;
+    }
+
+    /**
+     * Obtiene las evaluaciones de los docentes.
+     *
+     * @param int|null $periodo_id (Opcional) Filtrar por un periodo específico.
+     * @return array Un arreglo asociativo con los datos de las evaluaciones.
+     */
+    public function obtenerEvaluacionesUsuario($usuario_id) {
+        try {
+            $query = "
+                SELECT 
+                    CONCAT(usuario.nombre_usuario, ' ', usuario.apellido_p, ' ', usuario.apellido_m) AS nombre_completo,
+                    evaluacion_docentes.evaluacionTECNM, 
+                    evaluacion_docentes.evaluacionEstudiantil,
+                    periodo.descripcion AS periodo_descripcion
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+                WHERE 
+                    usuario.usuario_id = :usuario_id
+            ";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener evaluaciones del usuario: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Calcula el promedio general de las evaluaciones docentes.
+     *
+     * @param int|null $periodo_id (Opcional) Filtrar por un periodo específico.
+     * @return array Un arreglo asociativo con el promedio general.
+     */
+    public function obtenerPromedioEvaluaciones($periodo_id = null) {
+        try {
+            $query = "
+                SELECT 
+                    AVG((evaluacion_docentes.evaluacionTECNM + evaluacion_docentes.evaluacionEstudiantil) / 2) AS promedio_general
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+            ";
+            
+            // Si se proporciona un periodo_id, filtramos los resultados
+            if (!is_null($periodo_id)) {
+                $query .= " WHERE periodo.periodo_id = :periodo_id";
+            }
+
+            $stmt = $this->conn->prepare($query);
+            
+            // Asignamos el valor de periodo_id si se proporcionó
+            if (!is_null($periodo_id)) {
+                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al calcular el promedio de evaluaciones: " . $e->getMessage());
+            return ['promedio_general' => 0];
+        }
+    }
+
+    public function obtenerEvaluacionesTodosLosDocentes($carrera_id = null, $periodo_id = null) {
+        try {
+            $query = "
+                SELECT 
+                    CONCAT(usuario.nombre_usuario, ' ', usuario.apellido_p, ' ', usuario.apellido_m) AS nombre_completo,
+                    evaluacion_docentes.evaluacionTECNM, 
+                    evaluacion_docentes.evaluacionEstudiantil,
+                    periodo.descripcion AS periodo_descripcion
+                FROM 
+                    evaluacion_docentes
+                JOIN 
+                    usuario ON evaluacion_docentes.usuario_usuario_id = usuario.usuario_id
+                JOIN 
+                    periodo ON evaluacion_docentes.periodo_periodo_id = periodo.periodo_id
+                WHERE 
+                    1 = 1
+            ";
+    
+            // Filtrar por carrera si se proporciona
+            if (!is_null($carrera_id)) {
+                $query .= " AND usuario.carrera_carrera_id = :carrera_id";
+            }
+    
+            // Filtrar por período si se proporciona
+            if (!is_null($periodo_id)) {
+                $query .= " AND periodo.periodo_id = :periodo_id";
+            }
+    
+            $stmt = $this->conn->prepare($query);
+    
+            // Asignar valores a los parámetros si se proporcionan
+            if (!is_null($carrera_id)) {
+                $stmt->bindParam(':carrera_id', $carrera_id, PDO::PARAM_INT);
+            }
+            if (!is_null($periodo_id)) {
+                $stmt->bindParam(':periodo_id', $periodo_id, PDO::PARAM_INT);
+            }
+    
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener evaluaciones de todos los docentes: " . $e->getMessage());
+            return [];
+        }
+    }
+
+
+   
 }

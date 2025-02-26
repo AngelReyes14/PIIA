@@ -19779,6 +19779,7 @@ button#downloadPDF:hover {
 
 #dataTable-certificaciones a:hover {
   background: #1e8449;
+
 }
 
 
@@ -19788,4 +19789,15 @@ button#downloadPDF:hover {
   .pdf-container {
     display: none;
   }
+}
+
+.economic-day {
+  background-color: #ffeb3b !important; /* Amarillo */
+  border-radius: 50%;
+  font-weight: bold;
+}
+.economic-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
 }

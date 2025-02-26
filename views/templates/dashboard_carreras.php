@@ -21,6 +21,22 @@ $docentes = $consultas->docentesCarrera($carreraId);
 $grupos = $consultas->gruposCarrera($carreraId);
 $matutino = $consultas->gruposTurnoMatutino($carreraId);
 $vespertino = $consultas->gruposTurnoVespertino($carreraId);
+$maestros = $consultas->CarreraMaestros(carrera_id: $carreraId);
+$incidencia = $consultas -> Incidenciausuario($carreraId);
+$periodos = $consultas->obtenerPeriodo();
+$carreras = $consultas->obtenerCarreras();
+$evaluaciones = $consultas->obtenerEvaluacionesDocentes($carreraId);
+
+
+// Get the count of women in the carrera
+if ($carreraId) {
+  $mujeres = $consultas->mujeresCarrera($carreraId);
+  $hombres = $consultas->hombresCarrera($carreraId);
+} else {
+  $mujeres = 0;
+  $hombres = 0;
+}
+
 $maestros = $consultas->CarreraMaestros($carreraId);
 $incidencia = $consultas->Incidenciausuario($carreraId);
 
@@ -33,7 +49,9 @@ $certificacionesTipo1 = $consultas->obtenerCertificacionesTipo2(1);
 $certificacionesTipo2 = $consultas->obtenerCertificacionesTipo2(2);
 
 // Obtener certificaciones de todos los usuarios por mes
+
 $certificaciones = $consultas->obtenerCertificacionesPorMes();
+
 
 // Lista de todos los meses asegurando que la gráfica los muestre
 $todosMeses = [
@@ -105,6 +123,7 @@ $certificaciones2Json = json_encode($certificaciones2PorMes);
 $carrerasJson = json_encode($carreras);
 $incidenciasJson = json_encode($incidencias);
 $promediosJson = json_encode($promedios);
+
 $labelsSexoJson = json_encode($labelsSexo);
 $valoresSexoJson = json_encode($valoresSexo);
 ?>
@@ -804,107 +823,49 @@ document.addEventListener("DOMContentLoaded", function() {
           </div> <!-- /.container-fluid -->
 
           <!-- Contenedor de Promedio de Calificaciones -->
-          <div class="container-fluid mt-5  box-shadow-div p-5">
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Promedio de Calificaciones
-            </div>
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Tabla de Promedio de Calificaciones -->
-                <div class="col-md-12 carta_Informacion">
-                  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-                      <h4 class="mb-0 text-green carta_Informacion">Promedio de Calificaciones</h4>
-                    </div>
-                    <table class="table table-striped carta_Informacion">
-                      <thead>
-                        <tr>
-                          <th>Docentes</th>
-                          <th>Evaluación Estudiantil</th>
-                          <th>Evaluación TECNM</th>
-                          <th>Promedio por semestre</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Juan Carlos Tinoco Villagran</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                          <td>80.0</td>
-                        </tr>
-                        <tr>
-                          <td>Jose Luis Orozco Garcia</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                          <td>70.0</td>
-                        </tr>
-                        <tr>
-                          <td>Eden Muñoz Lopez</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                          <td>75.0</td>
-                        </tr>
-                        <tr>
-                          <td>Edwin Luna Castillo</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                          <td>60.5</td>
-                        </tr>
-                        <tr>
-                          <td>Alfredo Olivas Ruiz</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                          <td>82.0</td>
-                        </tr>
-                        <tr>
-                          <td>Cosme Tadeo Lopez Varela</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                          <td>90.2</td>
-                        </tr>
-                        <tr>
-                          <td>Virlán García Nuñez</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                          <td>98.3</td>
-                        </tr>
-                        <tr>
-                          <td>Cornelio Vega Chairez</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                          <td>87.4</td>
-                        </tr>
-                        <tr>
-                          <td>Julion Alvarez Buendla</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                          <td>74.1</td>
-                        </tr>
-                        <tr>
-                          <td>Ariel Camacho Torres</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                          <td>84.2</td>
-                        </tr>
-                        <tr>
-                          <td>Amanda Rivera de Miguel</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                          <td>98.2</td>
-                        </tr>
-                        <tr>
-                          <td>Jenifer Espinoza German</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                          <td>95.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
+
+          <!-- Contenedor de Promedio de Calificaciones -->
+
+
+          <div class="container-fluid">
+            <div class="row justify-content-center">
+              <div class="col-12">
+                <div class="d-flex justify-content-center align-items-center mb-3 col">
+                  <p class="titulo-grande"><strong>Registro de Evaluaciones Docentes</strong></p>
+                </div>
+                <div class="row my-4">
+                  <!-- Small table -->
+                  <div class="col-md-12">
+                    <div class="card shadow p-5">
+                      <div class="table-responsive">
+                        <table class="table datatables" id="dataTable-1">
+                          <thead>
+                            <tr>
+                              <th>Nombre del Docente</th>
+                              <th>Evaluación TECNM</th>
+                              <th>Evaluación Estudiantil</th>
+                              <th>Periodo</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <?php foreach ($evaluaciones as $evaluacion): ?>
+                              <tr>
+                                <td><?php echo $evaluacion['nombre_completo']; ?></td>
+                                <td><?php echo $evaluacion['evaluacionTECNM']; ?></td>
+                                <td><?php echo $evaluacion['evaluacionEstudiantil']; ?></td>
+                                <td><?php echo $evaluacion['periodo']; ?></td>
+                              </tr>
+                            <?php endforeach; ?>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div> <!-- simple table -->
+                  </div> <!-- end section -->
+                </div> <!-- .col-12 -->
+              </div> <!-- .row -->
+            </div> <!-- .container-fluid -->
+          </div>
+
 
           <!-- Nuevo Contenedor Principal: PERSONAL -->
           <div class="container-fluid mt-5 box-shadow-div p-5">

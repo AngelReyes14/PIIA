@@ -22,6 +22,7 @@ $meses = $consultas->obtenerMeses();
 $certificacionesusuarios = $consultas->obtenerCertificacionesPorUsuario($idusuario);
 
 
+
 // Obtener datos del usuario
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
 if (!$usuario) {
@@ -286,15 +287,6 @@ if (isset($_POST['logout'])) {
 
 
 
-        <!-- Nombre del Certificado -->
-        <div class="col-md-3">
-            <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
-            <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
-            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-        </div>
-
-
-
         <!-- Selección de archivo PDF -->
         <div class="col-md-3" id="documentDiv">
             <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
@@ -317,24 +309,26 @@ if (isset($_POST['logout'])) {
             <div class="d-flex justify-content-center align-items-center mb-3 col">
                 <p class="titulo-grande"><strong>Certificaciones Registradas</strong></p>
             </div>
-            <div class="table-responsive">
-                <table class="table datatables" id="dataTable-certificaciones">
-                    <thead>
-                        <tr>
-                            <th>Certificación</th>
-                            <th>Nombre del Certificado</th>
-                            <th>Mes</th> <!-- Nueva columna para los meses -->
-                            <th>Certificado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
+            <div class="row my-4">
+                <div class="col-md-12">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <table class="table datatables" id="dataTable-certificaciones">
+                                <thead>
+                                    <tr>
+                                        <th>Certificación</th>
+                                        <th>Nombre del Certificado</th>
+                                        <th>Mes</th>
+                                        <th>Certificado</th>
+                                        <th>Acciones</th> <!-- Nueva columna para las acciones -->
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <?php foreach ($certificacionesusuarios as $certificacionusuario): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                                             <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
-                                            <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td> <!-- Mostrar el mes -->
+                                            <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
 
                                             <td class="text-center">
                                                 <?php if (!empty($certificacionusuario['url'])): ?>
@@ -347,16 +341,28 @@ if (isset($_POST['logout'])) {
                                                 <?php endif; ?>
                                             </td>
                                             <td class="text-center">
-                                                <!-- Botón de actualizar certificado -->
-    <button class="btn btn-sm btn-warning update-cert-btn" 
-            data-bs-toggle="modal" 
-            data-bs-target="#updateCertificacionModal"
-            data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
-            data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
-            data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
-            data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
-        Actualizar
-    </button>
+
+    <div class="d-flex justify-content-center">
+        <!-- Botón de actualizar certificado -->
+        <button class="btn btn-sm btn-warning" 
+                data-bs-toggle="modal" 
+                data-bs-target="#updateCertificacionModal"
+                data-certificacion-id="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>"
+                data-certificaciones-id="<?= htmlspecialchars($certificacionusuario['certificaciones_certificaciones_id']) ?>"
+                data-nombre-certificado="<?= htmlspecialchars($certificacionusuario['nombre_certificado']) ?>"
+                data-mes="<?= htmlspecialchars($certificacionusuario['nombre_mes']) ?>"
+                data-url-antigua="<?= htmlspecialchars($certificacionusuario['url']) ?>">
+            Actualizar
+        </button>
+
+        <!-- Botón de eliminar certificado -->
+        <form method="POST" action="../../models/insert.php">
+            <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
+            <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
+            <button class="btn btn-sm btn-danger " data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
+        </form>
+    </div>
+</td>
 
 
                                                 <!-- Botón de eliminar certificado -->
@@ -655,7 +661,7 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
                         <td>${cert.certificacion_nombre}</td> <!-- Cambié de 'certificacion_descripcion' a 'certificacion_nombre' si es necesario -->
                         <td>${cert.nombre_certificado}</td>
                         <td class="text-center">
-                            ${cert.url ? `<a href="${filePath}" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a>` : 'No disponible'}
+                            ${cert.url ? <a href="${filePath}" target="_blank" class="btn btn-sm btn-primary">Ver Certificado</a> : 'No disponible'}
                         </td>
                     </tr>
                 `;
@@ -667,28 +673,6 @@ document.getElementById('profesorSelect').addEventListener('change', function() 
     }
 });
 
-
-document.addEventListener("DOMContentLoaded", function () {
-    const closeModalButton = document.querySelector("#changeImageModal .btn-close"); 
-    const closeFooterButton = document.querySelector("#changeImageModal .btn-secondary"); 
-    const modal = document.getElementById("changeImageModal");
-
-    function cerrarModal() {
-        modal.classList.remove("show");
-        modal.setAttribute("aria-hidden", "true");
-        modal.style.display = "none";
-
-        // Remueve el fondo oscuro de Bootstrap si existe
-        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
-
-        // Restablece el scroll del body
-        document.body.classList.remove("modal-open");
-        document.body.style.overflow = "auto";
-    }
-
-    if (closeModalButton) closeModalButton.addEventListener("click", cerrarModal);
-    if (closeFooterButton) closeFooterButton.addEventListener("click", cerrarModal);
-});
 </script>
 
 
@@ -1005,10 +989,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }, cb);
         cb(start, end);
         $('.input-placeholder').mask("00/00/0000", {
-          placeholder: "_//_"
+          placeholder: "//"
         });
         $('.input-zip').mask('00000-000', {
-          placeholder: "_-__"
+          placeholder: "-_"
         });
         $('.input-money').mask("#.##0,00", {
           reverse: true
@@ -1022,7 +1006,7 @@ document.addEventListener("DOMContentLoaded", function () {
               optional: true
             }
           },
-          placeholder: "_._._._"
+          placeholder: "..."
         });
         // editor
         var editor = document.getElementById('editor');

@@ -1,3 +1,27 @@
+document.addEventListener("DOMContentLoaded", function () {
+    // Función para obtener parámetros de la URL
+    function obtenerParametroURL(nombre) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(nombre);
+    }
+
+    let usuarioId = document.getElementById("usuario_usuario_id").value;
+
+    // Verifica si tipoUsuario está definido (debe venir desde el script PHP)
+    if (typeof tipoUsuario !== "undefined" && tipoUsuario === 2) {
+        const usuarioDesdeURL = obtenerParametroURL("idusuario");
+        if (usuarioDesdeURL) {
+            usuarioId = usuarioDesdeURL;
+            document.getElementById("usuario_usuario_id").value = usuarioId;
+        }
+    }
+
+    // Llamar a filtrarHorario() con el usuario correcto
+    if (usuarioId) {
+        filtrarHorario();
+    }
+});
+
 
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById("usuario_usuario_id").value !== "") {
@@ -173,6 +197,79 @@ function filtrarCarreras() {
     })
     .catch(error => console.error('Error:', error));
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    var barChartCtn = document.querySelector("#barChart");
+  
+    if (barChartCtn) {
+        var nombreDocente = barChartCtn.getAttribute("data-docente") || "No definido";
+        console.log("Nombre del docente en JavaScript:", nombreDocente); // 🔍 Debug
+  
+        var tutorias = parseInt(barChartCtn.getAttribute("data-tutorias") || 0);
+        var apoyo = parseInt(barChartCtn.getAttribute("data-apoyo") || 0);
+        var frente = parseInt(barChartCtn.getAttribute("data-frente") || 0);
+        // ✅ Calculamos el total de horas
+        var totalHoras = tutorias + apoyo + frente;
+  
+        // 🎨 Define los colores de la gráfica y la leyenda
+        var chartColors = ["#008FFB", "#00E396", "#FEB019"]; // Azul, Verde, Amarillo
+  
+        var barChartoptions = {
+            series: [
+                { name: "Tutorías", data: [tutorias] },
+                { name: "Horas de Apoyo", data: [apoyo] },
+                { name: "Horas Frente al Grupo", data: [frente] }
+            ],
+            chart: {
+                type: "bar",
+                height: 150,
+                stacked: true,
+                columnWidth: "70%",
+                zoom: { enabled: false },
+                toolbar: { enabled: false },
+            },
+            theme: { mode: colors.chartTheme },
+            dataLabels: { enabled: true },
+            plotOptions: { bar: { horizontal: true, columnWidth: "30%" } },
+            xaxis: {
+                categories: [nombreDocente], // 🔥 Aquí debería aparecer el nombre correcto
+                labels: {
+                    colors: colors.mutedColor,
+                    fontFamily: base.defaultFontFamily,
+                },
+                axisBorder: { show: false },
+            },
+            yaxis: {
+                labels: {
+                    colors: colors.mutedColor,
+                    fontFamily: base.defaultFontFamily,
+                },
+            },
+            legend: {
+                position: "bottom",
+                fontFamily: base.defaultFontFamily,
+                labels: {
+                    colors: chartColors, // 🔹 La leyenda usa los mismos colores
+                    useSeriesColors: false
+                },
+            },
+            fill: { opacity: 1, colors: chartColors }, // 🔹 Los colores de las barras coinciden con la leyenda
+            grid: {
+                borderColor: colors.borderColor,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } },
+                padding: { left: 10, right: 10 },
+            },
+        };
+  
+        var barChart = new ApexCharts(barChartCtn, barChartoptions);
+        barChart.render();
+               // ✅ Mostrar el total de horas debajo de la gráfica
+               document.getElementById("total-horas").innerHTML = `
+               Total de Horas: <span style="color: #ff5733;">${totalHoras}</span>
+           `;
+    }
+  });
 
 
 document.getElementById("downloadPDF").addEventListener("click", () => {
