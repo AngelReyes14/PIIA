@@ -296,54 +296,65 @@ $usuariosFemeninos = $consultas->obtenerUsuariosPorSexo(2); // 2 para Femenino
                 </div>
 
 
-  <!-- Nuevo Contenedor Principal: PERSONAL -->
-  <div class="container-fluid mt-5 box-shadow-div p-5">
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              DIRECCIÓN ACADÉMICA
-            </div>
-            <div class="container-fluid p-3">
-              <div class="row">
+<!-- Nuevo Contenedor Principal: PERSONAL -->
+<div class="container-fluid mt-5 box-shadow-div p-5">
+    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+        DIRECCIÓN ACADÉMICA
+    </div>
+    <div class="container-fluid p-3">
+        <div class="row">
 
-              <div class="col-12 col-md-6 carta_Informacion">
+        <div class="col-12 col-md-6 carta_Informacion">
     <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
         <div class="card-header carta_Informacion">
-            <strong class="card-title text-green mb-0 carta_Informacion">Grafica por Sexo</strong>
+            <strong class="card-title text-green mb-0 carta_Informacion">Gráfica por Sexo</strong>
         </div>
-        <div class="card-body text-center">
-            <div id="donutChart6" style="max-width: 250px; margin: auto;"></div> <!-- Reducir tamaño -->
-        </div> 
-    </div> 
+        <div class="card-body text-center d-flex justify-content-center align-items-center" style="max-width: 100%; overflow: hidden;">
+            <div id="donutChart6" class="chart-container" style="width: 100%; max-width: 280px; height: 250px;"></div>
+        </div>
+    </div>
 </div>
 
-<!-- Incluir ApexCharts (si no está ya en tu proyecto) -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Datos obtenidos desde PHP
     var labelsSexo = <?php echo $labelsSexoJson; ?>;
     var valoresSexo = <?php echo $valoresSexoJson; ?>;
 
     var options = {
         chart: {
             type: 'donut',
-            width: 500 // Reducir tamaño del gráfico
+            width: '100%',
+            height: '350px' // Aumentamos la altura
         },
-        series: valoresSexo, // Cantidades
-        labels: labelsSexo, // Masculino, Femenino
-        colors: ['#1E90FF', '#FF69B4'], // Azul y rosa
+        series: valoresSexo,
+        labels: labelsSexo,
+        colors: ['#1E90FF', '#FF69B4'],
         legend: {
             position: 'bottom',
-            fontSize: '12px' // Reducir tamaño del texto en la leyenda
+            fontSize: '12px'
         },
         responsive: [{
-            breakpoint: 480,
+            breakpoint: 768,
             options: {
                 chart: {
-                    width: 200 // Más pequeño en pantallas pequeñas
+                    width: '100%',
+                    height: '280px' // Ajuste para tablets
                 },
                 legend: {
                     position: 'bottom'
+                }
+            }
+        }, {
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: '100%',
+                    height: '200px' // Ajuste para móviles
+                },
+                legend: {
+                    fontSize: '10px'
                 }
             }
         }]
@@ -352,74 +363,66 @@ document.addEventListener("DOMContentLoaded", function () {
     var chart = new ApexCharts(document.querySelector("#donutChart6"), options);
     chart.render();
 });
+
 </script>
 
 
-<!-- Tabla de Docentes -->
-<div class="col-12 col-md-6 mt-5 carta_Informacion">
-  <!-- Formulario para filtro de sexo -->
-  <form method="POST" class="mb-4">
-    <div class="form-group">
-      <label for="sexo">Filtrar por sexo</label>
-      <select name="sexo" id="sexo" class="form-control" onchange="this.form.submit()">
-        <option value="0" <?php echo $sexoSeleccionado == 0 ? 'selected' : ''; ?>>Selecciona un sexo</option>
-        <option value="1" <?php echo $sexoSeleccionado == 1 ? 'selected' : ''; ?>>Masculino</option>
-        <option value="2" <?php echo $sexoSeleccionado == 2 ? 'selected' : ''; ?>>Femenino</option>
-      </select>
+            <!-- Tabla de Docentes -->
+            <div class="col-12 col-md-6 mt-5 carta_Informacion">
+                <form method="POST" class="mb-4">
+                    <div class="form-group">
+                        <label for="sexo">Filtrar por sexo</label>
+                        <select name="sexo" id="sexo" class="form-control" onchange="this.form.submit()">
+                            <option value="0" <?php echo $sexoSeleccionado == 0 ? 'selected' : ''; ?>>Selecciona un sexo</option>
+                            <option value="1" <?php echo $sexoSeleccionado == 1 ? 'selected' : ''; ?>>Masculino</option>
+                            <option value="2" <?php echo $sexoSeleccionado == 2 ? 'selected' : ''; ?>>Femenino</option>
+                        </select>
+                    </div>
+                </form>
+
+                <div class="table-section p-3 border rounded box-shadow-div carta_Informacion" style="max-height: 450px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                        <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table datatables" id="tabla-materias-2">
+                            <thead class="thead-dark" style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Edad</th>
+                                    <th>Fecha de contratación</th>
+                                    <th>Número de empleado</th>
+                                    <th>Cédula</th>
+                                    <th>Correo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($usuariosPorSexo): ?>
+                                    <?php foreach ($usuariosPorSexo as $usuario): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?></td>
+                                            <td><?php echo htmlspecialchars($usuario['edad']); ?></td>
+                                            <td><?php echo htmlspecialchars($usuario['fecha_contratacion']); ?></td>
+                                            <td><?php echo htmlspecialchars($usuario['numero_empleado']); ?></td>
+                                            <td><?php echo htmlspecialchars($usuario['cedula']); ?></td>
+                                            <td><?php echo htmlspecialchars($usuario['correo']); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">No hay usuarios registrados.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> <!-- /.col -->
+        </div>
     </div>
-  </form>
-
-  <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-      <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
-    </div>
-    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-      <table class="table datatables" id="tabla-materias-2">
-        <thead class="thead-dark" style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
-          <tr>
-            <th>Nombre</th>
-            <th>Edad</th>
-            <th>Fecha de contratación</th>
-            <th>Número de empleado</th>
-            <th>Cédula</th>
-            <th>Correo</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if ($usuariosPorSexo): ?>
-            <?php foreach ($usuariosPorSexo as $usuario): ?>
-              <tr>
-                <td><?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?></td>
-                <td><?php echo htmlspecialchars($usuario['edad']); ?></td>
-                <td><?php echo htmlspecialchars($usuario['fecha_contratacion']); ?></td>
-                <td><?php echo htmlspecialchars($usuario['numero_empleado']); ?></td>
-                <td><?php echo htmlspecialchars($usuario['cedula']); ?></td>
-                <td><?php echo htmlspecialchars($usuario['correo']); ?></td>
-              </tr>                  
-            <?php endforeach; ?>
-          <?php else: ?>
-            <tr>
-              <td colspan="6" class="text-center">No hay usuarios registrados.</td>
-            </tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div> <!-- /.col -->
+</div>
 
 
-
-
-
-              </div>
-            </div>
-
-              </div>
-
-       
-
-              
 
           <!-- Nuevo Contenedor Principal: Incidencias -->
           <div class="container-fluid mt-5 box-shadow-div p-5">
@@ -442,11 +445,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     <!-- Cuerpo de la tarjeta -->
                     <div class="card-body text-center">
                       <!-- Incluye Chart.js -->
-                   
-
-
-
-
 
                       <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
