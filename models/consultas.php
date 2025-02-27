@@ -725,12 +725,12 @@ public function obtenerIncidenciasPorCarrera($carreraId) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-public function obtenerCarreraPorUsuario($idusuario) {
-    $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :idusuario";
+public function obtenerNombreCarreraPorId($carreraId) {
+    $query = "SELECT nombre_carrera FROM carrera WHERE carrera_id = :carrera_id";
     $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchColumn();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 
@@ -776,9 +776,8 @@ public function obtenerCarreraPorUsuario($idusuario) {
     //*********************** PRUEBA ************************************************************* */    
  
     public function obtenerUsuariosPorCarrera($carrera_id) {
-        $sql = "SELECT u.usuario_id, u.nombre_usuario, u.apellido_p, u.apellido_m
-                FROM usuario u
-                INNER JOIN usuario_has_carrera uhc ON u.usuario_id = uhc.usuario_usuario_id
+        $sql = "SELECT * from vista_usuarios
+                INNER JOIN usuario_has_carrera uhc ON usuario_id = uhc.usuario_usuario_id
                 WHERE uhc.carrera_carrera_id = :carrera_id";
     
         $stmt = $this->conn->prepare($sql);
