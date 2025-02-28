@@ -8,6 +8,71 @@ class Consultas {
         $this->conn = $dbConnection;
     }
 
+    public function obtenerDiasEconomicos($usuarioId) {
+        try {
+            $sql = "SELECT dia_incidencia FROM incidencia_has_usuario
+                    WHERE usuario_usuario_id = :usuario_id
+                    AND incidencia_incidenciaid = 3";  // Solo obtiene días económicos
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultados = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+            return $resultados ? $resultados : [];
+        } catch (PDOException $e) {
+            error_log("Error al obtener días económicos: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    
+
+    public function obtenerDiasEconomicosTomados($usuarioId) {
+        try {
+            $sql = "SELECT COUNT(*) AS total_tomados
+                    FROM incidencia_has_usuario
+                    WHERE usuario_usuario_id = :usuario_id
+                    AND incidencia_incidenciaid = 3";  // Solo cuenta días económicos
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            return $resultado ? $resultado['total_tomados'] : 0;
+        } catch (PDOException $e) {
+            error_log("Error al obtener días económicos tomados: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    
+    public function obtenerCuerpoColegiadoPorUsuario($usuarioId) {
+        try {
+            $sql = "SELECT cc.descripcion 
+                    FROM usuario u
+                    INNER JOIN cuerpo_colegiado cc ON u.cuerpo_colegiado_cuerpo_colegiado_id = cc.cuerpo_colegiado_id
+                    WHERE u.usuario_id = :usuario_id";
+    
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            // Depuración
+            echo "<pre>";
+            print_r($resultado);
+            echo "</pre>";
+    
+            return $resultado;
+        } catch (PDOException $e) {
+            error_log("Error al obtener cuerpo colegiado: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    
     
     public function obtenerTutoriaPorUsuario($usuarioId, $periodoId) {
         $query = "SELECT 
@@ -225,7 +290,7 @@ public function obtenerDatosIncidencias2() {
 }
 
 
-public function obtenerCertificacionesPorUsuario($usuarioId) {
+public function obtenerCertificacionesPorUsuario($idusuario) {
     try {
         // Consulta SQL con la tabla 'meses' en lugar de 'mes'
         $sql = "SELECT 
@@ -243,7 +308,7 @@ public function obtenerCertificacionesPorUsuario($usuarioId) {
                 ORDER BY c.certificados_id";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':usuarioId', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindParam(':usuarioId', $idusuario, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -330,6 +395,24 @@ public function obtenerIncidenciasUsuarios() {
     } catch (PDOException $e) {
         die("Error al obtener incidencias: " . $e->getMessage());
     }
+}
+
+
+public function GraficaSexo() {
+    $query = "
+        SELECT 
+            s.descripcion AS sexo, 
+            COUNT(*) AS cantidad 
+        FROM usuario u
+        JOIN sexo s ON u.sexo_sexo_id = s.sexo_id
+        WHERE u.sexo_sexo_id IN (1, 2)
+        GROUP BY s.descripcion
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve los resultados como un array asociativo
 }
 
 

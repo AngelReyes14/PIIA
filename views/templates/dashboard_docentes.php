@@ -41,6 +41,16 @@ $nombreDocente = isset($usuario['nombre_usuario']) && isset($usuario['apellido_p
     : 'Nombre no disponible';
 
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
+$cuerpoColegiado = $consultas->obtenerCuerpoColegiadoPorUsuario($idusuario);
+
+$diasEconomicosTotales = 3; // Máximo permitido
+$diasEconomicosTomados = $consultas->obtenerDiasEconomicosTomados($idusuario);
+$diasEconomicos = $consultas->obtenerDiasEconomicos($idusuario);
+
+// Verificar si PHP realmente tiene datos antes de enviarlos a JS
+echo "<pre>";
+print_r($diasEconomicos);
+echo "</pre>";
 
 
 // Redirigir si no se encuentra el usuario
@@ -170,6 +180,11 @@ if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && !empty($idusuario)) {
     exit();
 }
 ?>
+<script>
+  economicDays = <?php echo json_encode($diasEconomicos, JSON_PRETTY_PRINT); ?>;
+  console.log("Días Económicos desde PHP:", economicDays);
+</script>
+
 
 
 
@@ -554,15 +569,16 @@ function llenarSelectDocente() {
         <div class="row d-flex justify-content-center">
           <!-- Bloque de Días Económicos -->
           <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="card-body-calendar box-shadow-div mb-3">
-              <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-              <div class="text-verde">4</div>
-            </div>
-            <div class="card-body-calendar box-shadow-div">
-              <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
-              <div class="text-verde">1</div>
-            </div>
-          </div>
+    <div class="card-body-calendar box-shadow-div mb-3">
+        <h3 class="h5">DÍAS ECONÓMICOS TOTALES</h3>
+        <div class="text-verde"><?php echo $diasEconomicosTotales; ?></div>
+    </div>
+    <div class="card-body-calendar box-shadow-div">
+        <h3 class="h5">DÍAS ECONÓMICOS TOMADOS</h3>
+        <div class="text-verde"><?php echo $diasEconomicosTomados; ?></div>
+    </div>
+</div>
+
 
           <!-- Calendario -->
           <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
@@ -1003,7 +1019,7 @@ evaluacionChart = new Chart(ctx, {
                       <tr>
                         <td><?php echo htmlspecialchars($certificacionusuario['certificacion_descripcion']); ?></td>
                         <td><?php echo htmlspecialchars($certificacionusuario['nombre_certificado']); ?></td>
-                        <td><?php echo htmlspecialchars($certificacionusuario['meses_descripcion']); ?></td>
+                        <td><?php echo htmlspecialchars($certificacionusuario['nombre_mes']); ?></td>
                         <!-- Mostrar el mes -->
                         <td class="text-center">
                           <?php if (!empty($certificacionusuario['url'])): ?>
@@ -1156,34 +1172,16 @@ evaluacionChart = new Chart(ctx, {
 
         <div class="row mb-3">
           <!-- Card de Días Económicos Totales y Tomados -->
-          <div class="col-lg-6 mb-3">
-            <!-- Card Días Económicos Totales -->
-            <div class="card box-shadow-div text-center border-9">
-              <div class="card-body">
+          <div class="col-lg-12 mb-3">
+        <div class="card box-shadow-div text-center border-9">
+            <div class="card-body">
                 <h3 class="font-weight-bold mb-0">CUERPO COLEGIADO</h3>
-                <h1 class="text-success">DESARROLLO CCAI</h1>
-              </div>
+                <h1 class="text-success">
+                    <?php echo isset($cuerpoColegiado['descripcion']) ? htmlspecialchars($cuerpoColegiado['descripcion']) : 'No disponible'; ?>
+                </h1>
             </div>
-          </div>
-
-          <div class="col-lg-6 mb-3">
-            <!-- Card Lista de Avisos (a la derecha) -->
-            <div class="card box-shadow-div text-left border-5">
-              <div class="card-body mb-3">
-                <h1>PRODUCTOS DE INVESTIGACIÓN</h1>
-                <ul class="list-group">
-                  <li class="list-group-item border-3">
-                    <h3 class="text-success">Investigación del conocimiento aplicado a la IA</h3>
-                  </li>
-                  <li class="list-group-item border-3">(Mayo 2023)</li>
-                  <li class="list-group-item border-3 text-success">
-                    <h3 class="text-success"> Desarrollo de software para el control de bitacoras </h3>
-                  </li>
-                  <li class="list-group-item border-3">(Agosto 2023)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        </div>
+    </div>
         </div>
 
 
@@ -1403,7 +1401,6 @@ evaluacionChart = new Chart(ctx, {
   <script src='js/dropzone.min.js'></script>
   <script src='js/uppy.min.js'></script>
   <script src='js/quill.min.js'></script>
-  <script src="js/fullcalendar.custom.js"></script>
   <script src="js/fullcalendar.js"></script>
   <script src="../js/carrusel.js"></script>
   <script src="js/apps.js"></script>

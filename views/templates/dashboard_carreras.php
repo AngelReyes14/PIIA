@@ -104,6 +104,18 @@ foreach ($grados as $grado) {
     $values[] = $grado['total_usuarios'];
 }
 
+// Obtener datos de la gráfica de sexo
+$graficaSexo = $consultas->GraficaSexo();
+
+$labelsSexo = [];
+$valoresSexo = [];
+
+// Extraer los datos del array asociativo
+foreach ($graficaSexo as $fila) {
+    $labelsSexo[] = $fila['sexo']; // 'Masculino' o 'Femenino'
+    $valoresSexo[] = (int) $fila['cantidad']; // Cantidad de usuarios
+}
+
 // Convertir datos a JSON para pasarlos a JavaScript
 $mesesJson = json_encode($todosMeses);
 $certificaciones1Json = json_encode($certificaciones1PorMes);
@@ -112,11 +124,11 @@ $carrerasJson = json_encode($carreras);
 $incidenciasJson = json_encode($incidencias);
 $promediosJson = json_encode($promedios);
 
-
+$labelsSexoJson = json_encode($labelsSexo);
+$valoresSexoJson = json_encode($valoresSexo);
 ?>
 
-
-
+-----------------------------------------------------------------------------------------------------------------
 
 
 
@@ -460,7 +472,7 @@ $promediosJson = json_encode($promedios);
                       <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
                       <!-- Nuevo contenedor para el gráfico de pastel -->
-<div id="donutChart4"></div>
+                    <div id="donutChart4"></div>
 
 
 
@@ -867,17 +879,63 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
             <div class="container-fluid p-3">
               <div class="row">
-                <!-- Donut Chart Card -->
-                <div class="col-12 col-sm-6 carta_Informacion">
-                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-                    <div class="card-header carta_Informacion">
-                      <strong class="card-title text-green mb-0 carta_Informacion">Grado académico de docentes en la división</strong>
-                    </div>
-                    <div class="card-body text-center">
-                      <div id="donutChart2" style="width: 100%; height: auto;"></div>
-                    </div> <!-- /.card-body -->
-                  </div> <!-- /.card -->
-                </div> <!-- /.col -->
+
+
+              <div class="col-12 col-md-6 carta_Informacion">
+    <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
+        <div class="card-header carta_Informacion">
+            <strong class="card-title text-green mb-0 carta_Informacion">Grafica por Sexo</strong>
+        </div>
+        <div class="card-body text-center">
+            <div id="donutChart6"></div> <!-- Se cambió el ID a donutChart6 -->
+        </div> 
+    </div> 
+</div>
+
+<!-- Incluir ApexCharts (si no está ya en tu proyecto) -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Datos obtenidos desde PHP
+    var labelsSexo = <?php echo $labelsSexoJson; ?>;
+    var valoresSexo = <?php echo $valoresSexoJson; ?>;
+
+    var options = {
+        chart: {
+            type: 'donut'
+        },
+        series: valoresSexo, // Cantidades
+        labels: labelsSexo, // Masculino, Femenino
+        colors: ['#1E90FF', '#FF69B4'], // Azul y rosa
+        legend: {
+            position: 'bottom'
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 300
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    };
+
+    var chart = new ApexCharts(document.querySelector("#donutChart6"), options); // Se cambió a donutChart6
+    chart.render();
+});
+</script>
+
+
+
+
+
+
+
+
                 <!-- Tabla de Docentes -->
                 <div class="col-12 col-md-6 mt-6 carta_Informacion">
                   <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
