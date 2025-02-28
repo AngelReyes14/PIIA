@@ -9,6 +9,16 @@ $consultas = new Consultas($conn);
 
 // Obtener el ID del usuario actual y el tipo de usuario desde la sesión
 $idusuario = (int) $_SESSION['user_id'];
+// Obtener datos de la carrera
+$carreraData = $consultas->datosCarreraPorId($idusuario);
+$carreraId = $carreraData ? $carreraData['carrera_id'] : null;
+
+$nombreCarrera = 'Sin división';
+if ($carreraId) {
+    $carreraInfo = $consultas->obtenerNombreCarreraPorId($carreraId);
+    $nombreCarrera = $carreraInfo ? htmlspecialchars($carreraInfo['nombre_carrera']) : 'Sin división';
+}
+
 $tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
@@ -165,9 +175,8 @@ $resultados_json = json_encode($resultados);
 
 <?php
 // Si tipoUsuario es 2 y aún no tiene idusuario en la URL, lo establecemos antes de renderizar la página.
-if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
-    // Redirigir con el idusuario
-    header("Location: dashboard_docentes.php?idusuario=" . $idusuario);
+if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && !empty($idusuario)) {
+    header("Location: dashboard_docentes.php?idusuario=" . urlencode($idusuario));
     exit();
 }
 ?>
@@ -175,6 +184,7 @@ if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
   economicDays = <?php echo json_encode($diasEconomicos, JSON_PRETTY_PRINT); ?>;
   console.log("Días Económicos desde PHP:", economicDays);
 </script>
+
 
 
 
@@ -286,8 +296,8 @@ if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
     </div>
 <?php endif; ?>
 
- <!-- Código HTML del carrusel -->
- <main role="main" class="main-content">
+<!-- Código HTML del carrusel -->
+<main role="main" class="main-content">
 <div id="teacherCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="container-fluid mb-3">
           <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div">
@@ -319,7 +329,7 @@ if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && isset($idusuario)) {
                                     <strong class="name-line">Fecha de contratación:</strong> <?= htmlspecialchars($usuario["fecha_contratacion"]) ?> <br>
                                     <strong class="name-line">Antigüedad:</strong> <?= htmlspecialchars($usuario["antiguedad"]) ?> años <br>
                                     <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?><br>
-                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["numero_empleado"]) ?> <br>
+                                    <strong class="name-line">Número de Empleado:</strong> <?= htmlspecialchars($usuario["carrera_carrera_id"]) ?> <br>
                                     <strong class="name-line">Grado académico:</strong> <?= htmlspecialchars($usuario["grado_academico"]) ?> <br>
                                     <strong class="name-line">Cédula:</strong> <?= htmlspecialchars($usuario["cedula"]) ?> <br>
                                     <strong class="name-line">Correo:</strong> <?= htmlspecialchars($usuario["correo"]) ?> <br>
@@ -378,112 +388,134 @@ function toggleCampos() {
     archivoInput.value = "";
   }
 }
+let usuarios = []; // Define la variable en un ámbito accesible
 
 document.addEventListener("DOMContentLoaded", function () {
-    const tipoUsuarioId = <?= json_encode($tipoUsuarioId) ?>;
-    let idusuario = <?= json_encode($idusuario) ?>;
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (!urlParams.has("idusuario")) {
-        // Si no hay idusuario en la URL, agregamos el que tenemos en PHP y recargamos
-        history.replaceState(null, "", `?idusuario=${idusuario}`);
-    } else {
-        // Si sí hay idusuario en la URL, lo usamos
-        idusuario = parseInt(urlParams.get("idusuario")) || idusuario;
-    }
-
-    console.log("ID de usuario obtenido:", idusuario);
-
-    const anterior = document.getElementById("anterior");
-    const siguiente = document.getElementById("siguiente");
+    const idcarrera = <?= json_encode($carreraId) ?>;
     const carouselContent = document.getElementById('carouselContent');
+    const btnSiguiente = document.getElementById('siguiente');
+    const btnAnterior = document.getElementById('anterior');
+    let currentIndex = 0;
 
-    if (tipoUsuarioId === 1) {
-        anterior.disabled = true;
-        siguiente.disabled = true;
-    } else {
-        function updateUrl(incremento) {
-            idusuario += incremento;
-            console.log("Nuevo idusuario:", idusuario);
+    function cargarUsuariosPorCarrera() {
+    $.ajax({
+        url: '../templates/filtrarPorCarrera.php',
+        type: 'POST',
+        data: { carrera_id: idcarrera },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.length > 0) {
+                usuarios = response; // Asigna la respuesta a la variable global
+                currentIndex = 0;
 
-            if (tipoUsuarioId !== 5) {
-                history.pushState(null, "", `?idusuario=${idusuario}`);
-                cargarUsuario(idusuario); // Llama a la función para actualizar el contenido
+                // Primero llenamos el select
+                llenarSelectDocente();
+
+                // Luego actualizamos el carrusel para que se muestre el primer usuario
+                actualizarCarrusel();
+            } else {
+                carouselContent.innerHTML = `<p class="text-center text-danger">No hay docentes registrados en esta carrera.</p>`;
+                btnSiguiente.disabled = true;
+                btnAnterior.disabled = true;
             }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al obtener datos de los docentes:", error);
         }
+    });
+}
 
-        siguiente.addEventListener("click", () => updateUrl(1));
-        anterior.addEventListener("click", () => updateUrl(-1));
+function llenarSelectDocente() {
+    const selectDocente = document.getElementById('usuario_usuario_id');
+    selectDocente.innerHTML = ''; // Limpiar opciones previas
+
+    // Agregar una opción por defecto si no hay usuarios
+    if (usuarios.length === 0) {
+        selectDocente.innerHTML += '<option value="">Selecciona un docente</option>';
     }
 
-    function cargarUsuario(id) {
-        console.log(`Cargando usuario con idusuario: ${id}`);
+    usuarios.forEach(usuario => {
+        const option = document.createElement('option');
+        option.value = usuario.id_usuario || usuario.usuario_id; // Ajusta según la estructura de la respuesta AJAX
+        option.textContent = `${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}`; // Nombre completo
+        selectDocente.appendChild(option);
+    });
 
-        $.ajax({
-            url: '../templates/obtenerDatosUsuario.php',
-            type: 'GET',
-            data: { idusuario: id },
-            dataType: 'json',
-            success: function(response) {
-                console.log("Respuesta del servidor:", response);
-                if (response && !response.error) {
-                    actualizarCarrusel(response);
-                } else {
-                    console.warn("No se encontró información del usuario.");
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error al obtener datos del usuario.");
-                console.error("Estado:", status);
-                console.error("Detalles del error:", error);
-                console.error("Respuesta del servidor:", xhr.responseText);
-            }
-        });
+    // Si hay usuarios, selecciona el primero automáticamente
+    if (usuarios.length > 0) {
+        selectDocente.value = usuarios[currentIndex].id_usuario || usuarios[currentIndex].usuario_id; // Selecciona el primer usuario
     }
+}
 
-    function actualizarCarrusel(usuario) {
-        carouselContent.innerHTML = '';
 
-        const fechaContratacion = new Date(usuario.fecha_contratacion);
-        const fechaActual = new Date();
-        let antiguedad = fechaActual.getFullYear() - fechaContratacion.getFullYear();
-        if (fechaActual.getMonth() < fechaContratacion.getMonth() || 
-            (fechaActual.getMonth() === fechaContratacion.getMonth() && fechaActual.getDate() < fechaContratacion.getDate())) {
-            antiguedad--;
-        }
+    function actualizarCarrusel() {
+    carouselContent.innerHTML = ''; // Limpiar contenido previo
 
-        const carouselItem = `
-            <div class="carousel-item active">
-                <div class="row">
-                    <div class="col-12 col-md-5 col-xl-3 text-center">
-                        <strong class="name-line">Foto del Docente:</strong> <br>
-                        <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
-                    </div>
-                    <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
-                        <p class="teacher-info h4">
-                            <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
-                            <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
-                            <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
-                            <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
-                            <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
-                            <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
-                            <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
-                            <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
-                            <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
-                        </p>
-                    </div>
+    if (usuarios.length === 0) return;
+
+    const usuario = usuarios[currentIndex];
+
+    // Obtener el ID correcto del usuario
+    const userId = usuario.id_usuario || usuario.usuario_id; // Ajusta según la estructura de la respuesta AJAX
+
+    // Actualizar el valor del select de docentes para que coincida con el usuario actual
+    const selectDocente = document.getElementById('usuario_usuario_id');
+    selectDocente.value = userId; // Seleccionar automáticamente el docente actual
+
+    // Lógica para actualizar el contenido del carrusel (igual que antes)
+    const carouselItem = `
+        <div class="carousel-item active">
+            <div class="row">
+                <div class="col-12 col-md-5 col-xl-3 text-center">
+                    <strong class="name-line">Foto del Docente:</strong> <br>
+                    <img src="../${usuario.imagen_url}" alt="Imagen del docente" class="img-fluid tamanoImg rounded">
+                </div>
+                <div class="col-12 col-md-7 col-xl-9 data-teacher mb-0">
+                    <p class="teacher-info h4">
+                        <strong class="name-line">Docente:</strong> ${usuario.nombre_usuario} ${usuario.apellido_p} ${usuario.apellido_m}<br>
+                        <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
+                        <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
+                        <strong class="name-line">División Adscrita:</strong> <?= $nombreCarrera ?> <br>
+                        <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
+                        <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
+                        <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
+                        <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
+                    </p>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        carouselContent.innerHTML = carouselItem;
-    }
+    carouselContent.innerHTML = carouselItem;
 
-    // Cargar usuario inicial basado en la URL
-    cargarUsuario(idusuario);
+    // Habilitar/deshabilitar botones según el índice actual
+    btnAnterior.disabled = currentIndex === 0;
+    btnSiguiente.disabled = currentIndex === usuarios.length - 1;
+}
+
+
+    // Evento para avanzar al siguiente docente
+    btnSiguiente.addEventListener("click", function () {
+        if (currentIndex < usuarios.length - 1) {
+            currentIndex++;
+            actualizarCarrusel();
+        }
+    });
+
+    // Evento para retroceder al docente anterior
+    btnAnterior.addEventListener("click", function () {
+        if (currentIndex > 0) {
+            currentIndex--;
+            actualizarCarrusel();
+        }
+    });
+
+    // Cargar los docentes al cargar la página
+    cargarUsuariosPorCarrera();
 });
 
 </script>
+
 
 
 
@@ -1052,37 +1084,34 @@ evaluacionChart = new Chart(ctx, {
         <div class="col-md-6">
           <!-- Docente -->
           <div class="form-group mt-2">
-            <label for="usuario_usuario_id">Docente:</label>
-            <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required onchange="filtrarCarreras()" 
-        <?= ($tipoUsuarioId === 1) ? 'disabled' : ''; ?>>
-    <?php if ($tipoUsuarioId === 1 || isset($_GET['idusuario'])): ?>
-        <option value="<?php echo $idusuario; ?>" selected>
-            <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
-        </option>
-    <?php else: ?>
-        <option value="">Seleccione un usuario</option>
-        <?php foreach ($usuarios as $user): ?>
-            <option value="<?php echo $user['usuario_id']; ?>" <?= ($user['usuario_id'] == $idusuario) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($user['nombre_usuario'] . ' ' . $user['apellido_p'] . ' ' . $user['apellido_m']); ?>
+    <label for="usuario_usuario_id">Docente:</label>
+    <select class="form-control" id="usuario_usuario_id" name="usuario_usuario_id" required disabled>
+        <option value="">Selecciona un docente</option>
+        <?php foreach ($usuarios as $usuario): ?>
+            <option value="<?php echo $usuario['usuario_id']; ?>" <?= ($usuario['usuario_id'] == $usuarioActualId) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
             </option>
         <?php endforeach; ?>
-    <?php endif; ?>
-</select>
+    </select>
+</div>
 
-          </div>
         </div>
         <div class="col-md-6">
-          <!-- Carrera -->
-          <div class="form-group mt-2">
-            <label for="carrera_carrera_id" class="form-label">Carrera:</label>
-            <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required onchange="filtrarCarreras()">
-              <option value="">Selecciona una carrera</option>
-              <?php foreach ($carreras as $carrera): ?>
-                <option value="<?php echo $carrera['carrera_id']; ?>"><?php echo htmlspecialchars($carrera['nombre_carrera']); ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-        </div>  
+    <!-- Carrera -->
+    <div class="form-group mt-2">
+        <label for="carrera_carrera_id" class="form-label">Carrera:</label>
+        <select class="form-control" id="carrera_carrera_id" name="carrera_carrera_id" required>
+    <option value="">Selecciona una carrera</option>
+    <?php foreach ($carreras as $carrera): ?>
+        <option value="<?php echo $carrera['carrera_id']; ?>" <?= ($carrera['carrera_id'] == $carreraId) ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($carrera['nombre_carrera']); ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+
+    </div>
+</div>
+
       </div>
 
       <!-- Tabla -->

@@ -16,10 +16,9 @@ class SessionManager
     // Método para verificar si la sesión está activa
     public function isSessionActive()
     {
-        // Asegurarse de que haya un ID de usuario en la sesión
-        return isset($_SESSION['user_id']);
+        return isset($_SESSION['user_id']) && isset($_SESSION['carrera_carrera_id']);
     }
-
+    
     // Método para verificar si la sesión ha caducado
     public function isSessionExpired()
     {
@@ -77,6 +76,10 @@ class SessionManager
     {
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
+
+    public function getCarreraId(){
+        return isset($_SESSION['carrera_carrera_id']) ? $_SESSION['carrera_carrera_id'] : null;
+    }
 }
 
 // Crear una instancia de la clase SessionManager
@@ -85,6 +88,7 @@ $sessionManager = new SessionManager($sessionLifetime);
 
 // Obtenemos el ID del usuario a través del SessionManager
 $idusuario = $sessionManager->getUserId();
+$idcarrera = $sessionManager->getCarreraId();
 
 if ($idusuario === null) {
     // Si no hay un usuario logueado, redirigir al login
