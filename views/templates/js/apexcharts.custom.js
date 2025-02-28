@@ -1282,6 +1282,50 @@ bubblechartCtn &&
       colors: ["#33701b", "#78d249", "#274c1b"] 
     }
   };
+
+  var donutChartOptions2 = {
+    series: values, // Usamos los porcentajes como series
+    chart: {
+      type: "donut",
+      height: '300px',
+      width: '100%',
+      responsive: [{
+        breakpoint: 768,
+        options: {
+          chart: {
+            height: 200
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }]
+    },
+    labels: labels, // Etiquetas que corresponderán a los tipos de incidencia
+    legend: {
+      position: "bottom",
+      markers: {
+        width: 10,
+        height: 10,
+        radius: 6
+      }
+    },
+    stroke: {
+      colors: ["#ffffff"],
+      width: 1
+    },
+    fill: {
+      opacity: 1,
+      colors: ["#33701b", "#78d249", "#274c1b"] // Aquí puedes ajustar los colores
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val.toFixed(1); // Redondear al primer dígito decimal
+        }
+      }
+    }
+  };
   
   // Initialize the first donut chart
   var donutChart1Ctn = document.querySelector("#donutChart");
@@ -1300,7 +1344,7 @@ bubblechartCtn &&
   // Initialize the third donut chart
   var donutChart3Ctn = document.querySelector("#donutChart3");
   if (donutChart3Ctn) {
-    var donutChart3 = new ApexCharts(donutChart3Ctn, donutChartOptions);
+    var donutChart3 = new ApexCharts(donutChart3Ctn, donutChartOptions2);
     donutChart3.render();
   }
   

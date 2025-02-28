@@ -19791,24 +19791,23 @@ button#downloadPDF:hover {
   }
 }
 
-.economic-day {
-  background-color: #ffeb3b !important; /* Amarillo */
-  border-radius: 50%;
-  font-weight: bold;
+
+.chart-box {
+  width: 100%;  /* El contenedor se adapta al ancho del padre */
+  height: 400px;  /* Ajusta la altura en pantallas grandes */
+  max-width: 100%; /* El ancho no puede exceder el 100% del contenedor */
 }
-.economic-icon {
-  width: 16px;
-  height: 16px;
-  margin-left: 5px;
+
+/* Hacer que la altura se ajuste en pantallas pequeñas */
+@media (max-width: 768px) {
+  .chart-box {
+      height: 250px;  /* Menor altura para dispositivos móviles */
+  }
 }
-.day.registered::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid red;
+
+@media (min-width: 769px) {
+  .chart-box {
+      height: 400px;  /* Altura más grande para pantallas de escritorio */
+  }
+
 }

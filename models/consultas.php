@@ -60,11 +60,7 @@ class Consultas {
             $stmt->execute();
             $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
     
-            // Depuración
-            echo "<pre>";
-            print_r($resultado);
-            echo "</pre>";
-    
+
             return $resultado;
         } catch (PDOException $e) {
             error_log("Error al obtener cuerpo colegiado: " . $e->getMessage());
@@ -233,7 +229,61 @@ public function obtenerHorasMaterias($idusuario, $periodoId) {
     return $horas;
 }
 
+public function obtenerIncidenciasPorcentaje() {
+    try {
+        $query = "
+            SELECT 
+                i.descripcion, 
+                COUNT(*) AS cantidad_incidencias
+            FROM 
+                incidencia_has_usuario ihu
+            JOIN 
+                incidencia i ON ihu.incidencia_incidenciaid = i.incidenciaid
+            GROUP BY i.descripcion
+        ";
 
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Obtener el total de incidencias
+        $totalIncidencias = array_sum(array_column($resultados, 'cantidad_incidencias'));
+
+        // Calcular el porcentaje de cada incidencia
+        foreach ($resultados as &$resultado) {
+            $resultado['porcentaje'] = ($resultado['cantidad_incidencias'] / $totalIncidencias) * 100;
+        }
+
+        return $resultados;
+    } catch (PDOException $e) {
+        error_log("Error al obtener incidencias: " . $e->getMessage());
+        return [];
+    }
+}
+
+public function obtenerDatosIncidencias2() {
+    try {
+        $query = "
+            SELECT 
+                ihu.incidencia_has_usuario_id, 
+                ihu.motivo, 
+                ihu.dia_incidencia, 
+                ihu.status_incidencia_id
+            FROM 
+                incidencia_has_usuario ihu
+        ";
+
+        // Preparamos y ejecutamos la consulta
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $resultados;
+    } catch (PDOException $e) {
+        error_log("Error al obtener incidencias: " . $e->getMessage());
+        return [];
+    }
+}
 
 
 public function obtenerCertificacionesPorUsuario($idusuario) {
@@ -341,6 +391,43 @@ public function obtenerIncidenciasUsuarios() {
     } catch (PDOException $e) {
         die("Error al obtener incidencias: " . $e->getMessage());
     }
+}
+
+
+public function GraficaSexo() {
+    $query = "
+        SELECT 
+            s.descripcion AS sexo, 
+            COUNT(*) AS cantidad 
+        FROM usuario u
+        JOIN sexo s ON u.sexo_sexo_id = s.sexo_id
+        WHERE u.sexo_sexo_id IN (1, 2)
+        GROUP BY s.descripcion
+    "; 
+    
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve los resultados como un array asociativo
+}
+
+
+public function obtenerUsuariosPorSexo($sexoSeleccionado) {
+    // Asumiendo que 'sexo' es una columna en la base de datos
+    $sql = "SELECT nombre_usuario, apellido_p, apellido_m, edad, fecha_contratacion, numero_empleado, cedula, correo 
+            FROM usuario WHERE sexo_sexo_id = :sexo";  // Cambié 'usuarios' por 'usuario' y la columna 'sexo' por 'sexo_sexo_id'
+    
+    // Preparar la consulta
+    $stmt = $this->conn->prepare($sql);
+
+    // Vincular el parámetro
+    $stmt->bindParam(':sexo', $sexoSeleccionado);
+
+    // Ejecutar la consulta
+    $stmt->execute();
+
+    // Devolver los resultados
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 
@@ -736,12 +823,12 @@ public function obtenerIncidenciasPorCarrera($carreraId) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-public function obtenerCarreraPorUsuario($idusuario) {
-    $query = "SELECT carrera_carrera_id FROM usuario WHERE usuario_id = :idusuario";
+public function obtenerNombreCarreraPorId($carreraId) {
+    $query = "SELECT nombre_carrera FROM carrera WHERE carrera_id = :carrera_id";
     $stmt = $this->conn->prepare($query);
-    $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+    $stmt->bindParam(':carrera_id', $carreraId, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchColumn();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 
@@ -787,9 +874,8 @@ public function obtenerCarreraPorUsuario($idusuario) {
     //*********************** PRUEBA ************************************************************* */    
  
     public function obtenerUsuariosPorCarrera($carrera_id) {
-        $sql = "SELECT u.usuario_id, u.nombre_usuario, u.apellido_p, u.apellido_m
-                FROM usuario u
-                INNER JOIN usuario_has_carrera uhc ON u.usuario_id = uhc.usuario_usuario_id
+        $sql = "SELECT * from vista_usuarios
+                INNER JOIN usuario_has_carrera uhc ON usuario_id = uhc.usuario_usuario_id
                 WHERE uhc.carrera_carrera_id = :carrera_id";
     
         $stmt = $this->conn->prepare($sql);
