@@ -1,35 +1,19 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Función para obtener parámetros de la URL
-    function obtenerParametroURL(nombre) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(nombre);
-    }
-
-    let usuarioId = document.getElementById("usuario_usuario_id").value;
-
-    // Verifica si tipoUsuario está definido (debe venir desde el script PHP)
-    if (typeof tipoUsuario !== "undefined" && tipoUsuario === 2) {
-        const usuarioDesdeURL = obtenerParametroURL("idusuario");
-        if (usuarioDesdeURL) {
-            usuarioId = usuarioDesdeURL;
-            document.getElementById("usuario_usuario_id").value = usuarioId;
-        }
-    }
-
-    // Llamar a filtrarHorario() con el usuario correcto
-    if (usuarioId) {
-        filtrarHorario();
-    }
-});
-
-
 document.addEventListener('DOMContentLoaded', function () {
-    if (document.getElementById("usuario_usuario_id").value !== "") {
-        filtrarCarreras();
-    }
-});
+    const carreraSelect = document.getElementById("carrera_carrera_id");
+    const usuarioSelect = document.getElementById("usuario_usuario_id");
+    const periodoSelect = document.getElementById("periodo_periodo_id");
 
-document.addEventListener('DOMContentLoaded', function () {
+    // Carga el horario si ya hay valores predeterminados seleccionados
+    if (periodoSelect.value && usuarioSelect.value && carreraSelect.value) {
+        filtrarHorario();  // Llama a filtrarHorario() si hay carrera, usuario y periodo seleccionados
+    }
+
+    // Escucha los cambios en los selects
+    ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id'].forEach(id =>
+        document.getElementById(id).addEventListener('change', filtrarHorario)
+    );
+
+    // Define los horarios y días
     const horas = [
         { id: 1, descripcion: '07:00 - 08:00' },
         { id: 2, descripcion: '08:00 - 09:00' },
@@ -55,20 +39,15 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: 5, descripcion: 'Viernes' },
     ];
 
-    ['periodo_periodo_id', 'usuario_usuario_id', 'carrera_carrera_id'].forEach(id =>
-        document.getElementById(id).addEventListener('change', filtrarHorario)
-    );
-
     async function filtrarHorario() {
-        const periodo = document.getElementById('periodo_periodo_id').value;
-        const usuarioId = document.getElementById('usuario_usuario_id').value;
-        const carrera = document.getElementById('carrera_carrera_id').value;
+        const periodo = periodoSelect.value;
+        const usuarioId = usuarioSelect.value;
+        const carrera = carreraSelect.value;
 
+        // Solo se procede si hay un periodo, usuario y carrera seleccionados
         if (!periodo || !usuarioId || !carrera) {
             return;
         }
-
-        const usuarioSeleccionado = usuarioId;
 
         try {
             const response = await fetch('../../models/cargar_horario.php', {
@@ -80,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!response.ok) throw new Error('Error en la respuesta del servidor');
             const data = await response.json();
 
-            console.log("Datos recibidos del servidor:", data); // Verifica la respuesta en la consola
+            console.log("Datos recibidos del servidor:", data);
 
             if (data.length === 0) {
                 Swal.fire({
@@ -103,8 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             mostrarTablaVacia();
         }
-
-        document.getElementById('usuario_usuario_id').value = usuarioSeleccionado;
     }
 
     function generarTablaHTML(data) {
@@ -147,56 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
         mostrarTabla([]);
     }
 });
-
-function filtrarCarreras() {
-    var usuarioId = document.getElementById("usuario_usuario_id").value;
-    var selectCarreras = document.getElementById("carrera_carrera_id");
-
-    // Guardar la carrera seleccionada antes de actualizar
-    var carreraSeleccionada = selectCarreras.value;
-
-    console.log("Usuario seleccionado:", usuarioId);
-
-    // Si no hay usuario seleccionado, limpiar el select
-    if (usuarioId === "") {
-        selectCarreras.innerHTML = '<option value="">Selecciona una carrera</option>';
-        return;
-    }
-
-    // Petición para obtener las carreras asociadas al usuario
-    fetch('../../models/cargar_carreras.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'usuario_usuario_id=' + encodeURIComponent(usuarioId)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Respuesta del servidor:", data);
-
-        // Reiniciar opciones de carrera
-        selectCarreras.innerHTML = '<option value="">Selecciona una carrera</option>';
-
-        if (data.error) {
-            console.error(data.error);
-        } else {
-            // Agregar las nuevas opciones de carreras filtradas
-            data.forEach(carrera => {
-                var option = document.createElement("option");
-                option.value = carrera.carrera_id;
-                option.textContent = carrera.nombre_carrera;
-                selectCarreras.appendChild(option);
-            });
-        }
-
-        // Restaurar la carrera seleccionada si sigue disponible
-        if (carreraSeleccionada && [...selectCarreras.options].some(opt => opt.value === carreraSeleccionada)) {
-            selectCarreras.value = carreraSeleccionada;
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
 
 document.addEventListener("DOMContentLoaded", function () {
     var barChartCtn = document.querySelector("#barChart");

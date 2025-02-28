@@ -574,61 +574,61 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
           <!-- Contenedor de Cursos Pedagógicos -->
-          <div class="container-fluid mt-5  box-shadow-div p-5">
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-            Acreditaciones Pedagógicas
-            </div>
-
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Gráfico de Cursos Pedagógicos -->
-                <!-- Aquí se incluye el gráfico -->
-                <div class="container-fluid">
-  <div class="row my-4">
-    <div class="col-md-12">
-      <div class="chart-box rounded">
-        <canvas id="columnChartTipo1"></canvas> <!-- Contenedor para el gráfico tipo 1 -->
-      </div>
-    </div> <!-- .col -->
-  </div> <!-- end section -->
-</div> 
-
-<div class="col-md-12 carta_Informacion">
-    <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
-        <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
-            <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Pedagógicas</h4> <!-- Título actualizado -->
-        </div>
-        <table class="table table-striped carta_Informacion">
-            <thead>
-                <tr>
-                    <th>Curso</th>
-                    <th>Mes</th>
-                    <th>Docente</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($certificacionesTipo1)) : ?> <!-- Usamos $certificacionesTipo1 para certificados tipo 1 -->
-                    <?php foreach ($certificacionesTipo1 as $certificacion) : ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
-                            <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
-                            <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr>
-                        <td colspan="3" class="text-center">No hay cursos disponibles.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+<div class="container-fluid mt-5  box-shadow-div p-5">
+    <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
+        Acreditaciones Pedagógicas
     </div>
-</div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
 
-          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="container-fluid p-3">
+        <div class="row">
+            <!-- Gráfico de Cursos Pedagógicos -->
+            <!-- Aquí se incluye el gráfico -->
+            <div class="container-fluid">
+                <div class="row my-4">
+                    <div class="col-md-12">
+                        <div class="chart-box rounded">
+                            <canvas id="columnChartTipo1"></canvas> <!-- Contenedor para el gráfico tipo 1 -->
+                        </div>
+                    </div> <!-- .col -->
+                </div> <!-- end section -->
+            </div> 
+
+            <div class="col-md-12 carta_Informacion">
+                <div class="table-section p-6 border rounded box-shadow-div h-100 carta_Informacion">
+                    <div class="d-flex justify-content-between align-items-center mb-3 carta_Informacion">
+                        <h4 class="mb-0 text-green carta_Informacion">Acreditaciones Pedagógicas</h4> <!-- Título actualizado -->
+                    </div>
+                    <table class="table table-striped carta_Informacion">
+                        <thead>
+                            <tr>
+                                <th>Curso</th>
+                                <th>Mes</th>
+                                <th>Docente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($certificacionesTipo1)) : ?> <!-- Usamos $certificacionesTipo1 para certificados tipo 1 -->
+                                <?php foreach ($certificacionesTipo1 as $certificacion) : ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($certificacion['nombre_certificado']); ?></td>
+                                        <td><?php echo htmlspecialchars($certificacion['nombre_mes']); ?></td>
+                                        <td><?php echo htmlspecialchars($certificacion['nombre_completo']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td colspan="3" class="text-center">No hay cursos disponibles.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!-- /.col -->
+        </div> <!-- /.row -->
+    </div> <!-- /.container-fluid -->
+</div> <!-- /.container-fluid -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Obtener los datos desde PHP
     var mesesTipo1 = <?php echo $mesesJson; ?>; // Meses para el gráfico tipo 1
@@ -651,7 +651,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }]
         },
         options: {
-            responsive: true,
+            responsive: true,  // Hace que el gráfico sea responsivo
             layout: {
                 padding: {
                     top: 10,
@@ -683,7 +683,13 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     });
+
+    // Redibujar el gráfico al cambiar el tamaño de la ventana
+    window.addEventListener('resize', function () {
+        columnChartTipo1.resize();
+    });
 </script>
+
 
 
           <!-- Contenedor de Cursos Pedagógicos -->
@@ -694,16 +700,15 @@ document.addEventListener("DOMContentLoaded", function() {
             <div class="container-fluid p-3">
               <div class="row">
                 <!-- Gráfico de Cursos Pedagógicos -->
-               
-                <div class="container-fluid">
-  <div class="row my-4">
-    <div class="col-md-12">
-      <div class="chart-box rounded">
-        <canvas id="columnChartTipo2"></canvas> <!-- Contenedor para el gráfico -->
-      </div>
-    </div> <!-- .col -->
-  </div> <!-- end section -->
-</div> 
+              <div class="container-fluid">
+                  <div class="row my-4">
+                    <div class="col-md-12">
+                    <div class="chart-box responsive rounded">
+                        <canvas id="columnChartTipo2"></canvas>
+                    </div>
+                    </div> <!-- .col -->
+                  </div> <!-- end section -->
+              </div> 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -718,17 +723,17 @@ document.addEventListener("DOMContentLoaded", function() {
         data: {
             labels: mesesTipo2, // Los meses
             datasets: [{
-                label: 'Certificaciones Profesionales',
-                data: certificacionesTipo2, // Cantidades de certificaciones tipo 2
-                backgroundColor: 'rgba(7, 118, 24)', // Rojo transparente
-                borderColor: 'rgb(16, 102, 29)', // Rojo fuerte
+                label: 'Certificaciones Pedagógicas', 
+                data: certificacionesTipo2, // Cantidades de certificaciones tipo 1
+                backgroundColor: 'rgba(59, 204, 23)', // Azul transparente
+                borderColor: 'rgb(105, 215, 109)', // Azul fuerte
                 borderWidth: 1,
                 barThickness: 40, // Hacer las barras más delgadas
                 borderRadius: 20, // Esquinas redondeadas
             }]
         },
         options: {
-            responsive: true,
+            responsive: true,  // Hace que el gráfico sea responsivo
             layout: {
                 padding: {
                     top: 10,
@@ -946,6 +951,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <h4 class="mb-0 text-green carta_Informacion">Docentes</h4>
         </div>
 
+
         <!-- Contenedor con scroll -->
         <div class="table-responsive" style="max-height: 350px; overflow-y: auto; position: relative;">
             <table class="table datatables" id="tabla-materias-2">
@@ -963,12 +969,14 @@ document.addEventListener("DOMContentLoaded", function() {
                     <?php if ($maestros): ?>
                         <?php foreach ($maestros as $maestroscarrera): ?>
                             <tr>
+
                                 <td><?php echo htmlspecialchars($maestroscarrera['nombre_usuario'] . ' ' . $maestroscarrera['apellido_p'] . ' ' . $maestroscarrera['apellido_m']); ?></td>
                                 <td><?php echo htmlspecialchars($maestroscarrera['edad']); ?></td>
                                 <td><?php echo htmlspecialchars($maestroscarrera['fecha_contratacion']); ?></td>
                                 <td><?php echo htmlspecialchars($maestroscarrera['numero_empleado']); ?></td>
                                 <td><?php echo htmlspecialchars($maestroscarrera['cedula']); ?></td>
                                 <td><?php echo htmlspecialchars($maestroscarrera['correo']); ?></td>
+
                             </tr>                  
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -981,6 +989,7 @@ document.addEventListener("DOMContentLoaded", function() {
         </div> <!-- Fin del contenedor con scroll -->
     </div>
 </div> <!-- /.col -->
+
 
 
 

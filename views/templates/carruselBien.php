@@ -1,86 +1,51 @@
 <?php
 include('../../models/session.php');
-include('../../controllers/db.php'); // Conexión a la base de datos
+include('../../controllers/db.php'); // Asegúrate de que este archivo incluya la conexión a la base de datos.
 include('../../models/consultas.php'); // Incluir la clase de consultas
 include('aside.php');
 
-// Crear instancia de Consultas
-$consultas = new Consultas($conn);
+$idusuario = $_SESSION['user_id']; // Asumimos que el ID ya está en la sesión
 
-// Obtener el ID del usuario actual y el tipo de usuario desde la sesión
-$idusuario = (int) $_SESSION['user_id'];
-$tipoUsuarioId = $consultas->obtenerTipoUsuarioPorId($idusuario);
 $imgUser  = $consultas->obtenerImagen($idusuario);
 
-// Validar tipo de usuario
-if (!$tipoUsuarioId) {
-    die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
-}
-
+// Crear una instancia de la clase Consultas
+$consultas = new Consultas($conn);
 
 $periodos = $consultas->obtenerPeriodo();
 $carreras = $consultas->obtenerCarreras();
 // Obtenemos el idusuario actual (si no está definido, iniciamos en 1)
 $idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : 1;
 
-
-// Obtener usuario y carrera
-$idusuario = isset($_GET['idusuario']) ? intval($_GET['idusuario']) : $idusuario;
+// Llamamos al método para obtener el usuario actual
 $usuario = $consultas->obtenerUsuarioPorId($idusuario);
+
+// Llamamos al método para obtener la carrera del usuario
 $carrera = $consultas->obtenerCarreraPorUsuarioId($idusuario);
 $carreras = $consultas->obtenerCarreras();
 
-// Fusionar datos de usuario y carrera
+
+// Fusionar los arrays de $usuario y $carrera (si $carrera devuelve un array asociativo)
 if ($carrera) {
-    $usuario = array_merge($usuario, $carrera);
+  $usuario = array_merge($usuario, $carrera);
 }
 
-// Calcular antigüedad del usuario
-if (isset($usuario["fecha_contratacion"])) {
-    $fechaContratacionDate = new DateTime($usuario["fecha_contratacion"]);
-    $fechaActual = new DateTime();
-    $usuario['antiguedad'] = $fechaContratacionDate->diff($fechaActual)->y;
-}
+// Supongamos que la fecha de contratación viene del array $usuario
+$fechaContratacion = $usuario["fecha_contratacion"];
 
-// Obtener incidencias con los nombres de los usuarios
-$incidenciasUsuarios = $consultas->obtenerIncidenciasUsuarios();
+// Convertimos la fecha de contratación en un objeto DateTime
+$fechaContratacionDate = new DateTime($fechaContratacion);
 
-// Obtener incidencias por carrera para la gráfica
-$incidenciasCarrera = $consultas->IncidenciasCarreraGrafic();
-$carrerasGrafic = [];
-$incidenciasGrafic = [];
+// Obtenemos la fecha actual
+$fechaActual = new DateTime();
 
-// Recorrer las incidencias por carrera y almacenarlas
-foreach ($incidenciasCarrera as $row) {
-    $carrerasGrafic[] = $row['nombre_carrera']; 
-    
-    // Validación para evitar Undefined array key
-    $cantidadRegistros = isset($row['cantidad_registros']) ? (int) $row['cantidad_registros'] : 0;
+// Calculamos la diferencia en años entre la fecha de contratación y la fecha actual
+$antiguedad = $fechaContratacionDate->diff($fechaActual)->y; // .y nos da solo los años
 
-    // Agregar los valores al array correspondiente
-    $incidenciasGrafic[] = $cantidadRegistros;
-}
+// Almacenamos la antigüedad en el array $usuario para que sea fácil de mostrar
+$usuario['antiguedad'] = $antiguedad;
 
-// Convertir datos a JSON para pasarlos a JavaScript
-$carrerasJson = json_encode($carrerasGrafic);
-$incidenciasJson = json_encode($incidenciasGrafic);
-
-// Consultar incidencias del usuario
-$query = "SELECT motivo, dia_incidencia FROM incidencia_has_usuario WHERE usuario_usuario_id = :user_id";
-$stmt = $conn->prepare($query);
-$stmt->bindParam(':user_id', $idusuario);
-$stmt->execute();
-$avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Nombre de carrera
-$nombreCarrera = isset($carrera['nombre_carrera']) ? htmlspecialchars($carrera['nombre_carrera']) : 'Sin división';
-
-// Obtener listas de períodos
-$periodos = $consultas->obtenerPeriodos();
-
-// Verificar si se ha enviado el formulario de cerrar sesión
 if (isset($_POST['logout'])) {
-    $sessionManager->logoutAndRedirect('../templates/auth-login.php');
+  $sessionManager->logoutAndRedirect('../templates/auth-login.php');
 }
 
 $incidenciasConPorcentaje = $consultas->obtenerIncidenciasPorcentaje();
@@ -89,15 +54,7 @@ $incidenciasConPorcentaje = $consultas->obtenerIncidenciasPorcentaje();
 $incidenciasData = json_encode($incidenciasConPorcentaje); // Codificamos el array en formato JSON
 
 $datosIncidencias = $consultas->obtenerDatosIncidencias2();
-
 ?>
-
-
-
-
-
-
-
 <!doctype html>
 <html lang="en">
 
@@ -365,7 +322,7 @@ $datosIncidencias = $consultas->obtenerDatosIncidencias2();
                             <strong class="name-line">Edad:</strong> ${usuario.edad} años <br>
                             <strong class="name-line">Fecha de contratación:</strong> ${usuario.fecha_contratacion} <br>
                             <strong class="name-line">Antigüedad:</strong> ${antiguedad} años <br>
-                            <strong class="name-line">División Adscrita:</strong> ${usuario.nombre_carrera}<br>
+                            <strong class="name-line">División Adscrita:</strong> <?= htmlspecialchars($usuario['nombre_carrera']) ?>
                             <strong class="name-line">Número de Empleado:</strong> ${usuario.numero_empleado} <br>
                             <strong class="name-line">Grado académico:</strong> ${usuario.grado_academico} <br>
                             <strong class="name-line">Cédula:</strong> ${usuario.cedula} <br>
@@ -383,464 +340,135 @@ $datosIncidencias = $consultas->obtenerDatosIncidencias2();
       </script>
 
 
-      <!-- Parte de recursos humanos -->
-      <div class="container-fluid mt-0">
-  <div class="mb-3 mt-0 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div ">
-    RECURSOS HUMANOS
-  </div>
-  
-  <!-- Tarjeta principal -->
-  <div class="card shadow-lg p-4 mb-3">
-    <div class="wrapper">
-      <div class="container-fluid">
-        <!-- Filtros -->
-        <div class="container-filter mb-3 d-flex justify-content-center flex-wrap">
-          <!-- Filtro de Periodo -->
-          <div class="card-body-filter period-filter box-shadow-div mx-2 mb-0 mt-0 position-relative">
-            <span class="fe fe-24 fe-filter me-2"></span>
-            <label class="filter-label">Periodo:</label>
-            <div class="filter-options position-relative">
-              <select class="form-select" id="periodoSelect">
-                <option value="">Selecciona un periodo</option>
-                <?php foreach ($periodos as $periodo): ?>
-                  <option value="<?php echo $periodo['periodo_id']; ?>">
-                    <?php echo htmlspecialchars($periodo['descripcion']); ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
 
-          <!-- Filtro de División -->
-          <div class="card-body-filter division-filter box-shadow-div mx-2 mb-0 position-relative">
-            <button class="btn-filter d-flex align-items-center">
-              <span class="fe fe-24 fe-filter me-2"></span>
-              <span class="filter-label" data-placeholder="División">
-                <?php echo $nombreCarrera; ?>
-              </span>
-            </button>
-            <div class="filter-options position-absolute top-100 start-0 bg-white border shadow-sm d-none">
-              <ul class="list-unstyled m-0 p-2">
-                <li><a href="#" class="d-block py-1"><?php echo $nombreCarrera; ?></a></li>
-              </ul>
-            </div>
-          </div>
 
-        </div>
 
-        <!-- Sección de Incidencias -->
-        <h2 class="titulo text-center my-3">INCIDENCIAS</h2>
-        <div class="row d-flex justify-content-center">
-          <!-- Bloque de Días Económicos -->
-          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="card-body-calendar box-shadow-div mb-3">
-              <h3 class="h5">DIAS ECONOMICOS TOTALES</h3>
-              <div class="text-verde">4</div>
-            </div>
-            <div class="card-body-calendar box-shadow-div">
-              <h3 class="h5">DIAS ECONOMICOS TOMADOS</h3>
-              <div class="text-verde">1</div>
-            </div>
-          </div>
-
-          <!-- Calendario -->
-          <div class="col-xl-6 col-lg-8 col-md-12 col-sm-12 mb-3">
-            <div class="calendar-new box-shadow-div">
-              <div class="header d-flex align-items-center">
-                <div class="month"></div>
-                <div class="btns d-flex justify-content-center">
-                  <div class="btn today-btn mx-1">
-                    <i class="fe fe-24 fe-calendar"></i>
-                  </div>
-                  <div class="btn prev-btn mx-1">
-                    <i class="fe fe-24 fe-arrow-left"></i>
-                  </div>
-                  <div class="btn next-btn mx-1">
-                    <i class="fe fe-24 fe-arrow-right"></i>
-                  </div>
-                </div>
-              </div>
-              <div class="weekdays d-flex">
-                <div class="day">Dom</div>
-                <div class="day">Lun</div>
-                <div class="day">Mar</div>
-                <div class="day">Mie</div>
-                <div class="day">Jue</div>
-                <div class="day">Vie</div>
-                <div class="day">Sab</div>
-              </div>
-              <div class="days">
-                <!-- días agregados dinámicamente -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Bloque de Avisos -->
-          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="card-body-calendar box-shadow-div mb-3">
-              <h3 class="h5">AVISOS</h3>
-              <div class="text-verde"><?php echo count($avisos); ?></div>
-            </div>
-            <div class="card-body-calendar">
-              <?php foreach ($avisos as $aviso): ?>
-                <div class="card-avisos mb-2">
-                  <strong>Motivo:</strong> <?php echo htmlspecialchars($aviso['motivo']); ?><br>
-                  <strong>Fecha de incidencia:</strong> <?php echo htmlspecialchars($aviso['dia_incidencia']); ?>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal de Incidencias -->
-        <div class="modal fade" id="incidenciasModal" tabindex="-1" aria-labelledby="incidenciasModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
+        <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="incidenciasModalLabel">Formulario de Incidencias</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="defaultModalLabel">Notifications</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
               </div>
-              <div class="modal-body" id="modalContent">
-                <!-- Contenido cargado dinámicamente -->
+              <div class="modal-body">
+                <div class="list-group list-group-flush my-n3">
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-box fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Package has uploaded successfull</strong></small>
+                        <div class="my-0 text-muted small">Package is zipped and uploaded</div>
+                        <small class="badge badge-pill badge-light text-muted">1m ago</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-download fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Widgets are updated successfull</strong></small>
+                        <div class="my-0 text-muted small">Just create new layout Index, form, table</div>
+                        <small class="badge badge-pill badge-light text-muted">2m ago</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-inbox fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Notifications have been sent</strong></small>
+                        <div class="my-0 text-muted small">Fusce dapibus, tellus ac cursus commodo</div>
+                        <small class="badge badge-pill badge-light text-muted">30m ago</small>
+                      </div>
+                    </div> <!-- / .row -->
+                  </div>
+                  <div class="list-group-item bg-transparent">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <span class="fe fe-link fe-24"></span>
+                      </div>
+                      <div class="col">
+                        <small><strong>Link was attached to menu</strong></small>
+                        <div class="my-0 text-muted small">New layout has been attached to the menu</div>
+                        <small class="badge badge-pill badge-light text-muted">1h ago</small>
+                      </div>
+                    </div>
+                  </div> <!-- / .row -->
+                </div> <!-- / .list-group -->
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear All</button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-document.getElementById('periodoSelect').addEventListener('change', function() {
-    const selectedPeriodId = this.value;
-    console.log("Periodo seleccionado:", selectedPeriodId);
-    
-    if (selectedPeriodId) {
-        fetch(`get_period_dates.php?id=${selectedPeriodId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.fecha_inicio && data.fecha_termino) {
-                    const fechaInicio = new Date(data.fecha_inicio);
-                    const fechaTermino = new Date(data.fecha_termino);
-                    actualizarCalendario(fechaInicio, fechaTermino);
-                }
-            })
-            .catch(error => console.error("Error al obtener las fechas del periodo:", error));
-    }
-});
-
-function actualizarCalendario(fechaInicio, fechaTermino) {
-    currentMonth = fechaInicio.getMonth();
-    currentYear = fechaInicio.getFullYear();
-    renderCalendar();
-}
-</script>
-
-      <div class="container-fluid ">
-        <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile flag-div mt-1 mb-2">
-          DATOS DE INCIDENCIAS
-        </div>
-        <div class="row">
-          <!-- Tarjeta de Gráfica de Incidencias -->
-          <div class="col-12 mb-4">
-            <div class="card shadow box-shadow-div h-100 carta_Informacion">
-              <div class="card-header carta_Informacion">
-                <strong class="card-title text-green mb-0 carta_Informacion">Gráfica de Incidencias</strong>
+        <div class="modal fade modal-shortcut modal-slide" tabindex="-1" role="dialog" aria-labelledby="defaultModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="defaultModalLabel">Shortcuts</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
               </div>
-              <div class="card-body">
-                <!-- Donut Chart de Incidencias -->
-                <div id="donutChart3" style="height: 300px; width: 100%;"></div> <!-- Ajusta la altura según sea necesario -->
-              </div> <!-- /.card-body -->
-            </div> <!-- /.card -->
-          </div> <!-- /.col -->
-          
-          <script>
-            // Recibimos los datos PHP en formato JSON y los convertimos a un objeto JavaScript
-            var incidenciasData = <?php echo $incidenciasData; ?>;
-
-            // Extraemos las descripciones (nuevas etiquetas), los valores (porcentajes), y las cantidades
-            var labels = incidenciasData.map(function(item) {
-              return item.descripcion; // Usamos la descripción
-            });
-
-            var values = incidenciasData.map(function(item) {
-              return item.porcentaje; // Los porcentajes calculados en PHP
-            });
-
-            var cantidades = incidenciasData.map(function(item) {
-              return item.cantidad_incidencias; // Las cantidades de incidencias
-            });
-
-            // Ahora podemos pasar estos datos a la configuración de la gráfica
-var donutChartOptions2 = {
-    series: values, // Usamos los porcentajes como series
-    chart: {
-      type: "donut",
-      height: '300px',
-      width: '100%',
-      responsive: [{
-        breakpoint: 768,
-        options: {
-          chart: {
-            height: 200
-          },
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }]
-    },
-    labels: labels, // Etiquetas que corresponderán a los tipos de incidencia
-    legend: {
-      position: "bottom",
-      markers: {
-        width: 10,
-        height: 10,
-        radius: 6
-      }
-    },
-    stroke: {
-      colors: ["#ffffff"],
-      width: 1
-    },
-    fill: {
-      opacity: 1,
-      colors: ["#33701b", "#78d249", "#274c1b"] // Aquí puedes ajustar los colores
-    },
-    tooltip: {
-      y: {
-        formatter: function(val, opt) {
-          // Usamos el índice del segmento para acceder a las cantidades
-          var index = opt.seriesIndex;  // Obtenemos el índice del segmento
-          return cantidades[index] + ' incidencias';  // Mostramos la cantidad
-        }
-      }
-    }
-};
-
-// Inicializar y renderizar el gráfico
-var donutChart3Ctn = document.querySelector("#donutChart3");
-if (donutChart3Ctn) {
-  var donutChart3 = new ApexCharts(donutChart3Ctn, donutChartOptions2);
-  donutChart3.render();
-}
-          </script>
-
-<div class="col-12">
-  <div class="card box-shadow-div p-4 mb-3">
-    <div class="card-header carta_Informacion">
-      <strong class="card-title text-green mb-0 carta_Informacion">Tabla de Incidencias</strong>
-    </div>
-    <div class="card-body">
-      <!-- Ejemplo de tabla para incidencias -->
-      <table class="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th>ID Incidencia</th>
-            <th>Motivo</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($datosIncidencias as $incidencia): ?>
-            <tr>
-              <td><?php echo $incidencia['incidencia_has_usuario_id']; ?></td>
-              <td><?php echo $incidencia['motivo']; ?></td>
-              <td><?php echo $incidencia['dia_incidencia']; ?></td>
-              <td>
-                <?php 
-                  // Aquí puedes agregar una lógica para mostrar el estado de la incidencia
-                  // Asumiendo que status_incidencia_id es un número y tienes una tabla de estados
-                  switch ($incidencia['status_incidencia_id']) {
-                    case 1:
-                      echo 'Pendiente';
-                      break;
-                    case 2:
-                      echo 'Resuelta';
-                      break;
-                    case 3:
-                      echo 'En proceso';
-                      break;
-                    default:
-                      echo 'Desconocido';
-                      break;
-                  }
-                ?>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div> <!-- /.card-body -->
-  </div> <!-- /.card-body -->
-</div> <!-- /.col -->
-        </div> <!-- /.row -->
-      </div> <!-- /.container-fluid -->
-
-      
-
-
-        
-
-          <!-- Nuevo Contenedor Principal: Incidencias -->
-          <div class="container-fluid mt-5 box-shadow-div p-5">
-            <!-- Título de Incidencias -->
-            <div class="mb-3 font-weight-bold bg-success text-white rounded p-3 box-shadow-div-profile cont-div">
-              Incidencias
-            </div>
-
-            <!-- Contenedor de la Tarjeta de Incidencias -->
-            <div class="container-fluid p-3">
-              <div class="row">
-                <!-- Columna completa para la tarjeta -->
-                <div class="col-12">
-                  <div class="card shadow mb-4 box-shadow-div h-100 carta_Informacion">
-                    <!-- Encabezado de la Tarjeta -->
-                    <div class="card-header">
-                      <strong class="card-title text-green mb-0">Resumen de Incidencias</strong>
+              <div class="modal-body px-5">
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-success justify-content-center">
+                      <i class="fe fe-cpu fe-32 align-self-center text-white"></i>
                     </div>
-
-                    <!-- Cuerpo de la tarjeta -->
-                    <div class="card-body text-center">
-                      <!-- Incluye Chart.js -->
-                   
-
-
-
-
-
-                      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-                      <!-- Nuevo contenedor para el gráfico de pastel -->
-                    <div id="donutChart4"></div>
-
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Obtener datos desde PHP
-    var carreras = <?php echo $carrerasJson; ?>;
-    var incidencias = <?php echo $incidenciasJson; ?>;
-
-    console.log("Carreras:", carreras);
-    console.log("Incidencias:", incidencias);
-
-    // Verificar si hay datos
-    if (carreras.length === 0 || incidencias.length === 0) {
-        console.warn("No hay datos para mostrar en la gráfica.");
-        return;
-    }
-
-    // Verificar si ya existe un gráfico en #donutChart4 y destruirlo
-    if (typeof chart !== 'undefined' && chart !== null) {
-        chart.destroy(); // Destruir el gráfico anterior si existe
-    }
-
-    // Configuración del gráfico de dona (donut)
-    var options = {
-        series: incidencias, // Datos de incidencias
-        chart: {
-            type: 'donut', // Cambiar a tipo 'donut'
-            height: 350
-        },
-        labels: carreras, // Etiquetas de las carreras
-        colors: [
-            '#66BB6A', // Verde claro
-            '#43A047', // Verde medio
-            '#2C6B2F', // Verde más oscuro
-            '#1B5E20', // Verde oscuro
-            '#81C784', // Verde pastel
-            '#388E3C', // Verde fuerte
-            '#4CAF50'  // Verde más brillante
-        ], // Colores verdes
-        legend: {
-            position: 'bottom'
-        },
-        plotOptions: {
-            pie: {
-                donut: {
-                    size: '60%' // Controlar el tamaño del agujero en el centro
-                }
-            }
-        }
-    };
-
-    // Renderizar el gráfico en el div con ID 'donutChart4'
-    var chart = new ApexCharts(document.querySelector("#donutChart4"), options);
-    chart.render();
-});
-</script>
-
-
-
-
-
-<div id="incidencias-container" style="overflow-y: auto;">
-    <table class="table table-striped table-bordered" id="tabla-incidencias">
-        <thead class="thead-dark" style="position: sticky; top: 0; background-color: #343a40; color: white; z-index: 2;">
-            <tr>
-                <th>Número de incidencia</th>
-                <th>Usuario</th>
-                <th>Fecha solicitada</th>
-                <th>Motivo</th>
-                <th>Hora de inicio</th>
-                <th>Hora de término</th>
-                <th>Horario de incidencia</th>
-                <th>Día de la incidencia</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (!empty($incidenciasUsuarios)): ?>
-                <?php foreach ($incidenciasUsuarios as $incidencia): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($incidencia['numero_incidencia']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['usuario']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['fecha_solicitada']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['motivo']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['hora_inicio']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['hora_termino']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['horario_incidencia']); ?></td>
-                        <td><?php echo htmlspecialchars($incidencia['dia_incidencia']); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="8" class="text-center">No hay incidencias registradas.</td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let table = document.getElementById("tabla-incidencias");
-        let container = document.getElementById("incidencias-container");
-        let rowCount = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr").length;
-
-        if (rowCount > 5) {
-            container.style.maxHeight = "400px"; // Agrega el scroll si hay más de 5 registros
-        } else {
-            container.style.maxHeight = "auto"; // Sin scroll si hay 5 o menos
-        }
-    });
-</script>
-
-
-                    </div> <!-- /.card-body -->
-                  </div> <!-- /.card -->
-                </div> <!-- /.col -->
-              </div> <!-- /.row -->
-            </div> <!-- /.container-fluid -->
-          </div> <!-- /.container-fluid -->
-
-
-
+                    <p>Control area</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-activity fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Activity</p>
+                  </div>
+                </div>
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-droplet fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Droplet</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-upload-cloud fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Upload</p>
+                  </div>
+                </div>
+                <div class="row align-items-center">
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-users fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Users</p>
+                  </div>
+                  <div class="col-6 text-center">
+                    <div class="squircle bg-primary justify-content-center">
+                      <i class="fe fe-settings fe-32 align-self-center text-white"></i>
+                    </div>
+                    <p>Settings</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- main -->
 
 
       <script src="js/jquery.min.js"></script>
