@@ -60,11 +60,7 @@ class Consultas {
             $stmt->execute();
             $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
     
-            // Depuración
-            echo "<pre>";
-            print_r($resultado);
-            echo "</pre>";
-    
+
             return $resultado;
         } catch (PDOException $e) {
             error_log("Error al obtener cuerpo colegiado: " . $e->getMessage());
@@ -413,6 +409,25 @@ public function GraficaSexo() {
     $stmt->execute();
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve los resultados como un array asociativo
+}
+
+
+public function obtenerUsuariosPorSexo($sexoSeleccionado) {
+    // Asumiendo que 'sexo' es una columna en la base de datos
+    $sql = "SELECT nombre_usuario, apellido_p, apellido_m, edad, fecha_contratacion, numero_empleado, cedula, correo 
+            FROM usuario WHERE sexo_sexo_id = :sexo";  // Cambié 'usuarios' por 'usuario' y la columna 'sexo' por 'sexo_sexo_id'
+    
+    // Preparar la consulta
+    $stmt = $this->conn->prepare($sql);
+
+    // Vincular el parámetro
+    $stmt->bindParam(':sexo', $sexoSeleccionado);
+
+    // Ejecutar la consulta
+    $stmt->execute();
+
+    // Devolver los resultados
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 

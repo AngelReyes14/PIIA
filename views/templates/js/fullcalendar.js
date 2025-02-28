@@ -83,8 +83,7 @@ function renderCalendar() {
         day.getDate() === currentDay.getDate()
       );
       
-      
-      console.log(`Día ${i} es económico?`, isEconomicDay);
+    
       
     // Check if the day is within the valid range
     const isWithinRange = currentDay >= minDate && currentDay <= maxDate && 
