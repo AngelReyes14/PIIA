@@ -18,7 +18,7 @@ $idusuario = (int)$_SESSION['user_id'];
 $usuario_tipo = $consultas->obtenerTipoUsuarioPorId($idusuario);
 
 // Obtener la carrera del usuario (asegúrate de que esté en la sesión o consulta si no está)
-$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuario($idusuario);
+$carreraId = $_SESSION['carrera_id'] ?? $consultas->obtenerCarreraPorUsuarioId($idusuario);
 
 if (!$usuario_tipo) {
     die("Error: Tipo de usuario no encontrado para el ID proporcionado.");
