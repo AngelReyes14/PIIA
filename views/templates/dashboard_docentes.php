@@ -47,11 +47,6 @@ $diasEconomicosTotales = 3; // Máximo permitido
 $diasEconomicosTomados = $consultas->obtenerDiasEconomicosTomados($idusuario);
 $diasEconomicos = $consultas->obtenerDiasEconomicos($idusuario);
 
-// Verificar si PHP realmente tiene datos antes de enviarlos a JS
-echo "<pre>";
-print_r($diasEconomicos);
-echo "</pre>";
-
 
 // Redirigir si no se encuentra el usuario
 if (!$usuario) {
@@ -317,6 +312,7 @@ if ($tipoUsuarioId === 2 && !isset($_GET['idusuario']) && !empty($idusuario)) {
                       <div class="col-10">
                           <div class="carousel-inner" id="carouselContent">
                             <div class="carousel-item active animate" data-id="<?= htmlspecialchars($idusuario) ?>">
+
                               <div class="row">
                                 <div class="col-12 col-md-5 col-xl-3 text-center">
                                   <strong class="name-line">Foto del Docente:</strong> <br>
@@ -451,6 +447,7 @@ function llenarSelectDocente() {
     function actualizarCarrusel() {
     carouselContent.innerHTML = ''; // Limpiar contenido previo
 
+
     if (usuarios.length === 0) return;
 
     const usuario = usuarios[currentIndex];
@@ -482,6 +479,7 @@ function llenarSelectDocente() {
                         <strong class="name-line">Correo:</strong> ${usuario.correo} <br>
                     </p>
                 </div>
+
             </div>
         </div>
     `;
@@ -708,7 +706,9 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
 
         <!-- Contenedor del gráfico -->
         <div class="my-4">
-            <canvas id="evaluacionChart"></canvas>
+            <div class="chart-container" style="position: relative; width: 100%; height: 400px;">
+                <canvas id="evaluacionChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -760,71 +760,72 @@ function actualizarCalendario(fechaInicio, fechaTermino) {
         }
 
         const ctx = document.getElementById('evaluacionChart').getContext('2d');
-evaluacionChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: 'Evaluación Técnica',
-                data: evaluacionTecnicaData,
-                backgroundColor: 'rgba(17, 194, 56, 0.95)',
-                borderColor: 'rgb(54, 235, 111)',
-                borderWidth: 1,
-                borderRadius: 15,
-            },
-            {
-                label: 'Evaluación Estudiantil',
-                data: evaluacionEstudiantilData,
-                backgroundColor: 'rgb(16, 117, 36)',
-                borderColor: 'rgb(16, 117, 36)',
-                borderWidth: 1,
-                borderRadius: 15,
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        layout: {
-            padding: {
-                bottom: 30 // Ajusta el espacio inferior del gráfico
-            }
-        },
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: 'Docentes'
-                },
-                ticks: {
-                    autoSkip: false,
-                    font: {
-                        size: 10 // Reduce el tamaño de fuente
+        evaluacionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Evaluación Técnica',
+                        data: evaluacionTecnicaData,
+                        backgroundColor: 'rgba(17, 194, 56, 0.95)',
+                        borderColor: 'rgb(54, 235, 111)',
+                        borderWidth: 1,
+                        borderRadius: 15,
                     },
-                    maxRotation: 0, // Evita la rotación de los nombres
-                    minRotation: 0, // Mantiene los nombres horizontales
-                    padding: 10 // Agrega espacio entre el texto y el eje
-                }
+                    {
+                        label: 'Evaluación Estudiantil',
+                        data: evaluacionEstudiantilData,
+                        backgroundColor: 'rgb(16, 117, 36)',
+                        borderColor: 'rgb(16, 117, 36)',
+                        borderWidth: 1,
+                        borderRadius: 15,
+                    }
+                ]
             },
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Puntaje'
+            options: {
+                responsive: true, // Hace el gráfico responsivo
+                maintainAspectRatio: false, // Esto asegura que el gráfico se adapte al contenedor
+                layout: {
+                    padding: {
+                        bottom: 30 // Ajusta el espacio inferior del gráfico
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Docentes'
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            font: {
+                                size: 8 // Reduce el tamaño de fuente
+                            },
+                            maxRotation: 0, // Evita la rotación de los nombres
+                            minRotation: 0, // Mantiene los nombres horizontales
+                            padding: 10 // Agrega espacio entre el texto y el eje
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Puntaje'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Evaluación Docente por Período'
+                    }
                 }
             }
-        },
-        plugins: {
-            legend: {
-                position: 'top',
-            },
-            title: {
-                display: true,
-                text: 'Evaluación Docente por Período'
-            }
-        }
-    }
-});
+        });
     }
 
     actualizarGrafico("todos");
@@ -1052,13 +1053,13 @@ evaluacionChart = new Chart(ctx, {
   <div id="contenedor">
     <!-- Tarjeta principal -->
     <div class="card box-shadow-div p-4 mb-3">
-      <div class="logo-container">
+      <div class="logo-container row align-items-center">
         <div class="logo-institucional col-md-2">
           <!-- Espacio para el logo institucional -->
-          <img src="assets/images/logo.png" alt="Logo Institucional">
+          <img src="assets/images/logo.png" alt="Logo Institucional" class="img-fluid">
         </div>
-        <div class="titulo-container col-md-8">
-          <h1>TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
+        <div class="titulo-container col-md-8 text-center text-md-start">
+          <h1 class="text-wrap">TECNOLÓGICO DE ESTUDIOS SUPERIORES DE CHIMALHUACÁN</h1>
         </div>
         <div class="form-group col-md-2">
           <label for="periodo_periodo_id" class="form-label-custom">Periodo:</label>
@@ -1092,6 +1093,7 @@ evaluacionChart = new Chart(ctx, {
                 <?php echo htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']); ?>
             </option>
         <?php endforeach; ?>
+
     </select>
 </div>
 
@@ -1113,9 +1115,8 @@ evaluacionChart = new Chart(ctx, {
 </div>
 
       </div>
-
-      <!-- Tabla -->
-      <div class="row">
+<!-- Tabla -->
+<div class="row">
         <div class="col-12 mb-0">
           <div class="schedule-container">
             <div class="table-responsive">
@@ -1128,7 +1129,7 @@ evaluacionChart = new Chart(ctx, {
 
       <!-- Botón de descarga PDF -->
       <div class="pdf-container no-print">
-        <button id="downloadPDF" onclick="generatePDF()">Descargar PDF</button>
+        <button id="downloadPDF" onclick="generatePDF()" class="btn btn-primary">Descargar PDF</button>
       </div>
 
     </div>
@@ -1154,12 +1155,12 @@ evaluacionChart = new Chart(ctx, {
               </div>
               <div class="card-body">
               <div id="barChart" 
-     data-docente="<?php echo isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
+      data-docente="<?php echo isset($usuario['nombre_usuario']) && isset($usuario['apellido_p']) && isset($usuario['apellido_m']) 
     ? htmlspecialchars($usuario['nombre_usuario'] . ' ' . $usuario['apellido_p'] . ' ' . $usuario['apellido_m']) 
     : 'Nombre no disponible'; ?>"
-     data-tutorias="<?php echo $horas_tutorias; ?>" 
-     data-apoyo="<?php echo $horas_apoyo; ?>" 
-     data-frente="<?php echo $horas_frente_grupo; ?>">
+    data-tutorias="<?php echo $horas_tutorias; ?>" 
+    data-apoyo="<?php echo $horas_apoyo; ?>" 
+    data-frente="<?php echo $horas_frente_grupo; ?>">
 </div>
 <div id="total-horas" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
 
