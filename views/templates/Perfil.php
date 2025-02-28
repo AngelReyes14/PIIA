@@ -270,7 +270,7 @@ if (isset($_POST['logout'])) {
 
         <div class="col-md-3">
     <label for="meses_meses_id" class="form-label">Mes:</label>
-    <select class="form-control" id="meses_meses_id" name="mes_mes_id" required>
+    <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
         <option value="" disabled selected>Selecciona un mes</option>
         <?php if (!empty($meses)): ?>
             <?php foreach ($meses as $mes): ?>
@@ -294,8 +294,11 @@ if (isset($_POST['logout'])) {
             <div class="invalid-feedback">Este campo no puede estar vacío.</div>
         </div>
     </div>
+<div class="text-a">
+<button type="submit" class="btn btn-primary mt-3">Registrar Certificación</button>
 
-    <button type="submit" class="btn btn-primary mt-3">Registrar Certificación</button>
+</div>
+   
 </form>
 
 
@@ -364,17 +367,6 @@ if (isset($_POST['logout'])) {
     </div>
 </td>
 
-
-                                                <!-- Botón de eliminar certificado -->
-                                            
-                                                <form method="POST" action="../../models/insert.php">
-    <input type="hidden" name="form_type" value="eliminar-certificacion-usuario">
-    <input type="hidden" name="certificados_id" id="certificados_id" value="<?= htmlspecialchars($certificacionusuario['certificados_id']) ?>">
-    <button class="btn btn-danger" data-id="<?php echo $certificacionusuario['certificados_id']; ?>">Eliminar</button>
-
-</form>
-
-
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -405,37 +397,57 @@ if (isset($_POST['logout'])) {
 
           <div class="row">
             <!-- Certificación -->
-            <div class="col-md-4">
-              <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
-              <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
+            <div class="col-md-3">
+            <label for="certificaciones_certificaciones_id" class="form-label">Certificación:</label>
+            <select class="form-control" id="certificaciones_certificaciones_id" name="certificaciones_certificaciones_id" required>
                 <option value="" disabled selected>Selecciona una certificación</option>
                 <?php if ($certificaciones): ?>
-                  <?php foreach ($certificaciones as $certificacion): ?>
-                    <option value="<?= htmlspecialchars($certificacion['certificaciones_id']) ?>">
-                      <?= htmlspecialchars($certificacion['descripcion']) ?>
-                    </option>
-                  <?php endforeach; ?>
+                    <?php foreach ($certificaciones as $certificacion): ?>
+                        <option value="<?= htmlspecialchars($certificacion['certificaciones_id']) ?>">
+                            <?= htmlspecialchars($certificacion['descripcion']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 <?php else: ?>
-                  <option value="">No hay certificaciones disponibles</option>
+                    <option value="">No hay certificaciones disponibles</option>
                 <?php endif; ?>
-              </select>
-              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
+            </select>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
 
-            <!-- Nombre del Certificado -->
-            <div class="col-md-4 ">
-              <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
-              <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
-              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
+        <!-- Nombre del Certificado -->
+        <div class="col-md-3 ">
+            <label for="nombre_certificado" class="form-label">Nombre del Certificado:</label>
+            <input type="text" class="form-control" name="nombre_certificado" id="nombre_certificado" required>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
 
-            <!-- Selección de archivo PDF -->
-            <div class="col-md-4" id="documentDiv">
-              <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
-              <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf">
-              <input type="hidden" name="url_antigua" id="url_antigua" value="">
-              <div class="invalid-feedback">Este campo no puede estar vacío.</div>
-            </div>
+
+
+        <div class="col-md-3">
+    <label for="meses_meses_id" class="form-label">Mes:</label>
+    <select class="form-control" id="meses_meses_id" name="meses_meses_id" required>
+        <option value="" disabled selected>Selecciona un mes</option>
+        <?php if (!empty($meses)): ?>
+            <?php foreach ($meses as $mes): ?>
+                <option value="<?= htmlspecialchars($mes['meses_id']) ?>">
+                    <?= htmlspecialchars($mes['descripcion']) ?>
+                </option>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <option value="">No hay meses disponibles</option>
+        <?php endif; ?>
+    </select>
+    <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+</div>
+
+
+
+        <!-- Selección de archivo PDF -->
+        <div class="col-md-3" id="documentDiv">
+            <label for="documentInput" class="form-label">Selecciona el archivo PDF:</label>
+            <input class="form-control" id="documentInput" name="certificado" type="file" accept=".pdf" required>
+            <div class="invalid-feedback">Este campo no puede estar vacío.</div>
+        </div>
           </div>
 
           <button type="submit" class="btn btn-primary mt-3">Actualizar Certificación</button>

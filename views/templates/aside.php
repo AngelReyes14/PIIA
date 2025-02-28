@@ -47,13 +47,12 @@ $menuItems = [
 
        4 => [
         'Inicio' => ['icon' => 'fe fe-user fe-16', 'link' => 'index.php'],
-        'Desarrollo academico' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'desarrollo_academico_docentes.php'],
        'Formularios' => [
             'Registro de materias' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_materia.php'],
             'Registro de carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_carrera.php'],
             'Registro de grupos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'formulario_grupo.php'],
             'Asignacion de mas carreras' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_usuarios-carreras.php'],
-            'Registro de Escenario' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
+            'Registro de Edificio' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'form_edificio.php'],
        ],
         'Horario' => ['icon' => 'fe fe-file-text fe-16', 'link' => 'form_horario.php']
 
@@ -65,7 +64,6 @@ $menuItems = [
         'Dashboard' => [
             'Docentes' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_docentes.php'],
             'Carrera' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'dashboard_carreras.php'],
-            'Desarrollo academico' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'desarrollo_academico_docentes.php'],
             'Recursos Humanos' => ['icon' => 'fe fe-calendar fe-16', 'link' => 'recursos_humanos_empleados.php']
         ],
         
